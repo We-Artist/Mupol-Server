@@ -30,7 +30,7 @@ public class SwaggerConfig {
                 .apiInfo(getApiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.any()) // 현재 RequestMapping으로 할당된 모든 URL 리스트를 추출
-                .paths(PathSelectors.ant("/api/**")) // 그중 /api/** 인 URL들만 필터링
+                .paths(PathSelectors.ant("/v1/**")) // 그중 /v1/** 인 URL들만 필터링
                 .build()
                 .directModelSubstitute(Timestamp.class, Long.class); // 예시에 보이는 날짜 포맷을 자연스럽게 만들어 줌
     }
