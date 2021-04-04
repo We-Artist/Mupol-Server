@@ -4,7 +4,8 @@
 ## 개발환경
 
 - spring-boot 2.4.4
-- maven
+- maven 
+- spring-boot-starter-web
 - spring-boot-starter-data-jpa
 - spring-boot-starter-security
 - spring-boot-starter-oauth2-client
