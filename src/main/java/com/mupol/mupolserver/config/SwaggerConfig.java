@@ -16,16 +16,18 @@ import java.sql.Timestamp;
 @EnableSwagger2
 public class SwaggerConfig {
 
-    private ApiInfo apiInfo() {
+    private ApiInfo getApiInfo() {
         return new ApiInfoBuilder()
                 .title("Mupol-Server")
-                .description("API documentation")
+                .description("API documentation\n뮤폴 서비스 화이팅 🔥")
+                .version("0.0.1")
                 .build();
     }
 
     @Bean
     public Docket commonApi() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(getApiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.any()) // 현재 RequestMapping으로 할당된 모든 URL 리스트를 추출
                 .paths(PathSelectors.ant("/api/**")) // 그중 /api/** 인 URL들만 필터링
