@@ -1,6 +1,6 @@
 ## 개요
-resolved:#[issue number]
-ex: resolved:#1
+resolved #[issue number]
+ex: resolved #1
 
 해당하는 부분에 체크해주세요(x 표시 하면 됩니다)
 - [ ] New Feature
