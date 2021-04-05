@@ -37,14 +37,14 @@ public class SignController {
         String snsId = "";
 
         // TODO: sns 별로 snsId 가져오기
-        if(provider.equals(SnsType.kakao.getType())) {
+        if (provider.equals(SnsType.kakao.getType())) {
             KakaoProfile profile = kakaoService.getKakaoProfile(accessToken);
             snsId = String.valueOf(profile.getId());
-        }else if(provider.equals(SnsType.apple.getType())) {
+        } else if (provider.equals(SnsType.apple.getType())) {
             return "not yet";
-        }else if(provider.equals(SnsType.google.getType())) {
+        } else if (provider.equals(SnsType.google.getType())) {
             return "not yet";
-        }else if(provider.equals(SnsType.facebook.getType())) {
+        } else if (provider.equals(SnsType.facebook.getType())) {
             return "not yet";
         }
 
@@ -52,29 +52,29 @@ public class SignController {
         return jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
     }
 
-    @ApiOperation(value = "소셜 계정 가입")
+    @ApiOperation(value = "소셜 계정 가입", notes = "성공시 jwt 토큰을 반환합니다")
     @PostMapping(value = "/signup/{provider}")
     public String signupProvider(
-            @ApiParam(value = "서비스 제공자", required = true, defaultValue = "kakao") @PathVariable String provider,
+            @ApiParam(value = "kakao/google/apple/facebook", required = true, defaultValue = "kakao") @PathVariable String provider,
             @ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken,
             @ApiParam(value = "닉네임", required = true) @RequestParam String name,
-            @ApiParam(value = "관심악기", required = false) @RequestParam List<String> instruments,
+            @ApiParam(value = "관심악기") @RequestParam(required = false) List<String> instruments,
             @ApiParam(value = "약관동의여부", required = true) @RequestParam boolean isAgreed,
             @ApiParam(value = "취미여부", required = true) @RequestParam boolean isMajor,
-            @ApiParam(value = "생년월일", required = true) @RequestParam  @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth
-            ) {
+            @ApiParam(value = "생년월일(yyyy-MM-dd)", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth
+    ) {
 
         String snsId = "";
 
         // TODO: sns 별로 profile 가져오기
-        if(provider.equals(SnsType.kakao.getType())) {
+        if (provider.equals(SnsType.kakao.getType())) {
             KakaoProfile profile = kakaoService.getKakaoProfile(accessToken);
             snsId = String.valueOf(profile.getId());
-        }else if(provider.equals(SnsType.apple.getType())) {
+        } else if (provider.equals(SnsType.apple.getType())) {
             return "not yet";
-        }else if(provider.equals(SnsType.google.getType())) {
+        } else if (provider.equals(SnsType.google.getType())) {
             return "not yet";
-        }else if(provider.equals(SnsType.facebook.getType())) {
+        } else if (provider.equals(SnsType.facebook.getType())) {
             return "not yet";
         }
 
