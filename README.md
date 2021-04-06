@@ -18,8 +18,8 @@ nohup java -jar "jar파일이름" > log.out &
 
 현재 배포된 주소
 ```
-http://3.35.208.221:8080/v1
-http://3.35.208.221:8080/swagger-ui.html
+http://3.34.90.247:8080/v1
+http://3.34.90.247:8080/swagger-ui.html
 ```
 
 ## 패키지 관리
@@ -38,3 +38,5 @@ http://3.35.208.221:8080/swagger-ui.html
 - mysql-connector-java
 - gson
 - jjwt
+- spring-cloud-starter-aws
+- yaml-resource-bundle

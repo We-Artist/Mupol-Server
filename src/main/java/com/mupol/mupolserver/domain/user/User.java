@@ -2,6 +2,7 @@ package com.mupol.mupolserver.domain.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mupol.mupolserver.domain.common.BaseTime;
+import com.mupol.mupolserver.domain.instrument.Instrument;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,8 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Builder
 @Getter
@@ -31,25 +31,37 @@ public class User extends BaseTime implements UserDetails {
     @Enumerated(EnumType.STRING)
     private SnsType provider;
 
+    @Setter
     @Column(nullable = false)
     private String username;
 
+    @Setter
     @Column(nullable = false)
     private LocalDate birth;
 
     @Column(nullable = false)
     private boolean isAgreed;
 
+    @Setter
     @Column(nullable = false)
     private boolean isMajor;
 
     @Column(nullable = false)
     private Role role;
 
+    @Setter
     private String email; // 현재 db 스키마에 없음
+    @Setter
     private String bio;
+    @Setter
     private String profileImageUrl;
+    @Setter
     private String bgImageUrl;
+
+    @Setter
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<Instrument> favoriteInstrument = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
