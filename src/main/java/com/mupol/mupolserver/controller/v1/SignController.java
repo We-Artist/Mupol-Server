@@ -5,7 +5,6 @@ import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.response.SingleResult;
-import com.mupol.mupolserver.domain.social.kakao.KakaoProfile;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
@@ -63,13 +62,13 @@ public class SignController {
             @ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken,
             @ApiParam(value = "닉네임", required = true) @RequestParam String name,
             @ApiParam(value = "관심악기(ex. drum, piano, guitar)") @RequestParam(required = false) List<String> instruments,
-            @ApiParam(value = "약관동의여부", required = true) @RequestParam boolean isAgreed,
+            @ApiParam(value = "약관동의여부", required = true) @RequestParam boolean terms,
             @ApiParam(value = "취미여부", required = true) @RequestParam boolean isMajor,
             @ApiParam(value = "생년월일(yyyy-MM-dd)", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth,
             @ApiParam(value = "프로필 이미지") @RequestParam(required = false) MultipartFile profileImage
     ) {
 
-        if (!isAgreed) throw new UserDoesNotAgreeException();
+        if (!terms) throw new UserDoesNotAgreeException();
 
         String snsId = getSnsId(provider, accessToken);
         SnsType snsType = SnsType.valueOf(provider);
@@ -95,7 +94,7 @@ public class SignController {
                 .username(name)
                 .favoriteInstrument(instrumentList)
                 .isMajor(isMajor)
-                .isAgreed(true)
+                .terms(true)
                 .birth(birth)
                 .role(User.Role.USER)
                 .build();
@@ -121,8 +120,7 @@ public class SignController {
     private String getSnsId(String provider, String accessToken) {
         String snsId;
         if (provider.equals(SnsType.kakao.getType())) {
-            KakaoProfile profile = kakaoService.getKakaoProfile(accessToken);
-            snsId = String.valueOf(profile.getId());
+            snsId = kakaoService.getSnsId(accessToken);
         } else if (provider.equals(SnsType.apple.getType())) {
             throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.google.getType())) {
