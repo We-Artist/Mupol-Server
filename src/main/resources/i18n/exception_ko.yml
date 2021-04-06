@@ -8,3 +8,12 @@ userNotFound:
 snsNotSupported:
   code: "-1000"
   msg: "지원하지 않는 sns 입니다."
+userIdDuplicated:
+  code: "-1000"
+  msg: "중복된 user id 입니다."
+userDoesNotAgree:
+  code: "-1000"
+  msg: "이 사용자는 약관에 동의하지 않았습니다"
+InstrumentNotExist:
+  code: "-1000"
+  msg: "지원하지 않는 악기가 포함되었습니다."

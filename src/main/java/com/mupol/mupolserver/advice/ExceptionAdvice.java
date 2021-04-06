@@ -1,8 +1,11 @@
 package com.mupol.mupolserver.advice;
 
 
+import com.mupol.mupolserver.advice.exception.CUserIdDuplicatedException;
 import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
+import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.advice.exception.SnsNotSupportedException;
+import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.domain.response.CommonResult;
 import com.mupol.mupolserver.service.ResponseService;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,23 @@ public class ExceptionAdvice {
         return responseService.getFailResult(Integer.parseInt(getMessage("snsNotSupported.code")), getMessage("snsNotSupported.msg"));
     }
 
+    @ExceptionHandler(CUserIdDuplicatedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected CommonResult userIdDuplicatedException(HttpServletRequest request, CUserIdDuplicatedException e) {
+        return responseService.getFailResult(Integer.parseInt(getMessage("userIdDuplicated.code")), getMessage("userIdDuplicated.msg"));
+    }
+
+    @ExceptionHandler(UserDoesNotAgreeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected CommonResult userDoesNotAgreeException(HttpServletRequest request, UserDoesNotAgreeException e) {
+        return responseService.getFailResult(Integer.parseInt(getMessage("userDoesNotAgree.code")), getMessage("userDoesNotAgree.msg"));
+    }
+
+    @ExceptionHandler(InstrumentNotExistException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected CommonResult instrumentNotExistException(HttpServletRequest request, InstrumentNotExistException e) {
+        return responseService.getFailResult(Integer.parseInt(getMessage("InstrumentNotExist.code")), getMessage("InstrumentNotExist.msg"));
+    }
     private String getMessage(String code) {
         return getMessage(code, null);
     }
