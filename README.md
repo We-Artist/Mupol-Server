@@ -38,3 +38,5 @@ http://3.34.90.247:8080/swagger-ui.html
 - mysql-connector-java
 - gson
 - jjwt
+- spring-cloud-starter-aws
+- yaml-resource-bundle
