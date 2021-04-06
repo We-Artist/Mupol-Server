@@ -10,6 +10,7 @@ import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
+import com.mupol.mupolserver.service.social.FacebookService;
 import com.mupol.mupolserver.service.social.KakaoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,10 +36,12 @@ import java.util.Optional;
 public class SignController {
 
     private final UserRepository userRepository;
-    private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
     private final ResponseService responseService;
     private final S3Service s3Service;
+
+    private final KakaoService kakaoService;
+    private final FacebookService facebookService;
 
     @ApiOperation(value = "소셜 로그인")
     @PostMapping(value = "/signin/{provider}")
@@ -121,11 +124,11 @@ public class SignController {
         String snsId;
         if (provider.equals(SnsType.kakao.getType())) {
             snsId = kakaoService.getSnsId(accessToken);
+        } else if (provider.equals(SnsType.facebook.getType())) {
+            snsId = facebookService.getSnsId(accessToken);
         } else if (provider.equals(SnsType.apple.getType())) {
             throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.google.getType())) {
-            throw new SnsNotSupportedException();
-        } else if (provider.equals(SnsType.facebook.getType())) {
             throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.test.getType())) {
             snsId = accessToken;
