@@ -20,3 +20,7 @@ spring:
       token: https://kauth.kakao.com/oauth/token
       profile: https://kapi.kakao.com/v2/user/me
     url.base: http://localhost:8080
+
+  messages:
+    basename: i18n/exception
+    encoding: utf-8
