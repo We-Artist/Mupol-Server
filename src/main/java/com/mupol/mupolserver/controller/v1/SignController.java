@@ -1,21 +1,29 @@
 package com.mupol.mupolserver.controller.v1;
 
+import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
+import com.mupol.mupolserver.advice.exception.SnsNotSupportedException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
+import com.mupol.mupolserver.domain.response.CommonResult;
+import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.social.kakao.KakaoProfile;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.social.KakaoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Api(tags = {"2. Sign"})
 @RequiredArgsConstructor
@@ -26,10 +34,11 @@ public class SignController {
     private final UserRepository userRepository;
     private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ResponseService responseService;
 
     @ApiOperation(value = "소셜 로그인")
     @PostMapping(value = "/signin/{provider}")
-    public String signinByProvider(
+    public ResponseEntity<SingleResult<String>> signinByProvider(
             @ApiParam(value = "서비스 제공자 provider", required = true, defaultValue = "kakao") @PathVariable String provider,
             @ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken
     ) {
@@ -41,20 +50,26 @@ public class SignController {
             KakaoProfile profile = kakaoService.getKakaoProfile(accessToken);
             snsId = String.valueOf(profile.getId());
         } else if (provider.equals(SnsType.apple.getType())) {
-            return "not yet";
+            throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.google.getType())) {
-            return "not yet";
+            throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.facebook.getType())) {
-            return "not yet";
+            throw new SnsNotSupportedException();
+        } else if (provider.equals(SnsType.test.getType())) {
+            // test 용 sns type
+            snsId = accessToken;
+        } else {
+            throw new SnsNotSupportedException();
         }
 
-        User user = userRepository.findBySnsIdAndProvider(snsId, SnsType.valueOf(provider)).orElseThrow(() -> new IllegalArgumentException("no such user"));
-        return jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
+        User user = userRepository.findBySnsIdAndProvider(snsId, SnsType.valueOf(provider)).orElseThrow(CUserNotFoundException::new);
+        String jwt = jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(jwt));
     }
 
     @ApiOperation(value = "소셜 계정 가입", notes = "성공시 jwt 토큰을 반환합니다")
     @PostMapping(value = "/signup/{provider}")
-    public String signupProvider(
+    public ResponseEntity<SingleResult<String>> signupProvider(
             @ApiParam(value = "kakao/google/apple/facebook", required = true, defaultValue = "kakao") @PathVariable String provider,
             @ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken,
             @ApiParam(value = "닉네임", required = true) @RequestParam String name,
@@ -71,18 +86,19 @@ public class SignController {
             KakaoProfile profile = kakaoService.getKakaoProfile(accessToken);
             snsId = String.valueOf(profile.getId());
         } else if (provider.equals(SnsType.apple.getType())) {
-            return "not yet";
+            throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.google.getType())) {
-            return "not yet";
+            throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.facebook.getType())) {
-            return "not yet";
+            throw new SnsNotSupportedException();
+        } else {
+            throw new SnsNotSupportedException();
         }
 
         Optional<User> user = userRepository.findBySnsIdAndProvider(snsId, SnsType.valueOf(provider));
 
         if (user.isPresent()) {
-            return "[ERROR] existing user";
-//            throw new IllegalArgumentException("existing user");
+            throw new CUserNotFoundException();
         }
 
         User newUser = User.builder()
@@ -97,6 +113,8 @@ public class SignController {
 
         userRepository.save(newUser);
 
-        return jwtTokenProvider.createToken(String.valueOf(newUser.getId()), newUser.getRole());
+        String jwt = jwtTokenProvider.createToken(String.valueOf(newUser.getId()), newUser.getRole());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseService.getSingleResult(jwt));
     }
 }

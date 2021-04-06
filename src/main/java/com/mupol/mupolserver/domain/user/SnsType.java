@@ -10,7 +10,8 @@ public enum SnsType {
     kakao("kakao"),
     google("google"),
     facebook("facebook"),
-    apple("apple");
+    apple("apple"),
+    test("test");
 
     private final String type;
 }
