@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
+import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
@@ -65,7 +66,7 @@ public class SignControllerTest {
     @Test
     public void signin() throws Exception {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("accessToken", testUserSnsId.toString());
+        params.add("accessToken", testUserSnsId);
         params.add("provider", testUserSnsType.toString());
         mockMvc.perform(post("/v1/auth/signin/"+testUserSnsType).params(params))
                 .andDo(print())
@@ -92,13 +93,65 @@ public class SignControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
-//    @Test
-//    public void signup() throws Exception {
-//
-//    }
-//
-//    @Test
-//    public void signupFail() throws Exception {
-//
-//    }
+    @Test
+    public void signup() throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("provider", "test");
+        params.add("accessToken", "1111");
+        params.add("name", "카카로트");
+        params.add("instruments", "piccolo,drum");
+        params.add("isAgreed", "true");
+        params.add("isMajor", "true");
+        params.add("birth", "2021-01-01");
+
+       mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+               .andDo(print())
+               .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void signupFailInvalidInstrument() throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("provider", "test");
+        params.add("accessToken", "1111");
+        params.add("name", "카카로트");
+        params.add("instruments", "piccolo,drum,chimcak");
+        params.add("isAgreed", "true");
+        params.add("isMajor", "true");
+        params.add("birth", "2021-01-01");
+
+        mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+                .andDo(print())
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    public void signupFailInvalidIsAgreed() throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("provider", testUserSnsType.toString());
+        params.add("accessToken", "1111");
+        params.add("name", "카카로트");
+        params.add("isAgreed", "false");
+        params.add("isMajor", "true");
+        params.add("birth", "2021-01-01");
+
+        mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+                .andDo(print())
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    public void signupFailDuplicatedUser() throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("provider", testUserSnsType.toString());
+        params.add("accessToken", testUserSnsId);
+        params.add("name", "카카로트");
+        params.add("isAgreed", "true");
+        params.add("isMajor", "true");
+        params.add("birth", "2021-01-01");
+
+        mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+                .andDo(print())
+                .andExpect(status().is4xxClientError());
+    }
 }
