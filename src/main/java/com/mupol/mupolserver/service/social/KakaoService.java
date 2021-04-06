@@ -34,4 +34,8 @@ public class KakaoService {
         }
         throw new IllegalArgumentException("no such user");
     }
+
+    public String getSnsId(String accessToken) {
+        return String.valueOf(this.getKakaoProfile(accessToken).getId());
+    }
 }

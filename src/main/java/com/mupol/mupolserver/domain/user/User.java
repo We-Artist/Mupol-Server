@@ -40,7 +40,7 @@ public class User extends BaseTime implements UserDetails {
     private LocalDate birth;
 
     @Column(nullable = false)
-    private boolean isAgreed;
+    private boolean terms;
 
     @Setter
     @Column(nullable = false)
