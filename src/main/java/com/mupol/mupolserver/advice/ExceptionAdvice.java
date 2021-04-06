@@ -1,10 +1,7 @@
 package com.mupol.mupolserver.advice;
 
 
-import com.mupol.mupolserver.advice.exception.CUserIdDuplicatedException;
-import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
-import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
-import com.mupol.mupolserver.advice.exception.SnsNotSupportedException;
+import com.mupol.mupolserver.advice.exception.*;
 import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.domain.response.CommonResult;
 import com.mupol.mupolserver.service.ResponseService;
@@ -61,6 +58,13 @@ public class ExceptionAdvice {
     protected CommonResult instrumentNotExistException(HttpServletRequest request, InstrumentNotExistException e) {
         return responseService.getFailResult(Integer.parseInt(getMessage("InstrumentNotExist.code")), getMessage("InstrumentNotExist.msg"));
     }
+
+    @ExceptionHandler(ImageUploadFailException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected CommonResult imageUploadFailException(HttpServletRequest request, ImageUploadFailException e) {
+        return responseService.getFailResult(Integer.parseInt(getMessage("ImageUploadFail.code")), getMessage("ImageUploadFail.msg"));
+    }
+
     private String getMessage(String code) {
         return getMessage(code, null);
     }

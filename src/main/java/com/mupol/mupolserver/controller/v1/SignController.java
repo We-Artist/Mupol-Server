@@ -1,9 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
-import com.mupol.mupolserver.advice.exception.CUserIdDuplicatedException;
-import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
-import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
-import com.mupol.mupolserver.advice.exception.SnsNotSupportedException;
+import com.mupol.mupolserver.advice.exception.*;
 import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.instrument.Instrument;
@@ -13,21 +10,25 @@ import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.service.ResponseService;
+import com.mupol.mupolserver.service.S3Service;
 import com.mupol.mupolserver.service.social.KakaoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Api(tags = {"2. Sign"})
 @RequiredArgsConstructor
 @RestController
@@ -38,6 +39,7 @@ public class SignController {
     private final KakaoService kakaoService;
     private final JwtTokenProvider jwtTokenProvider;
     private final ResponseService responseService;
+    private final S3Service s3Service;
 
     @ApiOperation(value = "소셜 로그인")
     @PostMapping(value = "/signin/{provider}")
@@ -63,7 +65,8 @@ public class SignController {
             @ApiParam(value = "관심악기(ex. drum, piano, guitar)") @RequestParam(required = false) List<String> instruments,
             @ApiParam(value = "약관동의여부", required = true) @RequestParam boolean isAgreed,
             @ApiParam(value = "취미여부", required = true) @RequestParam boolean isMajor,
-            @ApiParam(value = "생년월일(yyyy-MM-dd)", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth
+            @ApiParam(value = "생년월일(yyyy-MM-dd)", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth,
+            @ApiParam(value = "프로필 이미지") @RequestParam(required = false) MultipartFile profileImage
     ) {
 
         if (!isAgreed) throw new UserDoesNotAgreeException();
@@ -72,18 +75,19 @@ public class SignController {
         SnsType snsType = SnsType.valueOf(provider);
         List<Instrument> instrumentList = new ArrayList<>();
 
+        Optional<User> user = userRepository.findBySnsIdAndProvider(snsId, snsType);
+
+        // ID 중복확인
+        if (user.isPresent()) throw new CUserIdDuplicatedException();
+
+        // 악기 구분
         if (instruments != null) {
             try {
                 for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
             } catch (Exception e) {
-                // e.printStackTrace();
                 throw new InstrumentNotExistException();
             }
         }
-
-        Optional<User> user = userRepository.findBySnsIdAndProvider(snsId, snsType);
-
-        if (user.isPresent()) throw new CUserIdDuplicatedException();
 
         User newUser = User.builder()
                 .snsId(snsId)
@@ -95,8 +99,19 @@ public class SignController {
                 .birth(birth)
                 .role(User.Role.USER)
                 .build();
-
         userRepository.save(newUser);
+
+        try {
+            if(profileImage != null){
+                String profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
+                newUser.setProfileImageUrl(profileImageUrl);
+                userRepository.save(newUser);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ImageUploadFailException();
+        }
+
         String jwt = jwtTokenProvider.createToken(String.valueOf(newUser.getId()), newUser.getRole());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseService.getSingleResult(jwt));

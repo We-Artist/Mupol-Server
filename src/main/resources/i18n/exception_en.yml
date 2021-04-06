@@ -17,3 +17,6 @@ userDoesNotAgree:
 InstrumentNotExist:
   code: "-1000"
   msg: "Unsupported instrument included."
+ImageUploadFail:
+  code: "-1000"
+  msg: "Image upload failed"

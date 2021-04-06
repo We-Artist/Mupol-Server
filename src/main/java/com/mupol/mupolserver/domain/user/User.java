@@ -31,26 +31,34 @@ public class User extends BaseTime implements UserDetails {
     @Enumerated(EnumType.STRING)
     private SnsType provider;
 
+    @Setter
     @Column(nullable = false)
     private String username;
 
+    @Setter
     @Column(nullable = false)
     private LocalDate birth;
 
     @Column(nullable = false)
     private boolean isAgreed;
 
+    @Setter
     @Column(nullable = false)
     private boolean isMajor;
 
     @Column(nullable = false)
     private Role role;
 
+    @Setter
     private String email; // 현재 db 스키마에 없음
+    @Setter
     private String bio;
+    @Setter
     private String profileImageUrl;
+    @Setter
     private String bgImageUrl;
 
+    @Setter
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     private List<Instrument> favoriteInstrument = new ArrayList<>();

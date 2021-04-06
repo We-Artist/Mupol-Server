@@ -4,6 +4,7 @@ import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,11 +21,14 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -40,11 +44,13 @@ public class SignControllerTest {
     @Autowired
     private UserRepository userRepository;
 
-    private final String testUserSnsId = "1234";
+    private final String testUserSnsId = "hvjakeb3423";
     private final SnsType testUserSnsType = SnsType.test;
 
     @BeforeEach
     public void setUp() throws  Exception {
+        log.info("Before Test");
+
         // 한글 깨짐 해결
         this.mockMvc = MockMvcBuilders.webAppContextSetup(ctx)
                 .addFilters(new CharacterEncodingFilter("UTF-8", true)) // 필터 추가
@@ -56,6 +62,7 @@ public class SignControllerTest {
                 .snsId(testUserSnsId)
                 .provider(testUserSnsType)
                 .username("테스트뮤폴러")
+                .favoriteInstrument(new ArrayList<>(Arrays.asList(Instrument.piccolo, Instrument.drum)))
                 .birth(LocalDate.parse("1996-03-18"))
                 .isAgreed(true)
                 .isMajor(true)
