@@ -2,6 +2,7 @@ package com.mupol.mupolserver.domain.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mupol.mupolserver.domain.common.BaseTime;
+import com.mupol.mupolserver.domain.instrument.Instrument;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,8 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Builder
 @Getter
@@ -50,6 +50,10 @@ public class User extends BaseTime implements UserDetails {
     private String bio;
     private String profileImageUrl;
     private String bgImageUrl;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<Instrument> favoriteInstrument = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
