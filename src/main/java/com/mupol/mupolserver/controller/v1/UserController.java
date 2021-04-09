@@ -50,7 +50,7 @@ public class UserController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "본인 프로필 가져오기")
+    @ApiOperation(value = "본인 계정 조회")
     @GetMapping("/me")
     public ResponseEntity<SingleResult<User>> getMyProfile(@RequestHeader("Authorization") String jwt) {
         User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(IllegalArgumentException::new);
