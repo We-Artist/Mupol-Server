@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,11 +105,14 @@ public class SignController {
         userRepository.save(newUser);
 
         try {
+            String profileImageUrl = null;
             if(profileImage != null){
-                String profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
-                newUser.setProfileImageUrl(profileImageUrl);
-                userRepository.save(newUser);
+                profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
+            } else {
+                profileImageUrl = s3Service.uploadProfileImage(getProfileImage(provider, accessToken), newUser.getId());
             }
+            newUser.setProfileImageUrl(profileImageUrl);
+            userRepository.save(newUser);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ImageUploadFailException();
@@ -136,5 +140,24 @@ public class SignController {
             throw new SnsNotSupportedException();
         }
         return snsId;
+    }
+
+    private MultipartFile getProfileImage(String provider, String accessToken) throws IOException {
+        MultipartFile profileImageFile;
+        if (provider.equals(SnsType.kakao.getType())) {
+            profileImageFile = kakaoService.getProfileImage(accessToken);
+        } else if (provider.equals(SnsType.facebook.getType())) {
+            throw new SnsNotSupportedException();
+        } else if (provider.equals(SnsType.apple.getType())) {
+            throw new SnsNotSupportedException();
+        } else if (provider.equals(SnsType.google.getType())) {
+            throw new SnsNotSupportedException();
+        } else if (provider.equals(SnsType.test.getType())) {
+            throw new SnsNotSupportedException();
+        } else {
+            throw new SnsNotSupportedException();
+        }
+
+        return profileImageFile;
     }
 }
