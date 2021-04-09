@@ -8,15 +8,22 @@ import lombok.ToString;
 @Setter
 @ToString
 public class KakaoProfile {
+
     private Long id;
-    private Properties properties;
+    private KakaoAccount kakao_account;
 
     @Getter
     @Setter
     @ToString
-    private static class Properties {
-        private String nickname;
-        private String thumbnail_image;
-        private String profile_image;
+     public class KakaoAccount {
+        private Profile profile;
+
+        @Getter
+        @Setter
+        @ToString
+        public class Profile {
+            private String nickname;
+            private String profile_image_url;
+        }
     }
 }
