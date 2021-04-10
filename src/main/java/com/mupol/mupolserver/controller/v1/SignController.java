@@ -62,14 +62,7 @@ public class SignController {
     @ApiOperation(value = "소셜 계정 가입", notes = "성공시 jwt 토큰을 반환합니다")
     @PostMapping(value = "/signup")
     public ResponseEntity<SingleResult<String>> signupProvider(
-            @ApiParam(value = "String provider\n" +
-                    "/ String accessToken\n" +
-                    "/ String name\n" +
-                    "/ boolean terms\n" +
-                    "/ boolean isMajor\n" +
-                    "/ List<String> instruments\n" +
-                    "/ LocalDate birth") @RequestPart SignupReqDto signupReqDto,
-            @ApiParam(value = "프로필 이미지") @RequestParam(required = false) MultipartFile profileImage
+            @ApiParam(value = "json") @RequestBody SignupReqDto signupReqDto
     ) {
 
         String provider = signupReqDto.getProvider();
@@ -114,14 +107,12 @@ public class SignController {
         userRepository.save(newUser);
 
         try {
-            String profileImageUrl;
-            if (!profileImage.isEmpty()) {
-                profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
-            } else {
-                profileImageUrl = s3Service.uploadProfileImage(getProfileImage(provider, accessToken), newUser.getId());
+            MultipartFile profileImage = getProfileImage(provider, accessToken);
+            if (profileImage != null) {
+                String profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
+                newUser.setProfileImageUrl(profileImageUrl);
+                userRepository.save(newUser);
             }
-            newUser.setProfileImageUrl(profileImageUrl);
-            userRepository.save(newUser);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ImageUploadFailException();
@@ -163,7 +154,7 @@ public class SignController {
             } else if (provider.equals(SnsType.google.getType())) {
                 throw new SnsNotSupportedException();
             } else if (provider.equals(SnsType.test.getType())) {
-                throw new SnsNotSupportedException();
+                return null;
             } else {
                 throw new SnsNotSupportedException();
             }

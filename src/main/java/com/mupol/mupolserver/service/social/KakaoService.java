@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.mupol.mupolserver.domain.social.kakao.KakaoProfile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
@@ -18,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class KakaoService {
@@ -54,6 +56,11 @@ public class KakaoService {
                 .getKakao_account()
                 .getProfile()
                 .getProfile_image_url();
+
+        // 카카오톡 프로필 이미지가 존재하지 않을 경우
+        if(imageUrl == null) {
+            return null;
+        }
 
         BufferedImage img = ImageIO.read(new URL(imageUrl));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

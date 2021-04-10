@@ -46,6 +46,8 @@ public class SignControllerTest {
 
     private final String testUserSnsId = "hvjakeb3423";
     private final SnsType testUserSnsType = SnsType.test;
+    private final String baseSignupUrl = "/v1/auth/signup";
+    private final String baseSigninUrl = "/v1/auth/signin";
 
     @BeforeEach
     public void setUp() throws  Exception {
@@ -75,7 +77,7 @@ public class SignControllerTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("accessToken", testUserSnsId);
         params.add("provider", testUserSnsType.toString());
-        mockMvc.perform(post("/v1/auth/signin/"+testUserSnsType).params(params))
+        mockMvc.perform(post(baseSigninUrl).params(params))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -85,7 +87,7 @@ public class SignControllerTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("accessToken", "-1");
         params.add("provider", testUserSnsType.toString());
-        mockMvc.perform(post("/v1/auth/signin/"+testUserSnsType).params(params))
+        mockMvc.perform(post(baseSigninUrl).params(params))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
@@ -95,7 +97,7 @@ public class SignControllerTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("accessToken", "-1");
         params.add("provider", "invalidProvider");
-        mockMvc.perform(post("/v1/auth/signin/invalidProvider").params(params))
+        mockMvc.perform(post(baseSigninUrl).params(params))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
@@ -111,7 +113,7 @@ public class SignControllerTest {
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
-       mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+       mockMvc.perform(post(baseSignupUrl).params(params))
                .andDo(print())
                .andExpect(status().isCreated());
     }
@@ -127,7 +129,7 @@ public class SignControllerTest {
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
-        mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+        mockMvc.perform(post(baseSignupUrl).params(params))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
@@ -142,7 +144,7 @@ public class SignControllerTest {
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
-        mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+        mockMvc.perform(post(baseSignupUrl).params(params))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
@@ -157,7 +159,7 @@ public class SignControllerTest {
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
-        mockMvc.perform(post("/v1/auth/signup/"+testUserSnsType).params(params))
+        mockMvc.perform(post(baseSignupUrl).params(params))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
