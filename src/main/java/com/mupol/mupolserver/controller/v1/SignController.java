@@ -132,13 +132,13 @@ public class SignController {
             snsId = kakaoService.getSnsId(accessToken);
         } else if (provider.equals(SnsType.facebook.getType())) {
             snsId = facebookService.getSnsId(accessToken);
-        } else if (provider.equals(SnsType.apple.getType())) {
-            throw new SnsNotSupportedException();
-        } else if (provider.equals(SnsType.google.getType())) {
+        }  else if (provider.equals(SnsType.google.getType())) {
             snsId = googleService.getSnsId(accessToken);
         } else if (provider.equals(SnsType.test.getType())) {
             snsId = accessToken;
-        } else {
+        } else if (provider.equals(SnsType.apple.getType())) {
+            throw new SnsNotSupportedException();
+        }else {
             throw new SnsNotSupportedException();
         }
         return snsId;
@@ -150,15 +150,15 @@ public class SignController {
             if (provider.equals(SnsType.kakao.getType())) {
                 profileImageFile = kakaoService.getProfileImage(accessToken);
             } else if (provider.equals(SnsType.facebook.getType())) {
-                throw new SnsNotSupportedException();
+                return null;
             } else if (provider.equals(SnsType.apple.getType())) {
-                throw new SnsNotSupportedException();
+                return null;
             } else if (provider.equals(SnsType.google.getType())) {
-                throw new SnsNotSupportedException();
+                return null;
             } else if (provider.equals(SnsType.test.getType())) {
                 return null;
             } else {
-                throw new SnsNotSupportedException();
+                return null;
             }
         } catch (Exception e) {
             e.printStackTrace();
