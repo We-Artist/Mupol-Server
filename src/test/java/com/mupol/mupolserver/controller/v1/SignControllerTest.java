@@ -64,7 +64,7 @@ public class SignControllerTest {
                 .username("테스트뮤폴러")
                 .favoriteInstrument(new ArrayList<>(Arrays.asList(Instrument.piccolo, Instrument.drum)))
                 .birth(LocalDate.parse("1996-03-18"))
-                .isAgreed(true)
+                .terms(true)
                 .isMajor(true)
                 .role(User.Role.USER)
                 .build());
@@ -107,7 +107,7 @@ public class SignControllerTest {
         params.add("accessToken", "1111");
         params.add("name", "카카로트");
         params.add("instruments", "piccolo,drum");
-        params.add("isAgreed", "true");
+        params.add("terms", "true");
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
@@ -123,7 +123,7 @@ public class SignControllerTest {
         params.add("accessToken", "1111");
         params.add("name", "카카로트");
         params.add("instruments", "piccolo,drum,chimcak");
-        params.add("isAgreed", "true");
+        params.add("terms", "true");
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
@@ -138,7 +138,7 @@ public class SignControllerTest {
         params.add("provider", testUserSnsType.toString());
         params.add("accessToken", "1111");
         params.add("name", "카카로트");
-        params.add("isAgreed", "false");
+        params.add("terms", "false");
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
@@ -153,7 +153,7 @@ public class SignControllerTest {
         params.add("provider", testUserSnsType.toString());
         params.add("accessToken", testUserSnsId);
         params.add("name", "카카로트");
-        params.add("isAgreed", "true");
+        params.add("terms", "true");
         params.add("isMajor", "true");
         params.add("birth", "2021-01-01");
 
