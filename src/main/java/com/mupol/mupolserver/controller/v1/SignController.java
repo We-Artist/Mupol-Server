@@ -8,6 +8,8 @@ import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.dto.auth.SigninReqDto;
+import com.mupol.mupolserver.dto.auth.SignupReqDto;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
 import com.mupol.mupolserver.service.social.FacebookService;
@@ -18,7 +20,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,17 +41,17 @@ public class SignController {
     private final JwtTokenProvider jwtTokenProvider;
     private final ResponseService responseService;
     private final S3Service s3Service;
-
     private final KakaoService kakaoService;
     private final FacebookService facebookService;
     private final GoogleService googleService;
 
     @ApiOperation(value = "소셜 로그인")
-    @PostMapping(value = "/signin/{provider}")
+    @PostMapping(value = "/signin")
     public ResponseEntity<SingleResult<String>> signinByProvider(
-            @ApiParam(value = "서비스 제공자 provider", required = true, defaultValue = "kakao") @PathVariable String provider,
-            @ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken
+            @ApiParam(value = "json") @RequestBody SigninReqDto signinReqDto
     ) {
+        String provider = signinReqDto.getProvider();
+        String accessToken = signinReqDto.getAccessToken();
 
         String snsId = getSnsId(provider, accessToken);
         SnsType snsType = SnsType.valueOf(provider);
@@ -61,17 +62,26 @@ public class SignController {
 
     // TODO 이미지 가져오기
     @ApiOperation(value = "소셜 계정 가입", notes = "성공시 jwt 토큰을 반환합니다")
-    @PostMapping(value = "/signup/{provider}")
+    @PostMapping(value = "/signup")
     public ResponseEntity<SingleResult<String>> signupProvider(
-            @ApiParam(value = "kakao/google/apple/facebook", required = true, defaultValue = "kakao") @PathVariable String provider,
-            @ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken,
-            @ApiParam(value = "닉네임", required = true) @RequestParam String name,
-            @ApiParam(value = "관심악기(ex. drum, piano, guitar)") @RequestParam(required = false) List<String> instruments,
-            @ApiParam(value = "약관동의여부", required = true) @RequestParam boolean terms,
-            @ApiParam(value = "취미여부", required = true) @RequestParam boolean isMajor,
-            @ApiParam(value = "생년월일(yyyy-MM-dd)", required = true) @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth,
+            @ApiParam(value = "String provider\n" +
+                    "/ String accessToken\n" +
+                    "/ String name\n" +
+                    "/ boolean terms\n" +
+                    "/ boolean isMajor\n" +
+                    "/ List<String> instruments\n" +
+                    "/ LocalDate birth") @RequestPart SignupReqDto signupReqDto,
             @ApiParam(value = "프로필 이미지") @RequestParam(required = false) MultipartFile profileImage
     ) {
+
+        String provider = signupReqDto.getProvider();
+        String accessToken = signupReqDto.getAccessToken();
+        String name = signupReqDto.getName();
+        boolean terms = signupReqDto.isTerms();
+        boolean isMajor = signupReqDto.isMajor();
+        List<String> instruments = signupReqDto.getInstruments();
+        LocalDate birth = signupReqDto.getBirth();
+
 
         if (!terms) throw new UserDoesNotAgreeException();
 
@@ -106,11 +116,14 @@ public class SignController {
         userRepository.save(newUser);
 
         try {
-            if(profileImage != null){
-                String profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
-                newUser.setProfileImageUrl(profileImageUrl);
-                userRepository.save(newUser);
+            String profileImageUrl;
+            if (!profileImage.isEmpty()) {
+                profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
+            } else {
+                profileImageUrl = s3Service.uploadProfileImage(getProfileImage(provider, accessToken), newUser.getId());
             }
+            newUser.setProfileImageUrl(profileImageUrl);
+            userRepository.save(newUser);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ImageUploadFailException();
@@ -138,5 +151,28 @@ public class SignController {
             throw new SnsNotSupportedException();
         }
         return snsId;
+    }
+
+    private MultipartFile getProfileImage(String provider, String accessToken) {
+        MultipartFile profileImageFile = null;
+        try {
+            if (provider.equals(SnsType.kakao.getType())) {
+                profileImageFile = kakaoService.getProfileImage(accessToken);
+            } else if (provider.equals(SnsType.facebook.getType())) {
+                throw new SnsNotSupportedException();
+            } else if (provider.equals(SnsType.apple.getType())) {
+                throw new SnsNotSupportedException();
+            } else if (provider.equals(SnsType.google.getType())) {
+                throw new SnsNotSupportedException();
+            } else if (provider.equals(SnsType.test.getType())) {
+                throw new SnsNotSupportedException();
+            } else {
+                throw new SnsNotSupportedException();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return profileImageFile;
     }
 }

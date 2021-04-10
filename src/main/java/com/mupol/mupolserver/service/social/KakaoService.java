@@ -1,13 +1,22 @@
 package com.mupol.mupolserver.service.social;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.mupol.mupolserver.domain.social.kakao.KakaoProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.URL;
 
 @RequiredArgsConstructor
 @Service
@@ -27,6 +36,7 @@ public class KakaoService {
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(kakaoProfileUrl, request, String.class);
             System.out.println(response.getBody());
+            System.out.println(gson.fromJson(response.getBody(), KakaoProfile.class));
             if (response.getStatusCode() == HttpStatus.OK)
                 return gson.fromJson(response.getBody(), KakaoProfile.class);
         } catch (Exception e) {
@@ -37,5 +47,17 @@ public class KakaoService {
 
     public String getSnsId(String accessToken) {
         return String.valueOf(this.getKakaoProfile(accessToken).getId());
+    }
+
+    public MultipartFile getProfileImage(String accessToken) throws IOException {
+        String imageUrl = getKakaoProfile(accessToken)
+                .getKakao_account()
+                .getProfile()
+                .getProfile_image_url();
+
+        BufferedImage img = ImageIO.read(new URL(imageUrl));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(img, "jpg", baos);
+        return new MockMultipartFile("profile_image","profile_image.jpg" ,"image/jpg", baos.toByteArray());
     }
 }
