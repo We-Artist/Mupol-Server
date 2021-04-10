@@ -2,6 +2,7 @@ package com.mupol.mupolserver.advice;
 
 
 import com.mupol.mupolserver.advice.exception.*;
+import com.mupol.mupolserver.advice.exception.sign.InvalidJwtException;
 import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.domain.response.CommonResult;
 import com.mupol.mupolserver.service.ResponseService;
@@ -27,43 +28,49 @@ public class ExceptionAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     protected CommonResult defaultException(HttpServletRequest request, Exception e) {
         e.printStackTrace();
-        return responseService.getFailResult(Integer.parseInt(getMessage("unKnown.code")), getMessage("unKnown.msg"));
+        return responseService.getFailResult(getMessage("unKnown.msg"));
     }
 
     @ExceptionHandler(CUserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     protected CommonResult userNotFoundException(HttpServletRequest request, CUserNotFoundException e) {
-        return responseService.getFailResult(Integer.parseInt(getMessage("userNotFound.code")), getMessage("userNotFound.msg"));
+        return responseService.getFailResult(getMessage("userNotFound.msg"));
     }
 
     @ExceptionHandler(SnsNotSupportedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected CommonResult snsNotSupportedException(HttpServletRequest request, SnsNotSupportedException e) {
-        return responseService.getFailResult(Integer.parseInt(getMessage("snsNotSupported.code")), getMessage("snsNotSupported.msg"));
+        return responseService.getFailResult(getMessage("snsNotSupported.msg"));
     }
 
     @ExceptionHandler(CUserIdDuplicatedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected CommonResult userIdDuplicatedException(HttpServletRequest request, CUserIdDuplicatedException e) {
-        return responseService.getFailResult(Integer.parseInt(getMessage("userIdDuplicated.code")), getMessage("userIdDuplicated.msg"));
+        return responseService.getFailResult(getMessage("userIdDuplicated.msg"));
     }
 
     @ExceptionHandler(UserDoesNotAgreeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected CommonResult userDoesNotAgreeException(HttpServletRequest request, UserDoesNotAgreeException e) {
-        return responseService.getFailResult(Integer.parseInt(getMessage("userDoesNotAgree.code")), getMessage("userDoesNotAgree.msg"));
+        return responseService.getFailResult(getMessage("userDoesNotAgree.msg"));
+    }
+
+    @ExceptionHandler(InvalidJwtException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    protected CommonResult invalidJwtException(HttpServletRequest request, InvalidJwtException e) {
+        return responseService.getFailResult(getMessage("invalidJwt.msg"));
     }
 
     @ExceptionHandler(InstrumentNotExistException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected CommonResult instrumentNotExistException(HttpServletRequest request, InstrumentNotExistException e) {
-        return responseService.getFailResult(Integer.parseInt(getMessage("InstrumentNotExist.code")), getMessage("InstrumentNotExist.msg"));
+        return responseService.getFailResult(getMessage("InstrumentNotExist.msg"));
     }
 
     @ExceptionHandler(ImageUploadFailException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected CommonResult imageUploadFailException(HttpServletRequest request, ImageUploadFailException e) {
-        return responseService.getFailResult(Integer.parseInt(getMessage("ImageUploadFail.code")), getMessage("ImageUploadFail.msg"));
+        return responseService.getFailResult(getMessage("ImageUploadFail.msg"));
     }
 
     private String getMessage(String code) {
