@@ -99,6 +99,15 @@ public class UserControllerTest {
     }
 
     @Test
+    public void getUserProfileFail() throws Exception {
+        String jwt = "invalid jwt";
+
+        mockMvc.perform(get(baseUrl+"/me").header("Authorization", jwt))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     public void deleteUserProfile() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
@@ -118,5 +127,31 @@ public class UserControllerTest {
         mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
                 .andDo(print())
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    public void deleteUserProfileFail() throws Exception {
+        String content = "{\n" +
+                "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
+                "    \"accessToken\": \""+ testUserSnsId +"\"\n" +
+                "}";
+
+        String result = mockMvc.perform(post(signinUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andReturn()
+                .getResponse().getContentAsString();
+
+        Map data = objectMapper.readValue(result, Map.class);
+        String jwt = (String) data.get("data");
+
+        mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
+                .andExpect(status().isOk());
+
+        // 이중 삭제
+        mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
+                .andDo(print())
+                .andExpect(status().is4xxClientError());
     }
 }

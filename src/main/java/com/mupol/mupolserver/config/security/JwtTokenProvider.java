@@ -1,6 +1,7 @@
 package com.mupol.mupolserver.config.security;
 
 
+import com.mupol.mupolserver.advice.exception.sign.InvalidJwtException;
 import com.mupol.mupolserver.domain.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -55,7 +56,11 @@ public class JwtTokenProvider {
 
     // Jwt 토큰에서 회원 구별 정보 추출
     public String getUserPk(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        try {
+            return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        } catch (Exception e) {
+            throw new InvalidJwtException();
+        }
     }
 
     // Request 의 Header 에서 token 파싱 : "X-AUTH-TOKEN: jwt 토큰"
