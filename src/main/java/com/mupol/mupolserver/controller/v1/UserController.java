@@ -68,7 +68,11 @@ public class UserController {
     @ApiOperation(value = "본인 계정 삭제")
     @DeleteMapping("/me")
     public ResponseEntity<SingleResult<String>> deleteAccount(@RequestHeader("Authorization") String jwt) {
-        userRepository.deleteById(Long.valueOf(jwtTokenProvider.getUserPk(jwt)));
+        try {
+            userRepository.deleteById(Long.valueOf(jwtTokenProvider.getUserPk(jwt)));
+        } catch (Exception e) {
+            throw new CUserNotFoundException();
+        }
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
 

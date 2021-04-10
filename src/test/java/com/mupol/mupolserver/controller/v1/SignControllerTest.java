@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
@@ -11,12 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
@@ -44,13 +44,16 @@ public class SignControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final String testUserSnsId = "hvjakeb3423";
     private final SnsType testUserSnsType = SnsType.test;
     private final String baseSignupUrl = "/v1/auth/signup";
     private final String baseSigninUrl = "/v1/auth/signin";
 
     @BeforeEach
-    public void setUp() throws  Exception {
+    public void setUp() throws Exception {
         log.info("Before Test");
 
         // 한글 깨짐 해결
@@ -74,92 +77,136 @@ public class SignControllerTest {
 
     @Test
     public void signin() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("accessToken", testUserSnsId);
-        params.add("provider", testUserSnsType.toString());
-        mockMvc.perform(post(baseSigninUrl).params(params))
+        String content = "{\n" +
+                "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
+                "    \"accessToken\": \""+ testUserSnsId +"\"\n" +
+                "}";
+
+        mockMvc.perform(post(baseSigninUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
 
     @Test
     public void signinFailInvalidToken() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("accessToken", "-1");
-        params.add("provider", testUserSnsType.toString());
-        mockMvc.perform(post(baseSigninUrl).params(params))
+        String content = "{\n" +
+                "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
+                "    \"accessToken\": \"-1\"\n" +
+                "}";
+
+        mockMvc.perform(post(baseSigninUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void signinFailInvalidProvider() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("accessToken", "-1");
-        params.add("provider", "invalidProvider");
-        mockMvc.perform(post(baseSigninUrl).params(params))
+        String content = "{\n" +
+                "    \"provider\": \"invalidProvider\",\n" +
+                "    \"accessToken\": \"-1\"\n" +
+                "}";
+
+        mockMvc.perform(post(baseSigninUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void signup() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("provider", "test");
-        params.add("accessToken", "1111");
-        params.add("name", "카카로트");
-        params.add("instruments", "piccolo,drum");
-        params.add("terms", "true");
-        params.add("isMajor", "true");
-        params.add("birth", "2021-01-01");
+        String content = "{\n" +
+                "    \"provider\": \"test\",\n" +
+                "    \"accessToken\": \"1111\",\n" +
+                "    \"name\": \"카카로트\",\n" +
+                "    \"terms\": true,\n" +
+                "    \"isMajor\": true,\n" +
+                "    \"birth\": \"1996-03-18\",\n" +
+                "    \"instruments\": [\n" +
+                "        \"piccolo\"\n" +
+                "    ]\n" +
+                "}";
 
-       mockMvc.perform(post(baseSignupUrl).params(params))
-               .andDo(print())
-               .andExpect(status().isCreated());
+        mockMvc.perform(post(baseSignupUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated());
     }
 
     @Test
     public void signupFailInvalidInstrument() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("provider", "test");
-        params.add("accessToken", "1111");
-        params.add("name", "카카로트");
-        params.add("instruments", "piccolo,drum,chimcak");
-        params.add("terms", "true");
-        params.add("isMajor", "true");
-        params.add("birth", "2021-01-01");
+        String content = "{\n" +
+                "    \"provider\": \"test\",\n" +
+                "    \"accessToken\": \"1111\",\n" +
+                "    \"name\": \"카카로트\",\n" +
+                "    \"terms\": true,\n" +
+                "    \"isMajor\": true,\n" +
+                "    \"birth\": \"1996-03-18\",\n" +
+                "    \"instruments\": [\n" +
+                "        \"chimcak\",\n" +
+                "        \"piccolo\"\n" +
+                "    ]\n" +
+                "}";
 
-        mockMvc.perform(post(baseSignupUrl).params(params))
+        mockMvc.perform(post(baseSignupUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void signupFailInvalidIsAgreed() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("provider", testUserSnsType.toString());
-        params.add("accessToken", "1111");
-        params.add("name", "카카로트");
-        params.add("terms", "false");
-        params.add("isMajor", "true");
-        params.add("birth", "2021-01-01");
+        String content = "{\n" +
+                "    \"provider\": \"test\",\n" +
+                "    \"accessToken\": \"1111\",\n" +
+                "    \"name\": \"카카로트\",\n" +
+                "    \"terms\": false,\n" +
+                "    \"isMajor\": true,\n" +
+                "    \"birth\": \"1996-03-18\",\n" +
+                "    \"instruments\": [\n" +
+                "        \"chimcak\",\n" +
+                "        \"piccolo\"\n" +
+                "    ]\n" +
+                "}";
 
-        mockMvc.perform(post(baseSignupUrl).params(params))
+        mockMvc.perform(post(baseSignupUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void signupFailDuplicatedUser() throws Exception {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("provider", testUserSnsType.toString());
-        params.add("accessToken", testUserSnsId);
-        params.add("name", "카카로트");
-        params.add("terms", "true");
-        params.add("isMajor", "true");
-        params.add("birth", "2021-01-01");
+        String content = "{\n" +
+                "    \"provider\": \"" + testUserSnsType.toString() + "\",\n" +
+                "    \"accessToken\": \"" + testUserSnsId + "\",\n" +
+                "    \"name\": \"카카로트\",\n" +
+                "    \"terms\": true,\n" +
+                "    \"isMajor\": true,\n" +
+                "    \"birth\": \"1996-03-18\",\n" +
+                "    \"instruments\": [\n" +
+                "        \"chimcak\",\n" +
+                "        \"piccolo\"\n" +
+                "    ]\n" +
+                "}";
 
-        mockMvc.perform(post(baseSignupUrl).params(params))
+        mockMvc.perform(post(baseSignupUrl)
+                .content(content)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is4xxClientError());
     }
