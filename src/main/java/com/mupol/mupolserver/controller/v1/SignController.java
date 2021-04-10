@@ -11,6 +11,7 @@ import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
 import com.mupol.mupolserver.service.social.FacebookService;
+import com.mupol.mupolserver.service.social.GoogleService;
 import com.mupol.mupolserver.service.social.KakaoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -42,6 +43,7 @@ public class SignController {
 
     private final KakaoService kakaoService;
     private final FacebookService facebookService;
+    private final GoogleService googleService;
 
     @ApiOperation(value = "소셜 로그인")
     @PostMapping(value = "/signin/{provider}")
@@ -129,7 +131,7 @@ public class SignController {
         } else if (provider.equals(SnsType.apple.getType())) {
             throw new SnsNotSupportedException();
         } else if (provider.equals(SnsType.google.getType())) {
-            throw new SnsNotSupportedException();
+            snsId = googleService.getSnsId(accessToken);
         } else if (provider.equals(SnsType.test.getType())) {
             snsId = accessToken;
         } else {
