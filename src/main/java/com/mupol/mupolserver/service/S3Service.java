@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -21,10 +22,6 @@ import java.io.IOException;
 @Service
 @NoArgsConstructor
 public class S3Service {
-    /**
-     *  user_id/profile_img
-     *  user_id/bg_img
-     */
     private AmazonS3 s3Client;
 
     @Value("${cloud.aws.credentials.accessKey}")
@@ -39,6 +36,9 @@ public class S3Service {
     @Value("${cloud.aws.region.static}")
     private String region;
 
+    @Autowired
+    private SoundService soundService;
+
     @PostConstruct
     public void setS3Client() {
         AWSCredentials credentials = new BasicAWSCredentials(this.accessKey, this.secretKey);
@@ -52,10 +52,30 @@ public class S3Service {
     public String uploadProfileImage(MultipartFile file, Long userId) throws IOException {
         String fileName = file.getOriginalFilename();
         String extension = StringUtils.getFilenameExtension(fileName);
-        String filePath = "img/"+userId+"/profile."+extension;
+        String filePath = "img/" + userId + "/profile." + extension;
+        log.info(filePath + " uploaded");
 
         s3Client.putObject(new PutObjectRequest(bucket, filePath, file.getInputStream(), null)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
         return s3Client.getUrl(bucket, filePath).toString();
+    }
+
+    public String uploadSound(MultipartFile file, Long userId, Long soundId) throws IOException {
+        String fileName = file.getOriginalFilename();
+        String extension = StringUtils.getFilenameExtension(fileName);
+        String filePath = "sound/" + userId + "/" + soundId.toString() + "." + extension;
+        log.info(filePath + " uploaded");
+
+        s3Client.putObject(new PutObjectRequest(bucket, filePath, file.getInputStream(), null)
+                .withCannedAcl(CannedAccessControlList.PublicRead));
+        return s3Client.getUrl(bucket, filePath).toString();
+    }
+
+    public void deleteSound(Long userId, Long soundId) {
+        String[] soundPath = soundService.getSound(soundId).getFileUrl().split("\\.");
+        String filePath = "sound/" + userId + "/" + soundId.toString() + "." + soundPath[soundPath.length - 1];
+
+        log.info(filePath + " removed");
+        s3Client.deleteObject(bucket, filePath);
     }
 }

@@ -1,7 +1,6 @@
 package com.mupol.mupolserver.dto.auth;
 
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
 import lombok.Getter;
 
 @Getter

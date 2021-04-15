@@ -3,6 +3,7 @@ package com.mupol.mupolserver.domain.user;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mupol.mupolserver.domain.common.BaseTime;
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import com.mupol.mupolserver.domain.sound.Sound;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -62,6 +63,9 @@ public class User extends BaseTime implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     private List<Instrument> favoriteInstrument = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+    private Set<Sound> sounds;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

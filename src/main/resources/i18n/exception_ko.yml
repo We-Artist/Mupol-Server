@@ -1,6 +1,8 @@
 # exception_ko.yml
 unKnown:
   msg: "알수 없는 오류가 발생하였습니다."
+io:
+  msg: "IOException"
 userNotFound:
   msg: "존재하지 않는 회원입니다."
 snsNotSupported:
@@ -15,3 +17,5 @@ ImageUploadFail:
   msg: "이미지 업로드 실패"
 invalidJwt:
   msg: "올바르지 않은 jwt token 입니다."
+invalidSnsToken:
+  msg: "올바르지 않은 access token 입니다."

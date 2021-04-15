@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service.social;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.domain.social.kakao.KakaoProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,7 @@ public class KakaoService {
         } catch (Exception e) {
             System.out.println(e);
         }
-        throw new IllegalArgumentException("no such user");
+        throw new CUserNotFoundException();
     }
 
     public String getSnsId(String accessToken) {
