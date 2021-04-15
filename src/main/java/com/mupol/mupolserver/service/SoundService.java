@@ -45,6 +45,14 @@ public class SoundService {
         return soundRepository.findSoundsByUserId(userId).orElseThrow();
     }
 
+    public Sound updateTitle(Long soundId, String title) {
+        Sound sound = getSound(soundId);
+        sound.setTitle(title);
+        soundRepository.save(sound);
+
+        return sound;
+    }
+
     public void deleteSound(Long userId, Long soundId) {
         s3Service.deleteSound(userId, soundId);
         soundRepository.deleteById(soundId);

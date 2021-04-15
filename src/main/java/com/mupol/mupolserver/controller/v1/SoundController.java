@@ -4,6 +4,7 @@ import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
+import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.sound.SoundReqDto;
@@ -72,6 +73,23 @@ public class SoundController {
             @PathVariable String soundId
     ) {
         SoundResDto dto = soundService.getSndDto(soundService.getSound(Long.valueOf(soundId)));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "녹음본 제목 수정", notes = "")
+    @PutMapping("/me/{soundId}")
+    public ResponseEntity<SingleResult<SoundResDto>> updateSoundTitle(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String soundId,
+            @RequestBody String title
+    ) {
+        if(title == null || title.equals(""))
+            throw new IllegalArgumentException("title is empty");
+        Sound sound = soundService.updateTitle(Long.valueOf(soundId), title);
+        SoundResDto dto = soundService.getSndDto(sound);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
