@@ -3,6 +3,7 @@ package com.mupol.mupolserver.advice;
 
 import com.mupol.mupolserver.advice.exception.*;
 import com.mupol.mupolserver.advice.exception.sign.InvalidJwtException;
+import com.mupol.mupolserver.advice.exception.sign.InvalidSnsTokenException;
 import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.domain.response.CommonResult;
 import com.mupol.mupolserver.service.ResponseService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 @RequiredArgsConstructor
 @RestControllerAdvice
@@ -31,10 +33,23 @@ public class ExceptionAdvice {
         return responseService.getFailResult(getMessage("unKnown.msg"));
     }
 
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    protected CommonResult ioException(HttpServletRequest request, IOException e) {
+        e.printStackTrace();
+        return responseService.getFailResult(getMessage("io.msg"));
+    }
+
     @ExceptionHandler(CUserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     protected CommonResult userNotFoundException(HttpServletRequest request, CUserNotFoundException e) {
         return responseService.getFailResult(getMessage("userNotFound.msg"));
+    }
+
+    @ExceptionHandler(InvalidSnsTokenException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    protected CommonResult invalidSnsTokenException(HttpServletRequest request, InvalidSnsTokenException e) {
+        return responseService.getFailResult(getMessage("invalidSnsToken.msg"));
     }
 
     @ExceptionHandler(SnsNotSupportedException.class)

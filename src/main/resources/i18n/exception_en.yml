@@ -1,6 +1,8 @@
 # exception_en.yml
 unKnown:
   msg: "An unknown error has occurred."
+io:
+  msg: "IOException"
 userNotFound:
   msg: "This member not exist"
 snsNotSupported:
@@ -15,3 +17,5 @@ ImageUploadFail:
   msg: "Image upload failed"
 invalidJwt:
   msg: "Invalid jwt token"
+invalidSnsToken:
+  msg: "Invalid sns token"

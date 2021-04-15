@@ -16,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.swing.text.html.Option;
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 @Api(tags = {"1. User"})
 @RequiredArgsConstructor
@@ -48,7 +45,7 @@ public class UserController {
     @ApiOperation(value = "회원 단건 조회", notes = "userId로 회원을 조회한다")
     @GetMapping("/{userId}")
     public ResponseEntity<SingleResult<User>> findUserById(@ApiParam(value = "회원 ID", required = true) @PathVariable long userId) {
-        User user = userRepository.findById(userId).orElseThrow(IllegalArgumentException::new);
+        User user = userRepository.findById(userId).orElseThrow(CUserNotFoundException::new);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
     }
 
@@ -58,7 +55,7 @@ public class UserController {
     @ApiOperation(value = "본인 계정 조회")
     @GetMapping("/me")
     public ResponseEntity<SingleResult<User>> getMyProfile(@RequestHeader("Authorization") String jwt) {
-        User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(IllegalArgumentException::new);
+        User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(CUserNotFoundException::new);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
     }
 
