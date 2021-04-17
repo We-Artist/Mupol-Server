@@ -7,9 +7,11 @@ import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,8 +23,15 @@ public class SoundService {
 
     private final SoundRepository soundRepository;
     private final S3Service s3Service;
+    private final FFmpegService ffmpegService;
 
-    public SoundResDto uploadSound(MultipartFile soundFile, User user, SoundReqDto metaData) throws IOException {
+    @Value("${cloud.aws.cloudfront.domain}")
+    private String cloudFrontDomain;
+
+    @Value("${ffmpeg.path.upload}")
+    private String fileBasePath;
+
+    public SoundResDto uploadSound(MultipartFile soundFile, User user, SoundReqDto metaData) throws IOException, InterruptedException {
         Sound sound = Sound.builder()
                 .bpm(metaData.getBpm())
                 .title(metaData.getTitle())
@@ -30,9 +39,20 @@ public class SoundService {
                 .build();
         soundRepository.save(sound);
 
-        String url = s3Service.uploadSound(soundFile, user.getId(), sound.getId());
-        sound.setFileUrl(url);
+        Long userId = user.getId();
+        Long soundId = sound.getId();
+
+        // split sound
+        ffmpegService.splitMedia(soundFile, userId, soundId, FFmpegService.MediaType.Sound);
+
+        // upload splitted sound
+        File folder = new File(fileBasePath + userId + "/" + soundId);
+        String fileUrl = s3Service.uploadMediaFolder(folder, userId, soundId, FFmpegService.MediaType.Sound);
+        sound.setFileUrl(fileUrl);
         soundRepository.save(sound);
+
+        // remove dir
+        deleteFolder(new File(fileBasePath + userId));
 
         return getSndDto(sound);
     }
@@ -54,7 +74,7 @@ public class SoundService {
     }
 
     public void deleteSound(Long userId, Long soundId) {
-        s3Service.deleteSound(userId, soundId);
+        s3Service.deleteMedia(userId, soundId, FFmpegService.MediaType.Sound);
         soundRepository.deleteById(soundId);
     }
 
@@ -71,5 +91,16 @@ public class SoundService {
         dto.setFileUrl(snd.getFileUrl());
         dto.setCreatedAt(snd.getCreatedAt());
         return dto;
+    }
+
+    static void deleteFolder(File file){
+        for (File subFile : file.listFiles()) {
+            if(subFile.isDirectory()) {
+                deleteFolder(subFile);
+            } else {
+                subFile.delete();
+            }
+        }
+        file.delete();
     }
 }
