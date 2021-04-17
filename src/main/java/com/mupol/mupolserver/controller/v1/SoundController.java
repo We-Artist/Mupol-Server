@@ -43,9 +43,9 @@ public class SoundController {
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "metaData") @RequestPart SoundReqDto metaData,
             @ApiParam(value = "음성파일") @RequestPart(value = "soundFile", required = false) MultipartFile soundFile
-    ) throws IOException {
+    ) throws IOException, InterruptedException {
         User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(CUserNotFoundException::new);
-        if(soundFile == null || soundFile.isEmpty())
+        if (soundFile == null || soundFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         SoundResDto dto = soundService.uploadSound(soundFile, user, metaData);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
@@ -86,7 +86,7 @@ public class SoundController {
             @PathVariable String soundId,
             @RequestBody String title
     ) {
-        if(title == null || title.equals(""))
+        if (title == null || title.equals(""))
             throw new IllegalArgumentException("title is empty");
         Sound sound = soundService.updateTitle(Long.valueOf(soundId), title);
         SoundResDto dto = soundService.getSndDto(sound);
