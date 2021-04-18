@@ -6,6 +6,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import com.mupol.mupolserver.domain.common.MediaType;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,7 +63,7 @@ public class S3Service {
         return s3Client.getUrl(bucket, filePath).toString();
     }
 
-    public String uploadMediaFolder(File folder, Long userId, Long mediaId, FFmpegService.MediaType mediaType) throws IOException {
+    public String uploadMediaFolder(File folder, Long userId, Long mediaId, MediaType mediaType) throws IOException {
         String fileUrl = "";
         String fileExtension;
 
@@ -81,12 +82,12 @@ public class S3Service {
         return fileUrl;
     }
 
-    public void uploadMedia(File file, Long userId, Long soundId, FFmpegService.MediaType mediaType) throws IOException {
+    public void uploadMedia(File file, Long userId, Long soundId, MediaType mediaType) throws IOException {
         String filePath = "";
 
-        if (mediaType == FFmpegService.MediaType.Video) {
+        if (mediaType == MediaType.Video) {
             filePath = "video/" + userId + "/" + soundId.toString() + "/" + file.getName();
-        } else if (mediaType == FFmpegService.MediaType.Sound) {
+        } else if (mediaType == MediaType.Sound) {
             filePath = "sound/" + userId + "/" + soundId.toString() + "/" + file.getName();
         }
 
@@ -96,11 +97,11 @@ public class S3Service {
                 .withCannedAcl(CannedAccessControlList.PublicRead));
     }
 
-    public void deleteMedia(Long userId, Long mediaId, FFmpegService.MediaType mediaType) {
+    public void deleteMedia(Long userId, Long mediaId, MediaType mediaType) {
         String filePath = "";
-        if(mediaType == FFmpegService.MediaType.Video) {
+        if(mediaType == MediaType.Video) {
             filePath = "video/" + userId + "/" + mediaId.toString() + "/";
-        } else if (mediaType == FFmpegService.MediaType.Sound) {
+        } else if (mediaType == MediaType.Sound) {
             filePath = "sound/" + userId + "/" + mediaId.toString() + "/";
         }
 

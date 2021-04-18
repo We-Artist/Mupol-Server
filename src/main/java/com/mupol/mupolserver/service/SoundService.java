@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.service;
 
+import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.sound.SoundRepository;
 import com.mupol.mupolserver.domain.user.User;
@@ -25,9 +26,6 @@ public class SoundService {
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
 
-    @Value("${cloud.aws.cloudfront.domain}")
-    private String cloudFrontDomain;
-
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
 
@@ -43,11 +41,11 @@ public class SoundService {
         Long soundId = sound.getId();
 
         // split sound
-        ffmpegService.splitMedia(soundFile, userId, soundId, FFmpegService.MediaType.Sound);
+        ffmpegService.splitMedia(soundFile, userId, soundId, MediaType.Sound);
 
         // upload splitted sound
         File folder = new File(fileBasePath + userId + "/" + soundId);
-        String fileUrl = s3Service.uploadMediaFolder(folder, userId, soundId, FFmpegService.MediaType.Sound);
+        String fileUrl = s3Service.uploadMediaFolder(folder, userId, soundId, MediaType.Sound);
         sound.setFileUrl(fileUrl);
         soundRepository.save(sound);
 
@@ -74,7 +72,7 @@ public class SoundService {
     }
 
     public void deleteSound(Long userId, Long soundId) {
-        s3Service.deleteMedia(userId, soundId, FFmpegService.MediaType.Sound);
+        s3Service.deleteMedia(userId, soundId, MediaType.Sound);
         soundRepository.deleteById(soundId);
     }
 
