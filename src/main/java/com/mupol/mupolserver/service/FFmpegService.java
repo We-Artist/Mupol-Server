@@ -1,6 +1,6 @@
 package com.mupol.mupolserver.service;
 
-import lombok.AllArgsConstructor;
+import com.mupol.mupolserver.domain.common.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,6 +13,9 @@ import java.util.function.Consumer;
 @Slf4j
 @Service
 public class FFmpegService {
+
+    @Value("${ffmpeg.path.base}")
+    private String ffmpegPath;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -42,7 +45,7 @@ public class FFmpegService {
         ProcessBuilder builder = new ProcessBuilder();
         if (mediaType == MediaType.Video) {
             builder.command(
-                    "ffmpeg", "-i", mediaFile.getOriginalFilename(),
+                    ffmpegPath, "-i", mediaFile.getOriginalFilename(),
                     "-codec:", "copy",
                     "-bsf:v", "h264_mp4toannexb",
                     "-start_number", "0",
@@ -53,7 +56,7 @@ public class FFmpegService {
             );
         } else if (mediaType == MediaType.Sound) {
             builder.command(
-                    "ffmpeg", "-i", mediaFile.getOriginalFilename(),
+                    ffmpegPath, "-i", mediaFile.getOriginalFilename(),
                     "-c:a", "aac",
                     "-b:a", "64k",
                     "-vn",
@@ -84,13 +87,5 @@ public class FFmpegService {
             new BufferedReader(new InputStreamReader(inputStream)).lines()
                     .forEach(consumer);
         }
-    }
-
-    @AllArgsConstructor
-    public enum MediaType {
-        Video("video"),
-        Sound("sound");
-
-        private final String value;
     }
 }
