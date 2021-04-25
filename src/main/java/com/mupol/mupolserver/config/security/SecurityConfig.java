@@ -31,7 +31,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션을 생성하지 않음
                 .and()
                 .authorizeRequests()
-                .antMatchers("/v1/auth/**").permitAll()
+                .antMatchers(
+                        "/v1/auth/**",
+                        "/v1/instr/**"
+                ).permitAll()
                 .antMatchers(HttpMethod.GET, "/exception/**").permitAll()
                 .anyRequest().hasRole("USER")
                 .and()
@@ -40,6 +43,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/v2/api-docs","/swagger-resources/**", "/swagger-ui.html/**", "/webjars/**", "/swagger/**");
+        web.ignoring().antMatchers(
+                "/v2/api-docs",
+                "/swagger-resources/**",
+                "/swagger-ui.html/**",
+                "/webjars/**",
+                "/swagger/**",
+                "/actuator/**"
+        );
     }
 }
