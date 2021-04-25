@@ -33,6 +33,13 @@ public class ExceptionAdvice {
         return responseService.getFailResult(getMessage("unKnown.msg"));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected CommonResult IllegalArgumentException(HttpServletRequest request, Exception e) {
+        e.printStackTrace();
+        return responseService.getFailResult(e.getMessage());
+    }
+
     @ExceptionHandler(IOException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     protected CommonResult ioException(HttpServletRequest request, IOException e) {

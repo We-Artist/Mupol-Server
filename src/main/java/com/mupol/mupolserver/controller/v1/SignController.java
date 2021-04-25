@@ -12,6 +12,7 @@ import com.mupol.mupolserver.dto.auth.SigninReqDto;
 import com.mupol.mupolserver.dto.auth.SignupReqDto;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
+import com.mupol.mupolserver.service.UserService;
 import com.mupol.mupolserver.service.social.FacebookService;
 import com.mupol.mupolserver.service.social.GoogleService;
 import com.mupol.mupolserver.service.social.KakaoService;
@@ -38,6 +39,7 @@ import java.util.Optional;
 public class SignController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final ResponseService responseService;
     private final S3Service s3Service;
@@ -60,7 +62,6 @@ public class SignController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(jwt));
     }
 
-    // TODO 이미지 가져오기
     @ApiOperation(value = "소셜 계정 가입", notes = "성공시 jwt 토큰을 반환합니다")
     @PostMapping(value = "/signup")
     public ResponseEntity<SingleResult<String>> signupProvider(
@@ -86,6 +87,7 @@ public class SignController {
 
         // ID 중복확인
         if (user.isPresent()) throw new CUserIdDuplicatedException();
+        if(!userService.validateUsername(name)) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
 
         // 악기 구분
         if (instruments != null) {
@@ -125,7 +127,6 @@ public class SignController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseService.getSingleResult(jwt));
     }
 
-    // TODO: sns 별로 profile 가져오기
     private String getSnsId(String provider, String accessToken) {
         String snsId;
         if (provider.equals(SnsType.kakao.getType())) {
@@ -144,6 +145,7 @@ public class SignController {
         return snsId;
     }
 
+    // TODO: sns 별로 profile 가져오기
     private MultipartFile getProfileImage(String provider, String accessToken) {
         MultipartFile profileImageFile = null;
         try {
