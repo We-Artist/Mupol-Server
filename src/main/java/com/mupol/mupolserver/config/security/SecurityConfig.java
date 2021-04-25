@@ -37,6 +37,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/v1/user/validate-name/**"
                 ).permitAll()
                 .antMatchers(HttpMethod.GET, "/exception/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/v1/user/").hasRole("ADMIN")
                 .anyRequest().hasRole("USER")
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
