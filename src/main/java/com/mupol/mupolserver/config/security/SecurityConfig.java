@@ -33,7 +33,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(
                         "/v1/auth/**",
-                        "/v1/instr/**"
+                        "/v1/instr/**",
+                        "/v1/user/validate-name/**"
                 ).permitAll()
                 .antMatchers(HttpMethod.GET, "/exception/**").permitAll()
                 .anyRequest().hasRole("USER")
