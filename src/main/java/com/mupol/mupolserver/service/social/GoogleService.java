@@ -1,32 +1,20 @@
 package com.mupol.mupolserver.service.social;
 
-<<<<<<< HEAD
-import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
-import com.mupol.mupolserver.domain.social.google.GoogleProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mock.web.MockMultipartFile;
-=======
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.springframework.beans.factory.annotation.Value;
->>>>>>> 5eca1cfb75ef1c3207a8faf81b1adf1e8aa5d7d3
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-<<<<<<< HEAD
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-=======
->>>>>>> 5eca1cfb75ef1c3207a8faf81b1adf1e8aa5d7d3
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -35,12 +23,11 @@ import java.net.URL;
 @RequiredArgsConstructor
 @Service
 public class GoogleService {
-    private final RestTemplate restTemplate;
 
     @Value("${spring.social.google.id_token}")
     private String googleProfileUrl;
 
-    public GoogleProfile getGoogleProfile(String accessToken){
+    public String getGoogleProfile(String accessToken){
         String templateUrl = googleProfileUrl + accessToken;
 
         try {
@@ -63,9 +50,9 @@ public class GoogleService {
                     result += line;
                 }
 
-                Gson gson = new Gson();
-                System.out.println(gson.fromJson(line, GoogleProfile.class).toString());
-                return gson.fromJson(line, GoogleProfile.class);
+                log.info("result: "+ result);
+
+                return result;
 
                /* JsonParser parser = new JsonParser();
                 log.info("result: "+ result);
@@ -85,12 +72,16 @@ public class GoogleService {
     }
 
     public String getSnsId(String accessToken) {
-        return getGoogleProfile(accessToken).getEmail();
+        JsonParser parser = new JsonParser();
+        JsonElement element = parser.parse(getGoogleProfile(accessToken));
+        return element.getAsJsonObject().get("id").getAsString();
     }
 
     public MultipartFile getProfileImage(String accessToken){
-        String imageUrl = getGoogleProfile(accessToken)
-                .getPicture();
+        JsonParser parser = new JsonParser();
+        JsonElement element = parser.parse(getGoogleProfile(accessToken));
+
+        String imageUrl = element.getAsJsonObject().get("picture").getAsString();
 
         //구글 프로필 이미지가 존재하지 않을 경우
         if(imageUrl == null) {

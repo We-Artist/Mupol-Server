@@ -156,7 +156,7 @@ public class SignController {
             } else if (provider.equals(SnsType.apple.getType())) {
                 return null;
             } else if (provider.equals(SnsType.google.getType())) {
-                return null;
+                profileImageFile = googleService.getProfileImage(accessToken);
             } else if (provider.equals(SnsType.test.getType())) {
                 return null;
             } else {
