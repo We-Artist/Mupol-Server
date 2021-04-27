@@ -1,25 +1,17 @@
 package com.mupol.mupolserver.service.social;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.jayway.jsonpath.internal.filter.ValueNode;
-import com.mupol.mupolserver.domain.social.facebook.FacebookProfile;
-import com.mupol.mupolserver.domain.social.google.GoogleProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -54,11 +46,10 @@ public class GoogleService {
                         result += line;
                     }
 
-                    JsonParser parser = new JsonParser();
-                    log.info("result: "+ result);
-                    JsonElement element = parser.parse(result);
+                    JSONParser jsonParse = new JSONParser();
+                    JSONObject obj =  (JSONObject)jsonParse.parse(result);
 
-                    snsId = element.getAsJsonObject().get("id").getAsString();
+                    snsId = (String) obj.get("email");
                 }
         } catch (Exception e) {
             e.printStackTrace();
