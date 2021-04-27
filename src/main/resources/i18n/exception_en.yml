@@ -19,3 +19,6 @@ invalidJwt:
   msg: "Invalid jwt token"
 invalidSnsToken:
   msg: "Invalid sns token"
+accessDenied:
+  code: "-1003"
+  msg: "A resource that can not be accessed with the privileges it has."

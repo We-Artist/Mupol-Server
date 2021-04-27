@@ -43,7 +43,7 @@ public class VideoController {
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "metaData") @RequestPart VideoReqDto metaData,
             @ApiParam(value = "영상파일") @RequestPart(value = "videoFile", required = false) MultipartFile videoFile
-    ) throws IOException {
+    ) throws IOException, InterruptedException {
         User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(CUserNotFoundException::new);
         if(videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");

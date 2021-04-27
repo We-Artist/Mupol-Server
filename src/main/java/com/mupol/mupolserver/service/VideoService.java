@@ -1,15 +1,18 @@
 package com.mupol.mupolserver.service;
 
-import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.video.Video;
+import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,17 +24,32 @@ public class VideoService {
 
     private final VideoRepository videoRepository;
     private final S3Service s3Service;
+    private final FFmpegService ffmpegService;
 
-    public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException {
+    @Value("${ffmpeg.path.upload}")
+    private String fileBasePath;
+
+    public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
         Video video = Video.builder()
                 .title(metaData.getTitle())
                 .user(user)
                 .build();
         videoRepository.save(video);
 
-        String url = s3Service.uploadVideo(videoFile, user.getId(), video.getId());
-        video.setFileUrl(url);
+        Long userId = user.getId();
+        Long videoId = video.getId();
+
+        // split video
+        ffmpegService.splitMedia(videoFile, userId, videoId, MediaType.Video);
+
+        // upload splitted video
+        File folder = new File(fileBasePath + userId + "/" + videoId);
+        String fileUrl = s3Service.uploadMediaFolder(folder, userId, videoId, MediaType.Video);
+        video.setFileUrl(fileUrl);
         videoRepository.save(video);
+
+        // remove dir
+        deleteFolder(new File(fileBasePath + userId));
 
         return getSndDto(video);
     }
@@ -53,7 +71,7 @@ public class VideoService {
     }
 
     public void deleteVideo(Long userId, Long videoId) {
-        s3Service.deleteVideo(userId, videoId);
+        s3Service.deleteMedia(userId, videoId, MediaType.Video);
         videoRepository.deleteById(videoId);
     }
 
@@ -70,5 +88,16 @@ public class VideoService {
         dto.setUserId(snd.getUser().getId());
         dto.setFileUrl(snd.getFileUrl());
         return dto;
+    }
+
+    static void deleteFolder(File file){
+        for (File subFile : file.listFiles()) {
+            if(subFile.isDirectory()) {
+                deleteFolder(subFile);
+            } else {
+                subFile.delete();
+            }
+        }
+        file.delete();
     }
 }

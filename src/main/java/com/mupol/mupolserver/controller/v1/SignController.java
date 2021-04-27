@@ -67,7 +67,9 @@ public class SignController {
             @ApiParam(value = "json") @RequestBody SignupReqDto signupReqDto
     ) {
 
+        System.out.println("welcome to signup");
         String provider = signupReqDto.getProvider();
+        System.out.println("get provider");
         String accessToken = signupReqDto.getAccessToken();
         String name = signupReqDto.getName();
         boolean terms = signupReqDto.isTerms();
@@ -79,6 +81,7 @@ public class SignController {
         if (!terms) throw new UserDoesNotAgreeException();
 
         String snsId = getSnsId(provider, accessToken);
+        System.out.println("아이디: "+snsId);
         SnsType snsType = SnsType.valueOf(provider);
         List<Instrument> instrumentList = new ArrayList<>();
 

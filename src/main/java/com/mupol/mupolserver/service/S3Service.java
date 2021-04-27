@@ -116,23 +116,4 @@ public class S3Service {
         s3Client.deleteObjects(deleteObjectsRequest);
         log.info(filePath + " removed");
     }
-
-    public String uploadVideo(MultipartFile file, Long userId, Long videoId) throws IOException {
-        String fileName = file.getOriginalFilename();
-        String extension = StringUtils.getFilenameExtension(fileName);
-        String filePath = "video/" + userId + "/" + videoId.toString() + "." + extension;
-        log.info(filePath + " uploaded");
-
-        s3Client.putObject(new PutObjectRequest(bucket, filePath, file.getInputStream(), null)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
-        return s3Client.getUrl(bucket, filePath).toString();
-    }
-
-    public void deleteVideo(Long userId, Long videoId) {
-        String[] soundPath = soundService.getSound(videoId).getFileUrl().split("\\.");
-        String filePath = "sound/" + userId + "/" + videoId.toString() + "." + soundPath[soundPath.length - 1];
-
-        log.info(filePath + " removed");
-        s3Client.deleteObject(bucket, filePath);
-    }
 }

@@ -32,6 +32,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/v1/auth/**").permitAll()
+                .antMatchers("/v1/user/**").permitAll()
+                .antMatchers("/v1/sound/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/exception/**").permitAll()
                 .anyRequest().hasRole("USER")
                 .and()
