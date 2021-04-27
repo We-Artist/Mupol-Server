@@ -48,9 +48,8 @@ public class GoogleService {
 
                     JSONParser jsonParse = new JSONParser();
                     JSONObject obj =  (JSONObject)jsonParse.parse(result);
-                    System.out.println("JsonObject 결과 값 :: " + obj);
 
-                    snsId = (String) obj.get("id");
+                    snsId = (String) obj.get("email");
                 }
         } catch (Exception e) {
             e.printStackTrace();
