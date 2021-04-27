@@ -9,12 +9,7 @@ import lombok.ToString;
 @ToString
 public class GoogleProfile {
     private String id;
+    private Boolean verified_email;
     private String email;
-    private boolean verified_email;
-    private String name;
-    private String given_name;
-    private String family_name;
     private String picture;
-    private String locale;
-
 }
