@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.domain.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mupol.mupolserver.domain.common.BaseTime;
 import com.mupol.mupolserver.domain.instrument.Instrument;
@@ -64,6 +65,7 @@ public class User extends BaseTime implements UserDetails {
     @Builder.Default
     private List<Instrument> favoriteInstrument = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
     private Set<Sound> sounds;
 

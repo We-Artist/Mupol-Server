@@ -4,13 +4,13 @@ import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
-import com.mupol.mupolserver.domain.sound.Sound;
+import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
-import com.mupol.mupolserver.dto.sound.SoundReqDto;
-import com.mupol.mupolserver.dto.sound.SoundResDto;
+import com.mupol.mupolserver.dto.video.VideoReqDto;
+import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.ResponseService;
-import com.mupol.mupolserver.service.SoundService;
+import com.mupol.mupolserver.service.VideoService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,87 +23,87 @@ import java.io.IOException;
 import java.util.List;
 
 @Slf4j
-@Api(tags = {"4. Sound"})
+@Api(tags = {"3. Video"})
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/v1/sound")
-public class SoundController {
+@RequestMapping("/v1/video")
+public class VideoController {
 
     private final UserRepository userRepository;
-    private final SoundService soundService;
+    private final VideoService videoService;
     private final JwtTokenProvider jwtTokenProvider;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "녹음본 업로드", notes = "")
+    @ApiOperation(value = "비디오 업로드", notes = "")
     @PostMapping(value = "/new", consumes = {"multipart/form-data"})
-    public ResponseEntity<SingleResult<SoundResDto>> addSound(
+    public ResponseEntity<SingleResult<VideoResDto>> addVideo(
             @RequestHeader("Authorization") String jwt,
-            @ApiParam(value = "metaData") @RequestPart SoundReqDto metaData,
-            @ApiParam(value = "음성파일") @RequestPart(value = "soundFile", required = false) MultipartFile soundFile
+            @ApiParam(value = "metaData") @RequestPart VideoReqDto metaData,
+            @ApiParam(value = "영상파일") @RequestPart(value = "videoFile", required = false) MultipartFile videoFile
     ) throws IOException, InterruptedException {
         User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(CUserNotFoundException::new);
-        if (soundFile == null || soundFile.isEmpty())
+        if(videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");
-        SoundResDto dto = soundService.uploadSound(soundFile, user, metaData);
+        VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "녹음본 전체 조회", notes = "")
+    @ApiOperation(value = "비디오 전체 조회", notes = "")
     @GetMapping("/me/all")
-    public ResponseEntity<ListResult<SoundResDto>> getSoundList(
+    public ResponseEntity<ListResult<VideoResDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt
     ) {
         Long userId = Long.valueOf(jwtTokenProvider.getUserPk(jwt));
-        List<SoundResDto> dtoList = soundService.getSndDtoList(soundService.getSounds(userId));
+        List<VideoResDto> dtoList = videoService.getSndDtoList(videoService.getVideos(userId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "녹음본 개별 조회", notes = "")
-    @GetMapping("/me/{soundId}")
-    public ResponseEntity<SingleResult<SoundResDto>> getSound(
-            @PathVariable String soundId
+    @ApiOperation(value = "비디오 개별 조회", notes = "")
+    @GetMapping("/me/{videoId}")
+    public ResponseEntity<SingleResult<VideoResDto>> getVideo(
+            @PathVariable String videoId
     ) {
-        SoundResDto dto = soundService.getSndDto(soundService.getSound(Long.valueOf(soundId)));
+        VideoResDto dto = videoService.getSndDto(videoService.getVideo(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "녹음본 제목 수정", notes = "")
-    @PutMapping("/me/{soundId}")
-    public ResponseEntity<SingleResult<SoundResDto>> updateSoundTitle(
+    @ApiOperation(value = "비디오 제목 수정", notes = "")
+    @PutMapping("/me/{videoId}")
+    public ResponseEntity<SingleResult<VideoResDto>> updateVideoTitle(
             @RequestHeader("Authorization") String jwt,
-            @PathVariable String soundId,
+            @PathVariable String videoId,
             @RequestBody String title
     ) {
-        if (title == null || title.equals(""))
+        if(title == null || title.equals(""))
             throw new IllegalArgumentException("title is empty");
-        Sound sound = soundService.updateTitle(Long.valueOf(soundId), title);
-        SoundResDto dto = soundService.getSndDto(sound);
+        Video video = videoService.updateTitle(Long.valueOf(videoId), title);
+        VideoResDto dto = videoService.getSndDto(video);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "녹음본 삭제", notes = "")
-    @DeleteMapping("/me/{soundId}")
-    public ResponseEntity<SingleResult<String>> deleteSound(
+    @ApiOperation(value = "비디오 삭제", notes = "")
+    @DeleteMapping("/me/{videoId}")
+    public ResponseEntity<SingleResult<String>> deleteVideo(
             @RequestHeader("Authorization") String jwt,
-            @PathVariable String soundId
+            @PathVariable String videoId
     ) {
         Long userId = Long.valueOf(jwtTokenProvider.getUserPk(jwt));
-        soundService.deleteSound(userId, Long.valueOf(soundId));
+        videoService.deleteVideo(userId, Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
 }

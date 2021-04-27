@@ -1,11 +1,14 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
+import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
+import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.dto.user.ProfileUpdateReqDto;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
 import com.mupol.mupolserver.service.UserService;
@@ -17,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Api(tags = {"1. User"})
 @RequiredArgsConstructor
@@ -36,6 +41,7 @@ public class UserController {
     @ApiOperation(value = "회원 리스트 조회", notes = "모든 회원을 조회한다")
     @GetMapping("/")
     public ResponseEntity<ListResult<User>> findAllUser() {
+        System.out.println("조회하고 싶다.");
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(userRepository.findAll()));
     }
 
@@ -95,5 +101,50 @@ public class UserController {
         userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "프로필 데이터 수정")
+    @PostMapping("/me")
+    public ResponseEntity<SingleResult<User>> updateProfile(
+            @RequestHeader("Authorization") String jwt,
+            @ApiParam(value = "프로필 정보") @RequestBody ProfileUpdateReqDto dto
+    ) {
+
+        long userId = Long.parseLong(jwtTokenProvider.getUserPk(jwt));
+        User user = userRepository.findById(userId).orElseThrow(CUserNotFoundException::new);
+
+        List<String> instruments = dto.getInstruments();
+        List<Instrument> instrumentList = new ArrayList<>();
+
+        if (instruments != null) {
+            try {
+                for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
+            } catch (Exception e) {
+                throw new InstrumentNotExistException();
+            }
+        }
+
+        if(!userService.validateUsername(dto.getUsername()))
+            throw new IllegalArgumentException("올바르지 않은 이름입니다.");
+
+        user.setBio(dto.getBio());
+        user.setUsername(dto.getUsername());
+        user.setFavoriteInstrument(instrumentList);
+
+        userRepository.save(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
+    }
+
+    @ApiOperation(value = "프로필 데이터 수정")
+    @PostMapping("/validate-name")
+    public ResponseEntity<SingleResult<Boolean>> updateProfile(
+            @ApiParam(value = "username") @RequestBody String username
+    ) {
+        if(!userService.validateUsername(username)) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(true));
     }
 }

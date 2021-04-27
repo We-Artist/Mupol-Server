@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.service.social;
 
+<<<<<<< HEAD
 import com.google.gson.Gson;
 import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.domain.social.google.GoogleProfile;
@@ -7,6 +8,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mock.web.MockMultipartFile;
+=======
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.springframework.beans.factory.annotation.Value;
+>>>>>>> 5eca1cfb75ef1c3207a8faf81b1adf1e8aa5d7d3
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,8 +22,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+<<<<<<< HEAD
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+=======
+>>>>>>> 5eca1cfb75ef1c3207a8faf81b1adf1e8aa5d7d3
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
