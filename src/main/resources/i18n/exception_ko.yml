@@ -19,3 +19,7 @@ invalidJwt:
   msg: "올바르지 않은 jwt token 입니다."
 invalidSnsToken:
   msg: "올바르지 않은 access token 입니다."
+  // exception_ko.yml
+accessDenied:
+  code: "-1003"
+  msg: "보유한 권한으로 접근할수 없는 리소스 입니다."
