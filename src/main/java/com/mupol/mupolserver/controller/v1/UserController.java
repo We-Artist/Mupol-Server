@@ -41,7 +41,6 @@ public class UserController {
     @ApiOperation(value = "회원 리스트 조회", notes = "모든 회원을 조회한다")
     @GetMapping("/")
     public ResponseEntity<ListResult<User>> findAllUser() {
-        System.out.println("조회하고 싶다.");
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(userRepository.findAll()));
     }
 
