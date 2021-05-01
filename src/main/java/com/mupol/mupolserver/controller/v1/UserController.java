@@ -138,7 +138,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
     }
 
-    @ApiOperation(value = "프로필 데이터 수정")
+    @ApiOperation(value = "닉네임 벨리데이션 체크")
     @PostMapping("/validate-name")
     public ResponseEntity<SingleResult<Boolean>> updateProfile(
             @ApiParam(value = "username") @RequestBody String username
