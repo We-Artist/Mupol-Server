@@ -4,7 +4,6 @@ import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
-import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
@@ -55,7 +54,7 @@ public class VideoController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "비디오 전체 조회", notes = "")
-    @GetMapping("/me/all")
+    @GetMapping("/all")
     public ResponseEntity<ListResult<VideoResDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt
     ) {
@@ -68,7 +67,7 @@ public class VideoController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "비디오 개별 조회", notes = "")
-    @GetMapping("/me/{videoId}")
+    @GetMapping("/{videoId}")
     public ResponseEntity<SingleResult<VideoResDto>> getVideo(
             @PathVariable String videoId
     ) {
@@ -79,25 +78,8 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 제목 수정", notes = "")
-    @PutMapping("/me/{videoId}")
-    public ResponseEntity<SingleResult<VideoResDto>> updateVideoTitle(
-            @RequestHeader("Authorization") String jwt,
-            @PathVariable String videoId,
-            @RequestBody String title
-    ) {
-        if(title == null || title.equals(""))
-            throw new IllegalArgumentException("title is empty");
-        Video video = videoService.updateTitle(Long.valueOf(videoId), title);
-        VideoResDto dto = videoService.getSndDto(video);
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value = "비디오 삭제", notes = "")
-    @DeleteMapping("/me/{videoId}")
+    @DeleteMapping("/{videoId}")
     public ResponseEntity<SingleResult<String>> deleteVideo(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String videoId
