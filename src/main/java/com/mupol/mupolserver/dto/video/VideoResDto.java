@@ -1,6 +1,6 @@
 package com.mupol.mupolserver.dto.video;
 
-import com.fasterxml.jackson.databind.util.EnumValues;
+import com.mupol.mupolserver.domain.instrument.Instrument;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +23,9 @@ public class VideoResDto {
     @ApiModelProperty(notes = "원곡 제목")
     private String origin_title;
 
+    @ApiModelProperty(notes = "설명")
+    private String detail;
+
     @ApiModelProperty(notes = "공개 여부")
     private Boolean is_private;
 
@@ -36,7 +39,7 @@ public class VideoResDto {
     private String fileUrl;
 
     @ApiModelProperty(notes ="악기 목록")
-    private List<EnumValues> instrument_list;
+    private List<Instrument> instrument_list;
 
     @ApiModelProperty(notes ="조회수")
     private int view_num;
