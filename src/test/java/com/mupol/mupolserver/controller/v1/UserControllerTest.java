@@ -54,7 +54,7 @@ public class UserControllerTest {
     private final String signinUrl = "/v1/auth/signin";
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         log.info("Before Test");
 
         // 한글 깨짐 해결
@@ -77,7 +77,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void getUserProfile() throws Exception {
+    void getUserProfile() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
                 "    \"accessToken\": \""+ testUserSnsId +"\"\n" +
@@ -99,7 +99,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void getUserProfileFail() throws Exception {
+    void getUserProfileFail() throws Exception {
         String jwt = "invalid jwt";
 
         mockMvc.perform(get(baseUrl+"/me").header("Authorization", jwt))
@@ -108,7 +108,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void deleteUserProfile() throws Exception {
+    void deleteUserProfile() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
                 "    \"accessToken\": \""+ testUserSnsId +"\"\n" +

@@ -1,7 +1,7 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.domain.instrument.Instrument;
-import com.mupol.mupolserver.domain.response.SingleResult;
+import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.service.ResponseService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -13,10 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Api(tags = {"Instrument"})
@@ -29,17 +28,17 @@ public class InstrumentController {
 
     @ApiOperation(value = "악기 리스트 조회")
     @GetMapping("/")
-    public ResponseEntity<SingleResult<HashMap>> getInstruments() {
+    public ResponseEntity<ListResult<HashMap<String, String>>> getInstruments() {
         Instrument[] instrEn = Instrument.values();
-        List<String> instrKo = Stream.of(Instrument.values())
-                .map(Instrument::getKo)
-                .collect(Collectors.toList());
-        HashMap<Instrument, String> instruments = new HashMap<>();
+        List<HashMap<String, String>> instrumentsList = new ArrayList<>();
 
-        for (int i = 0; i < instrEn.length; ++i) {
-            instruments.put(instrEn[i], instrKo.get(i));
+        for (Instrument instrument : instrEn) {
+            HashMap<String, String> instr = new HashMap<>();
+            instr.put("id", instrument.getEn());
+            instr.put("valueKr", instrument.getKo());
+            instrumentsList.add(instr);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(instruments));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(instrumentsList));
     }
 }
