@@ -9,7 +9,7 @@ public enum Instrument {
     // percussion
     drum("드럼","drum", ""),
     marimba("마림바","marimba", ""),
-    xylophone("드럼","xylophone", ""),
+    xylophone("실로폰","xylophone", ""),
 
     // wind
     clarinet("클라리넷","clarinet",""),

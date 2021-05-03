@@ -2,7 +2,6 @@ package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.response.ListResult;
-import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.service.ResponseService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Api(tags = {"Instrument"})
