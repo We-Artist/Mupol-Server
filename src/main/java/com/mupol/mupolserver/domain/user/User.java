@@ -3,6 +3,7 @@ package com.mupol.mupolserver.domain.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mupol.mupolserver.domain.common.BaseTime;
+import com.mupol.mupolserver.domain.followers.Followers;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.sound.Sound;
 import lombok.*;
@@ -68,6 +69,14 @@ public class User extends BaseTime implements UserDetails {
     @JsonIgnore
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
     private Set<Sound> sounds;
+
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "to")
+    private Set<Followers> followings;
+
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "from")
+    private Set<Followers> followers;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
