@@ -42,12 +42,10 @@ public class VideoService {
         System.out.println(instruments.toString());
         List<Instrument> instrumentList = new ArrayList<>();
 
-        if (instruments != null) {
-            try {
-                for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
-            } catch (Exception e) {
-                throw new InstrumentNotExistException();
-            }
+        try {
+            for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
+        } catch (Exception e) {
+            throw new InstrumentNotExistException();
         }
 
         Video video = Video.builder()
@@ -76,7 +74,7 @@ public class VideoService {
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
 
-        return getSndDto(video);
+        return getVideoDto(video);
     }
 
     public Video getVideo(Long videoId) {
@@ -101,24 +99,24 @@ public class VideoService {
     }
 
     public List<VideoResDto> getSndDtoList(List<Video> VideoList) {
-        return VideoList.stream().map(this::getSndDto).collect(Collectors.toList());
+        return VideoList.stream().map(this::getVideoDto).collect(Collectors.toList());
     }
 
-    public VideoResDto getSndDto(Video snd) {
+    public VideoResDto getVideoDto(Video video) {
 
         VideoResDto dto = new VideoResDto();
 
-        dto.setId(snd.getId());
-        dto.setTitle(snd.getTitle());
-        dto.setOrigin_title(snd.getOrigin_title());
-        dto.setDetail(snd.getDetail());
-        dto.setIs_private(snd.getIs_private());
-        dto.setCreatedAt(snd.getCreatedAt());
-        dto.setUpdatedAt(snd.getModifiedDate());
-        dto.setFileUrl(snd.getFileUrl());
-        dto.setInstrument_list(snd.getInstrument_list());
-        dto.setView_num(snd.getView_num());
-        dto.setUserId(snd.getUser().getId());
+        dto.setId(video.getId());
+        dto.setTitle(video.getTitle());
+        dto.setOrigin_title(video.getOrigin_title());
+        dto.setDetail(video.getDetail());
+        dto.setIs_private(video.getIs_private());
+        dto.setCreatedAt(video.getCreatedAt());
+        dto.setUpdatedAt(video.getModifiedDate());
+        dto.setFileUrl(video.getFileUrl());
+        dto.setInstrument_list(video.getInstrument_list());
+        dto.setView_num(video.getView_num());
+        dto.setUserId(video.getUser().getId());
         return dto;
     }
 
@@ -133,14 +131,21 @@ public class VideoService {
         file.delete();
     }
 
-    public List<Video> getVideoAtMonth(User user, int year, int month) {
+    public List<VideoResDto> getVideoAtMonth(User user, int year, int month) {
         Calendar cal = Calendar.getInstance();
         int lastDate = cal.getActualMaximum(Calendar.DATE);
 
         LocalDateTime start = LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.of(0,0,0));
         LocalDateTime end = LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
 
-        return videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
+        List<Video> videoList = videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("video list error"));
+
+        List<VideoResDto> dtoList = new ArrayList<>();
+        for(Video v: videoList) {
+            dtoList.add(getVideoDto(v));
+        }
+
+        return dtoList;
     }
 }

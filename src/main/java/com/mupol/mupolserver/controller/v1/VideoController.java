@@ -36,7 +36,7 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 업로드", notes = "")
+    @ApiOperation(value = "비디오 업로드")
     @PostMapping(value = "/new", consumes = {"multipart/form-data"})
     public ResponseEntity<SingleResult<VideoResDto>> addVideo(
             @RequestHeader("Authorization") String jwt,
@@ -53,7 +53,7 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 전체 조회", notes = "")
+    @ApiOperation(value = "비디오 전체 조회")
     @GetMapping("/all")
     public ResponseEntity<ListResult<VideoResDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt
@@ -66,19 +66,19 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 개별 조회", notes = "")
+    @ApiOperation(value = "비디오 개별 조회")
     @GetMapping("/{videoId}")
     public ResponseEntity<SingleResult<VideoResDto>> getVideo(
             @PathVariable String videoId
     ) {
-        VideoResDto dto = videoService.getSndDto(videoService.getVideo(Long.valueOf(videoId)));
+        VideoResDto dto = videoService.getVideoDto(videoService.getVideo(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 삭제", notes = "")
+    @ApiOperation(value = "비디오 삭제")
     @DeleteMapping("/{videoId}")
     public ResponseEntity<SingleResult<String>> deleteVideo(
             @RequestHeader("Authorization") String jwt,

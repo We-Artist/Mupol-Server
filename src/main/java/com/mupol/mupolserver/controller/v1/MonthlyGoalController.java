@@ -7,12 +7,12 @@ import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoalRepository;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
-import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
-import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.monthlyGoal.CreateGoalReqDto;
 import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusReqDto;
+import com.mupol.mupolserver.dto.sound.SoundResDto;
+import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.SoundService;
 import com.mupol.mupolserver.service.VideoService;
@@ -36,12 +36,9 @@ public class MonthlyGoalController {
 
     private final MonthlyGoalRepository monthlyGoalRepository;
     private final UserRepository userRepository;
-
     private final VideoService videoService;
     private final SoundService soundService;
-
     private final JwtTokenProvider jwtTokenProvider;
-
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -56,7 +53,6 @@ public class MonthlyGoalController {
         // get user
         long userId = Long.parseLong(jwtTokenProvider.getUserPk(jwt));
         User user = userRepository.findById(userId).orElseThrow(CUserNotFoundException::new);
-
         int y = LocalDate.now().getYear();
         int m = LocalDate.now().getMonthValue();
         LocalDate startDate = LocalDate.of(y, m, 1);
@@ -101,10 +97,10 @@ public class MonthlyGoalController {
                 .orElseThrow(() -> new IllegalArgumentException("goal does not exist"));
 
         // get video
-        List<Video> videoList = videoService.getVideoAtMonth(user, year, month);
+        List<VideoResDto> videoList = videoService.getVideoAtMonth(user, year, month);
 
         // get sound
-        List<Sound> soundList = soundService.getSoundAtMonth(user, year, month);
+        List<SoundResDto> soundList = soundService.getSoundAtMonth(user, year, month);
 
         GoalStatusReqDto dto = GoalStatusReqDto.builder()
                 .currentGoal(goal)

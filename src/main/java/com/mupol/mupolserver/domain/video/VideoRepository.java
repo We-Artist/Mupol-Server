@@ -1,6 +1,5 @@
 package com.mupol.mupolserver.domain.video;
 
-import com.mupol.mupolserver.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -9,7 +8,6 @@ import java.util.Optional;
 
 public interface VideoRepository extends JpaRepository<Video, Long> {
     Optional<List<Video>> findVideosByUserId(Long userId);
-    Optional<Video> findVideoByIdAndUserId(Long userId, Long videoId);
     Optional<List<Video>> findAllByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
 
 }
