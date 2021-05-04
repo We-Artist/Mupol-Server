@@ -1,10 +1,14 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.dto.user.FollowersResDto;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,9 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -49,9 +55,13 @@ public class UserControllerTest {
     private ObjectMapper objectMapper;
 
     private final String testUserSnsId = "hvjakeb3423";
-    private final SnsType testUserSnsType = SnsType.test;
+    private final SnsType testUserProvider = SnsType.test;
     private final String baseUrl = "/v1/user";
-    private final String signinUrl = "/v1/auth/signin";
+
+    private Gson gson;
+    private Type typeOfT;
+    private User[] testUser = new User[2];
+    private String jwt;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -63,36 +73,27 @@ public class UserControllerTest {
                 .alwaysDo(print())
                 .build();
 
-        // sign in test 를 위한 회원가입
-        userRepository.save(User.builder()
-                .snsId(testUserSnsId)
-                .provider(testUserSnsType)
-                .username("테스트뮤폴러")
-                .favoriteInstrument(new ArrayList<>(Arrays.asList(Instrument.piccolo, Instrument.drum)))
-                .birth(LocalDate.parse("1996-03-18"))
-                .terms(true)
-                .isMajor(true)
-                .role(User.Role.USER)
-                .build());
+        for(int i=0; i<testUser.length; ++i) {
+            testUser[i] = User.builder()
+                    .snsId(testUserSnsId + i)
+                    .provider(testUserProvider)
+                    .username("테스트뮤폴러-" + i)
+                    .favoriteInstrument(new ArrayList<>(Arrays.asList(Instrument.piccolo, Instrument.drum)))
+                    .birth(LocalDate.parse("1996-03-18"))
+                    .terms(true)
+                    .isMajor(true)
+                    .role(User.Role.USER)
+                    .build();
+            userRepository.save(testUser[i]);
+        }
+
+        jwt = getJwt();
+        gson = new Gson();
+        typeOfT = new TypeToken<ListResult<FollowersResDto>>(){}.getType();
     }
 
     @Test
     void getUserProfile() throws Exception {
-        String content = "{\n" +
-                "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
-                "    \"accessToken\": \""+ testUserSnsId +"\"\n" +
-                "}";
-
-        String result = mockMvc.perform(post(signinUrl)
-                .content(content)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-                .andReturn()
-                .getResponse().getContentAsString();
-
-        Map data = objectMapper.readValue(result, Map.class);
-        String jwt = (String) data.get("data");
-
         mockMvc.perform(get(baseUrl+"/me").header("Authorization", jwt))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -100,7 +101,7 @@ public class UserControllerTest {
 
     @Test
     void getUserProfileFail() throws Exception {
-        String jwt = "invalid jwt";
+        jwt = "invalid jwt";
 
         mockMvc.perform(get(baseUrl+"/me").header("Authorization", jwt))
                 .andDo(print())
@@ -109,21 +110,6 @@ public class UserControllerTest {
 
     @Test
     void deleteUserProfile() throws Exception {
-        String content = "{\n" +
-                "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
-                "    \"accessToken\": \""+ testUserSnsId +"\"\n" +
-                "}";
-
-        String result = mockMvc.perform(post(signinUrl)
-                .content(content)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-                .andReturn()
-                .getResponse().getContentAsString();
-
-        Map data = objectMapper.readValue(result, Map.class);
-        String jwt = (String) data.get("data");
-
         mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -131,11 +117,107 @@ public class UserControllerTest {
 
     @Test
     public void deleteUserProfileFail() throws Exception {
+        mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
+                .andExpect(status().isOk());
+
+        // 이중 삭제
+        mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
+                .andDo(print())
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    public void followUser() throws Exception {
+        // follow user
+        mockMvc.perform(post(baseUrl + "/friendship/follow/" + testUser[1].getId())
+                .header("Authorization",jwt)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void unfollowUser() throws Exception {
+        followUser();
+        // unfollow user
+        mockMvc.perform(post(baseUrl + "/friendship/unfollow/" + testUser[1].getId())
+                .header("Authorization",jwt)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void getFollowerList() throws Exception {
+        followUser();
+
+        String followerResult = mockMvc.perform(get(baseUrl + "/"+ testUser[1].getId()+"/followers/")
+                .header("Authorization",jwt)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse().getContentAsString();
+
+        ListResult<FollowersResDto> response = gson.fromJson(followerResult, typeOfT);
+        List<FollowersResDto> followerList = response.getData();
+        boolean followerExist = false;
+
+        for(FollowersResDto f: followerList) {
+            if (testUser[0].getId().equals(f.getUserId())) {
+                followerExist = true;
+                break;
+            }
+        }
+        if(!followerExist)
+            throw new IllegalArgumentException("follow failed");
+    }
+
+    @Test
+    public void getFollowingList() throws Exception {
+        followUser();
+        String followingResult = mockMvc.perform(get(baseUrl + "/"+ testUser[0].getId()+"/followings/")
+                .header("Authorization",jwt)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse().getContentAsString();
+
+        // check following list
+        ListResult<FollowersResDto> response = gson.fromJson(followingResult, typeOfT);
+        List<FollowersResDto> followingList = response.getData();
+        boolean followingExist = false;
+
+        for(FollowersResDto f: followingList) {
+            if (testUser[1].getId().equals(f.getUserId())) {
+                followingExist = true;
+                break;
+            }
+        }
+        if(!followingExist)
+            throw new IllegalArgumentException("follow failed");
+    }
+
+    @Test
+    public void getFollowerListFailByUnknownUser() throws Exception {
+        mockMvc.perform(get(baseUrl + "/"+ -1 +"/followings/")
+                .header("Authorization",jwt)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    public void getFollowingListFailByUnknownUser() throws Exception {
+        mockMvc.perform(get(baseUrl + "/"+ -1 +"/followers/")
+                .header("Authorization",jwt)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+
+    private String getJwt() throws Exception {
         String content = "{\n" +
-                "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
-                "    \"accessToken\": \""+ testUserSnsId +"\"\n" +
+                "    \"provider\": \""+ testUserProvider +"\",\n" +
+                "    \"accessToken\": \""+ testUserSnsId + 0 +"\"\n" +
                 "}";
 
+        String signinUrl = "/v1/auth/signin";
         String result = mockMvc.perform(post(signinUrl)
                 .content(content)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -144,14 +226,6 @@ public class UserControllerTest {
                 .getResponse().getContentAsString();
 
         Map data = objectMapper.readValue(result, Map.class);
-        String jwt = (String) data.get("data");
-
-        mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
-                .andExpect(status().isOk());
-
-        // 이중 삭제
-        mockMvc.perform(delete(baseUrl+"/me").header("Authorization", jwt))
-                .andDo(print())
-                .andExpect(status().is4xxClientError());
+        return (String) data.get("data");
     }
 }

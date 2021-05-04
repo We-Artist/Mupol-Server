@@ -53,7 +53,7 @@ public class SignControllerTest {
     private final String baseSigninUrl = "/v1/auth/signin";
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         log.info("Before Test");
 
         // 한글 깨짐 해결
@@ -76,7 +76,7 @@ public class SignControllerTest {
     }
 
     @Test
-    public void signin() throws Exception {
+    void signin() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
                 "    \"accessToken\": \""+ testUserSnsId +"\"\n" +
@@ -91,7 +91,7 @@ public class SignControllerTest {
     }
 
     @Test
-    public void signinFailInvalidToken() throws Exception {
+    void signinFailInvalidToken() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \""+testUserSnsType.toString()+"\",\n" +
                 "    \"accessToken\": \"-1\"\n" +
@@ -106,7 +106,7 @@ public class SignControllerTest {
     }
 
     @Test
-    public void signinFailInvalidProvider() throws Exception {
+    void signinFailInvalidProvider() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \"invalidProvider\",\n" +
                 "    \"accessToken\": \"-1\"\n" +
@@ -121,7 +121,7 @@ public class SignControllerTest {
     }
 
     @Test
-    public void signup() throws Exception {
+    void signup() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \"test\",\n" +
                 "    \"accessToken\": \"1111\",\n" +
@@ -143,7 +143,7 @@ public class SignControllerTest {
     }
 
     @Test
-    public void signupFailInvalidInstrument() throws Exception {
+    void signupFailInvalidInstrument() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \"test\",\n" +
                 "    \"accessToken\": \"1111\",\n" +
@@ -166,7 +166,7 @@ public class SignControllerTest {
     }
 
     @Test
-    public void signupFailInvalidIsAgreed() throws Exception {
+    void signupFailInvalidIsAgreed() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \"test\",\n" +
                 "    \"accessToken\": \"1111\",\n" +
@@ -189,7 +189,7 @@ public class SignControllerTest {
     }
 
     @Test
-    public void signupFailDuplicatedUser() throws Exception {
+    void signupFailDuplicatedUser() throws Exception {
         String content = "{\n" +
                 "    \"provider\": \"" + testUserSnsType.toString() + "\",\n" +
                 "    \"accessToken\": \"" + testUserSnsId + "\",\n" +
