@@ -7,15 +7,12 @@ import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.auth.SigninReqDto;
 import com.mupol.mupolserver.dto.auth.SignupReqDto;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
+import com.mupol.mupolserver.service.SignService;
 import com.mupol.mupolserver.service.UserService;
-import com.mupol.mupolserver.service.social.FacebookService;
-import com.mupol.mupolserver.service.social.GoogleService;
-import com.mupol.mupolserver.service.social.KakaoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -29,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Api(tags = {"2. Sign"})
@@ -38,26 +34,19 @@ import java.util.Optional;
 @RequestMapping("/v1/auth")
 public class SignController {
 
-    private final UserRepository userRepository;
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final SignService signService;
     private final ResponseService responseService;
     private final S3Service s3Service;
-    private final KakaoService kakaoService;
-    private final FacebookService facebookService;
-    private final GoogleService googleService;
+
+    private final JwtTokenProvider jwtTokenProvider;
 
     @ApiOperation(value = "소셜 로그인")
     @PostMapping(value = "/signin")
     public ResponseEntity<SingleResult<String>> signinByProvider(
             @ApiParam(value = "json") @RequestBody SigninReqDto signinReqDto
     ) {
-        String provider = signinReqDto.getProvider();
-        String accessToken = signinReqDto.getAccessToken();
-
-        String snsId = getSnsId(provider, accessToken);
-        SnsType snsType = SnsType.valueOf(provider);
-        User user = userRepository.findBySnsIdAndProvider(snsId, snsType).orElseThrow(CUserNotFoundException::new);
+        User user = userService.getUserByProviderAndToken(signinReqDto.getProvider(), signinReqDto.getAccessToken());
         String jwt = jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(jwt));
     }
@@ -67,7 +56,6 @@ public class SignController {
     public ResponseEntity<SingleResult<String>> signupProvider(
             @ApiParam(value = "json") @RequestBody SignupReqDto signupReqDto
     ) {
-
         String provider = signupReqDto.getProvider();
         String accessToken = signupReqDto.getAccessToken();
         String name = signupReqDto.getName();
@@ -75,19 +63,13 @@ public class SignController {
         boolean isMajor = signupReqDto.isMajor();
         List<String> instruments = signupReqDto.getInstruments();
         LocalDate birth = signupReqDto.getBirth();
-
-
-        if (!terms) throw new UserDoesNotAgreeException();
-
-        String snsId = getSnsId(provider, accessToken);
+        String snsId = signService.getSnsId(provider, accessToken);
         SnsType snsType = SnsType.valueOf(provider);
         List<Instrument> instrumentList = new ArrayList<>();
 
-        Optional<User> user = userRepository.findBySnsIdAndProvider(snsId, snsType);
-
-        // ID 중복확인
-        if (user.isPresent()) throw new CUserIdDuplicatedException();
-        if(!userService.validateUsername(name)) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
+        if (!terms) throw new UserDoesNotAgreeException();
+        if (userService.isUserExist(provider, accessToken)) throw new CUserIdDuplicatedException();
+        if (!userService.validateUsername(name)) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
 
         // 악기 구분
         if (instruments != null) {
@@ -108,14 +90,14 @@ public class SignController {
                 .birth(birth)
                 .role(User.Role.USER)
                 .build();
-        userRepository.save(newUser);
+        userService.save(newUser);
 
         try {
-            MultipartFile profileImage = getProfileImage(provider, accessToken);
+            MultipartFile profileImage = signService.getProfileImage(provider, accessToken);
             if (profileImage != null) {
                 String profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
                 newUser.setProfileImageUrl(profileImageUrl);
-                userRepository.save(newUser);
+                userService.save(newUser);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,47 +107,5 @@ public class SignController {
         String jwt = jwtTokenProvider.createToken(String.valueOf(newUser.getId()), newUser.getRole());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseService.getSingleResult(jwt));
-    }
-
-    private String getSnsId(String provider, String accessToken) {
-        String snsId;
-        if (provider.equals(SnsType.kakao.getType())) {
-            snsId = kakaoService.getSnsId(accessToken);
-        } else if (provider.equals(SnsType.facebook.getType())) {
-            snsId = facebookService.getSnsId(accessToken);
-        }  else if (provider.equals(SnsType.google.getType())) {
-            snsId = googleService.getSnsId(accessToken);
-        } else if (provider.equals(SnsType.test.getType())) {
-            snsId = accessToken;
-        } else if (provider.equals(SnsType.apple.getType())) {
-            throw new SnsNotSupportedException();
-        }else {
-            throw new SnsNotSupportedException();
-        }
-        return snsId;
-    }
-
-    // TODO: sns 별로 profile 가져오기
-    private MultipartFile getProfileImage(String provider, String accessToken) {
-        MultipartFile profileImageFile = null;
-        try {
-            if (provider.equals(SnsType.kakao.getType())) {
-                profileImageFile = kakaoService.getProfileImage(accessToken);
-            } else if (provider.equals(SnsType.facebook.getType())) {
-                return null;
-            } else if (provider.equals(SnsType.apple.getType())) {
-                return null;
-            } else if (provider.equals(SnsType.google.getType())) {
-                profileImageFile = googleService.getProfileImage(accessToken);
-            } else if (provider.equals(SnsType.test.getType())) {
-                return null;
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return profileImageFile;
     }
 }

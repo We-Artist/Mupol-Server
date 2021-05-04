@@ -11,6 +11,7 @@ import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.SoundService;
+import com.mupol.mupolserver.service.UserService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +30,8 @@ import java.util.List;
 @RequestMapping("/v1/sound")
 public class SoundController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final SoundService soundService;
-    private final JwtTokenProvider jwtTokenProvider;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -44,7 +44,7 @@ public class SoundController {
             @ApiParam(value = "metaData") @RequestPart SoundReqDto metaData,
             @ApiParam(value = "음성파일") @RequestPart(value = "soundFile", required = false) MultipartFile soundFile
     ) throws IOException, InterruptedException {
-        User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(CUserNotFoundException::new);
+        User user = userService.getUserByJwt(jwt);
         if (soundFile == null || soundFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         SoundResDto dto = soundService.uploadSound(soundFile, user, metaData);
@@ -59,8 +59,8 @@ public class SoundController {
     public ResponseEntity<ListResult<SoundResDto>> getSoundList(
             @RequestHeader(value = "Authorization") String jwt
     ) {
-        Long userId = Long.valueOf(jwtTokenProvider.getUserPk(jwt));
-        List<SoundResDto> dtoList = soundService.getSndDtoList(soundService.getSounds(userId));
+        User user = userService.getUserByJwt(jwt);
+        List<SoundResDto> dtoList = soundService.getSndDtoList(soundService.getSounds(user.getId()));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -82,7 +82,6 @@ public class SoundController {
     @ApiOperation(value = "녹음본 제목 수정", notes = "")
     @PutMapping("/me/{soundId}")
     public ResponseEntity<SingleResult<SoundResDto>> updateSoundTitle(
-            @RequestHeader("Authorization") String jwt,
             @PathVariable String soundId,
             @RequestBody String title
     ) {
@@ -102,8 +101,8 @@ public class SoundController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable String soundId
     ) {
-        Long userId = Long.valueOf(jwtTokenProvider.getUserPk(jwt));
-        soundService.deleteSound(userId, Long.valueOf(soundId));
+        User user = userService.getUserByJwt(jwt);
+        soundService.deleteSound(user.getId(), Long.valueOf(soundId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
 }

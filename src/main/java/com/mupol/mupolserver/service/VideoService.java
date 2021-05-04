@@ -65,7 +65,7 @@ public class VideoService {
         // split video
         ffmpegService.splitMedia(videoFile, userId, videoId, MediaType.Video);
 
-        // upload splitted video
+        // upload split video
         File folder = new File(fileBasePath + userId + "/" + videoId);
         String fileUrl = s3Service.uploadMediaFolder(folder, userId, videoId, MediaType.Video);
         video.setFileUrl(fileUrl);
@@ -98,7 +98,7 @@ public class VideoService {
         videoRepository.deleteById(videoId);
     }
 
-    public List<VideoResDto> getSndDtoList(List<Video> VideoList) {
+    public List<VideoResDto> getVideoDtoList(List<Video> VideoList) {
         return VideoList.stream().map(this::getVideoDto).collect(Collectors.toList());
     }
 
@@ -141,11 +141,6 @@ public class VideoService {
         List<Video> videoList = videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("video list error"));
 
-        List<VideoResDto> dtoList = new ArrayList<>();
-        for(Video v: videoList) {
-            dtoList.add(getVideoDto(v));
-        }
-
-        return dtoList;
+        return getVideoDtoList(videoList);
     }
 }
