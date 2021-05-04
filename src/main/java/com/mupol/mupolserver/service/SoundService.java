@@ -4,6 +4,7 @@ import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.sound.SoundRepository;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,5 +105,16 @@ public class SoundService {
             }
         }
         file.delete();
+    }
+
+    public List<Sound> getSoundAtMonth(User user, int year, int month) {
+        Calendar cal = Calendar.getInstance();
+        int lastDate = cal.getActualMaximum(Calendar.DATE);
+
+        LocalDateTime start = LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.of(0,0,0));
+        LocalDateTime end = LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
+
+        return soundRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
+                .orElseThrow(() -> new IllegalArgumentException("sound list error"));
     }
 }

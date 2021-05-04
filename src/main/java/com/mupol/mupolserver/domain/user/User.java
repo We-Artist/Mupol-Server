@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mupol.mupolserver.domain.common.BaseTime;
 import com.mupol.mupolserver.domain.followers.Followers;
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.domain.sound.Sound;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -77,6 +78,10 @@ public class User extends BaseTime implements UserDetails {
     @JsonIgnore
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "from")
     private Set<Followers> followers;
+
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+    private Set<MonthlyGoal> goals;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
