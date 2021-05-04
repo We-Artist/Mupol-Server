@@ -137,7 +137,7 @@ public class UserController {
     })
     @ApiOperation(value = "유저 팔로우")
     @PostMapping("/friendship/follow/{userId}")
-    public ResponseEntity<SingleResult<Followers>> follow(
+    public ResponseEntity<SingleResult<String>> follow(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "user to follow") @PathVariable String userId
     ) {
@@ -155,7 +155,7 @@ public class UserController {
                 .build();
         followersService.save(followers);
 
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(followers));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("success follow"));
     }
 
     @ApiImplicitParams({
