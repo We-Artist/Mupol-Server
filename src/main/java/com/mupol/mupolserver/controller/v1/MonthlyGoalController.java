@@ -1,21 +1,15 @@
 package com.mupol.mupolserver.controller.v1;
 
 
-import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
-import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
-import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoalRepository;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.monthlyGoal.CreateGoalReqDto;
 import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
-import com.mupol.mupolserver.service.ResponseService;
-import com.mupol.mupolserver.service.SoundService;
-import com.mupol.mupolserver.service.VideoService;
+import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Api(tags = {"Monthly Goal"})
@@ -34,12 +27,11 @@ import java.util.Optional;
 @RequestMapping("/v1/goal")
 public class MonthlyGoalController {
 
-    private final MonthlyGoalRepository monthlyGoalRepository;
-    private final UserRepository userRepository;
+    private final ResponseService responseService;
+    private final MonthlyGoalService monthlyGoalService;
+    private final UserService userService;
     private final VideoService videoService;
     private final SoundService soundService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final ResponseService responseService;
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
@@ -51,15 +43,13 @@ public class MonthlyGoalController {
             @ApiParam(value = "목표 횟수") @RequestBody CreateGoalReqDto dto
     ) {
         // get user
-        long userId = Long.parseLong(jwtTokenProvider.getUserPk(jwt));
-        User user = userRepository.findById(userId).orElseThrow(CUserNotFoundException::new);
+        User user = userService.getUserByJwt(jwt);
         int y = LocalDate.now().getYear();
         int m = LocalDate.now().getMonthValue();
         LocalDate startDate = LocalDate.of(y, m, 1);
 
         // check goal exist
-        Optional<MonthlyGoal> goal = monthlyGoalRepository.findMonthlyGoalByUserAndStartDate(user, startDate);
-        if (goal.isPresent()) {
+        if (monthlyGoalService.isGoalExist(user, startDate)) {
             throw new IllegalArgumentException("goal already exist");
         }
 
@@ -71,7 +61,7 @@ public class MonthlyGoalController {
                 .achieveNumber(0)
                 .build();
 
-        monthlyGoalRepository.save(monthlyGoal);
+        monthlyGoalService.save(monthlyGoal);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(monthlyGoal));
     }
@@ -87,14 +77,11 @@ public class MonthlyGoalController {
             @ApiParam(value = "month") @PathVariable int month
     ) {
         // get user
-        long userId = Long.parseLong(jwtTokenProvider.getUserPk(jwt));
-        User user = userRepository.findById(userId).orElseThrow(CUserNotFoundException::new);
-
+        User user = userService.getUserByJwt(jwt);
         LocalDate startDate = LocalDate.of(year, month, 1);
 
         // check goal exist
-        MonthlyGoal goal = monthlyGoalRepository.findMonthlyGoalByUserAndStartDate(user, startDate)
-                .orElseThrow(() -> new IllegalArgumentException("goal does not exist"));
+        MonthlyGoal goal = monthlyGoalService.getMonthlyGoal(user, startDate);
 
         // get video
         List<VideoResDto> videoList = videoService.getVideoAtMonth(user, year, month);
@@ -119,12 +106,8 @@ public class MonthlyGoalController {
     public ResponseEntity<ListResult<MonthlyGoal>> getAllGoals(
             @RequestHeader("Authorization") String jwt
     ) {
-        long userId = Long.parseLong(jwtTokenProvider.getUserPk(jwt));
-        User user = userRepository.findById(userId).orElseThrow(CUserNotFoundException::new);
-
-        List<MonthlyGoal> goalList = monthlyGoalRepository.findAllByUserOrderByStartDateDesc(user)
-                .orElseThrow(() -> new IllegalArgumentException("goals do not exist"));
-
+        User user = userService.getUserByJwt(jwt);
+        List<MonthlyGoal> goalList = monthlyGoalService.getAllGoals(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(goalList));
     }
 

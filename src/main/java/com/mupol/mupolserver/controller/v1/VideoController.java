@@ -9,6 +9,7 @@ import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.ResponseService;
+import com.mupol.mupolserver.service.UserService;
 import com.mupol.mupolserver.service.VideoService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +29,8 @@ import java.util.List;
 @RequestMapping("/v1/video")
 public class VideoController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final VideoService videoService;
-    private final JwtTokenProvider jwtTokenProvider;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -43,7 +43,7 @@ public class VideoController {
             @ApiParam(value = "metaData") @RequestPart VideoReqDto metaData,
             @ApiParam(value = "영상파일") @RequestPart(value = "videoFile", required = false) MultipartFile videoFile
     ) throws IOException, InterruptedException {
-        User user = userRepository.findById(Long.valueOf(jwtTokenProvider.getUserPk(jwt))).orElseThrow(CUserNotFoundException::new);
+        User user = userService.getUserByJwt(jwt);
         if(videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
@@ -58,8 +58,8 @@ public class VideoController {
     public ResponseEntity<ListResult<VideoResDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt
     ) {
-        Long userId = Long.valueOf(jwtTokenProvider.getUserPk(jwt));
-        List<VideoResDto> dtoList = videoService.getSndDtoList(videoService.getVideos(userId));
+        User user = userService.getUserByJwt(jwt);
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getVideos(user.getId()));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -84,8 +84,8 @@ public class VideoController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable String videoId
     ) {
-        Long userId = Long.valueOf(jwtTokenProvider.getUserPk(jwt));
-        videoService.deleteVideo(userId, Long.valueOf(videoId));
+        User user = userService.getUserByJwt(jwt);
+        videoService.deleteVideo(user.getId(), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
 }

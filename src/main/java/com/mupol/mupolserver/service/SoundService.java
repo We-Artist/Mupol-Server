@@ -118,11 +118,6 @@ public class SoundService {
         List<Sound> soundList = soundRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("sound list error"));
 
-        List<SoundResDto> dtoList = new ArrayList<>();
-        for(Sound s: soundList) {
-            dtoList.add(getSndDto(s));
-        }
-
-        return dtoList;
+        return getSndDtoList(soundList);
     }
 }
