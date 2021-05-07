@@ -22,4 +22,7 @@ public class VideoReqDto {
 
     @ApiModelProperty(notes = "악기 목록")
     private List<String> instrument_list;
+
+    @ApiModelProperty(notes = "해시태그 목록")
+    private List<String> hashtag_list;
 }

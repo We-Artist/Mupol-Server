@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.domain.common.MediaType;
+import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
@@ -39,11 +40,19 @@ public class VideoService {
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
         List<String> instruments = metaData.getInstrument_list();
-        System.out.println(instruments.toString());
         List<Instrument> instrumentList = new ArrayList<>();
 
         try {
             for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
+        } catch (Exception e) {
+            throw new InstrumentNotExistException();
+        }
+
+        List<String> hashtags = metaData.getHashtag_list();
+        List<Hashtag> hashtagList = new ArrayList<>();
+
+        try {
+            for (String inst : hashtags) hashtagList.add(Hashtag.valueOf(inst));
         } catch (Exception e) {
             throw new InstrumentNotExistException();
         }
@@ -54,6 +63,7 @@ public class VideoService {
                 .detail(metaData.getDetail())
                 .is_private(metaData.getIs_private())
                 .instrument_list(instrumentList)
+                .hashtag_list(hashtagList)
                 .view_num(0)
                 .user(user)
                 .build();
@@ -133,6 +143,8 @@ public class VideoService {
         dto.setInstrument_list(video.getInstrument_list());
         dto.setView_num(video.getView_num());
         dto.setUserId(video.getUser().getId());
+        dto.setLike_num(video.getLike_num());
+        dto.setHashtag_list(video.getHashtag_list());
         return dto;
     }
 

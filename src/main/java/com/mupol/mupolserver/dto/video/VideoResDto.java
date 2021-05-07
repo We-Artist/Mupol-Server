@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.dto.video;
 
+import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -40,6 +41,9 @@ public class VideoResDto {
 
     @ApiModelProperty(notes ="악기 목록")
     private List<Instrument> instrument_list;
+
+    @ApiModelProperty(notes ="해시태그 목록")
+    private List<Hashtag> hashtag_list;
 
     @ApiModelProperty(notes ="조회수")
     private int view_num;
