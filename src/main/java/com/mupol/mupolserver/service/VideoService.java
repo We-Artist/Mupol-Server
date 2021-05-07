@@ -93,6 +93,22 @@ public class VideoService {
         return video;
     }
 
+    public Video likeVideo(Long userId, Long videoId){
+        Video video = getVideo(videoId);
+        video.setLike_num(video.getLike_num()+1);
+        videoRepository.save(video);
+
+        return video;
+    }
+
+    public Video viewVideo(Long userId, Long videoId){
+        Video video = getVideo(videoId);
+        video.setView_num(video.getView_num()+1);
+        videoRepository.save(video);
+
+        return video;
+    }
+
     public void deleteVideo(Long userId, Long videoId) {
         s3Service.deleteMedia(userId, videoId, MediaType.Video);
         videoRepository.deleteById(videoId);

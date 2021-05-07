@@ -1,11 +1,8 @@
 package com.mupol.mupolserver.controller.v1;
 
-import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
-import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.ResponseService;
@@ -87,5 +84,33 @@ public class VideoController {
         User user = userService.getUserByJwt(jwt);
         videoService.deleteVideo(user.getId(), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "비디오 좋아요")
+    @PatchMapping("like/{videoId}")
+    public ResponseEntity<SingleResult<String>> likeVideo(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String videoId
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        videoService.likeVideo(user.getId(), Long.valueOf(videoId));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "비디오 조회수 추가")
+    @PatchMapping("view/{videoId}")
+    public ResponseEntity<SingleResult<String>> viewNumVideo(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String videoId
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        videoService.viewVideo(user.getId(), Long.valueOf(videoId));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("view video"));
     }
 }

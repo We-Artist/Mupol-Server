@@ -46,6 +46,9 @@ public class Video extends BaseTime {
     private int view_num;
 
     @Setter
+    private int like_num;
+
+    @Setter
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     private List<Instrument> instrument_list = new ArrayList<>();
