@@ -59,4 +59,7 @@ public class Video extends BaseTime {
     @Builder.Default
     private List<Hashtag> hashtag_list = new ArrayList<>();
 
+    @Setter
+    private String thumbnailUrl;
+
 }

@@ -73,6 +73,31 @@ public class FFmpegService {
         assert exitCode == 0;
     }
 
+    public void createThumbnail(
+            MultipartFile mediaFile,
+            Long userId,
+            Long mediaId
+    ) throws IOException, InterruptedException {
+        String filePath = fileBasePath + userId + "/" + mediaId + "/";
+
+        ProcessBuilder builder = new ProcessBuilder();
+
+        //썸네일 추출
+        builder.command(
+                ffmpegPath, "-i", mediaFile.getOriginalFilename(),
+                "-ss", "00:00:01",
+                "-vcodec", "png",
+                "-vframes", "1","thumbnail.png"
+        );
+
+        builder.directory(new File(filePath));
+        Process process = builder.start();
+        StreamGobbler streamGobbler = new StreamGobbler(process.getInputStream(), System.out::println);
+        Executors.newSingleThreadExecutor().submit(streamGobbler);
+        int exitCode = process.waitFor();
+        assert exitCode == 0;
+    }
+
     private static class StreamGobbler implements Runnable {
         private InputStream inputStream;
         private Consumer<String> consumer;

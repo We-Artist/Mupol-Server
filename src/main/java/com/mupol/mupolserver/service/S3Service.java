@@ -63,6 +63,17 @@ public class S3Service {
         return s3Client.getUrl(bucket, filePath).toString();
     }
 
+    public String uploadThumbnail(MultipartFile file, Long userId, Long videoId) throws IOException {
+        String fileName = file.getOriginalFilename();
+        String extension = StringUtils.getFilenameExtension(fileName);
+        String filePath = "video/" + userId + "/" + videoId + "/thumbnail." + extension;
+        log.info(filePath + " uploaded");
+
+        s3Client.putObject(new PutObjectRequest(bucket, filePath, file.getInputStream(), null)
+                .withCannedAcl(CannedAccessControlList.PublicRead));
+        return s3Client.getUrl(bucket, filePath).toString();
+    }
+
     public String uploadMediaFolder(File folder, Long userId, Long mediaId, MediaType mediaType) throws IOException {
         String fileUrl = "";
         String fileExtension;
@@ -116,4 +127,5 @@ public class S3Service {
         s3Client.deleteObjects(deleteObjectsRequest);
         log.info(filePath + " removed");
     }
+
 }

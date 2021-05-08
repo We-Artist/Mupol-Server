@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.service;
 
+import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
@@ -12,10 +13,12 @@ import com.mupol.mupolserver.dto.video.VideoResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -75,10 +78,21 @@ public class VideoService {
         // split video
         ffmpegService.splitMedia(videoFile, userId, videoId, MediaType.Video);
 
+        //get thumbnail
+        ffmpegService.createThumbnail(videoFile, userId, videoId);
+
         // upload split video
         File folder = new File(fileBasePath + userId + "/" + videoId);
         String fileUrl = s3Service.uploadMediaFolder(folder, userId, videoId, MediaType.Video);
         video.setFileUrl(fileUrl);
+
+        //upload thumbnail
+        File thumbnail = new File(fileBasePath + userId + "/" + videoId + "/thumbnail.png");
+        FileInputStream input = new FileInputStream(thumbnail);
+        MultipartFile multipartFile = new MockMultipartFile("thumbnail", thumbnail.getName(), "text/plain", IOUtils.toByteArray(input));
+        String thumbnailUrl = s3Service.uploadThumbnail(multipartFile, userId, videoId);
+        video.setThumbnailUrl(thumbnailUrl);
+
         videoRepository.save(video);
 
         // remove dir
