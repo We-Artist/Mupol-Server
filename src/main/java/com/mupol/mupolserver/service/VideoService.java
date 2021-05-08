@@ -1,7 +1,9 @@
 package com.mupol.mupolserver.service;
 
+import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.domain.common.MediaType;
+import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
@@ -11,10 +13,12 @@ import com.mupol.mupolserver.dto.video.VideoResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,11 +43,19 @@ public class VideoService {
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
         List<String> instruments = metaData.getInstrument_list();
-        System.out.println(instruments.toString());
         List<Instrument> instrumentList = new ArrayList<>();
 
         try {
             for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
+        } catch (Exception e) {
+            throw new InstrumentNotExistException();
+        }
+
+        List<String> hashtags = metaData.getHashtag_list();
+        List<Hashtag> hashtagList = new ArrayList<>();
+
+        try {
+            for (String inst : hashtags) hashtagList.add(Hashtag.valueOf(inst));
         } catch (Exception e) {
             throw new InstrumentNotExistException();
         }
@@ -54,6 +66,7 @@ public class VideoService {
                 .detail(metaData.getDetail())
                 .is_private(metaData.getIs_private())
                 .instrument_list(instrumentList)
+                .hashtag_list(hashtagList)
                 .view_num(0)
                 .user(user)
                 .build();
@@ -65,10 +78,21 @@ public class VideoService {
         // split video
         ffmpegService.splitMedia(videoFile, userId, videoId, MediaType.Video);
 
+        //get thumbnail
+        ffmpegService.createThumbnail(videoFile, userId, videoId);
+
         // upload split video
         File folder = new File(fileBasePath + userId + "/" + videoId);
         String fileUrl = s3Service.uploadMediaFolder(folder, userId, videoId, MediaType.Video);
         video.setFileUrl(fileUrl);
+
+        //upload thumbnail
+        File thumbnail = new File(fileBasePath + userId + "/" + videoId + "/thumbnail.png");
+        FileInputStream input = new FileInputStream(thumbnail);
+        MultipartFile multipartFile = new MockMultipartFile("thumbnail", thumbnail.getName(), "text/plain", IOUtils.toByteArray(input));
+        String thumbnailUrl = s3Service.uploadThumbnail(multipartFile, userId, videoId);
+        video.setThumbnailUrl(thumbnailUrl);
+
         videoRepository.save(video);
 
         // remove dir
@@ -88,6 +112,22 @@ public class VideoService {
     public Video updateTitle(Long videoId, String title) {
         Video video = getVideo(videoId);
         video.setTitle(title);
+        videoRepository.save(video);
+
+        return video;
+    }
+
+    public Video likeVideo(Long userId, Long videoId){
+        Video video = getVideo(videoId);
+        video.setLike_num(video.getLike_num()+1);
+        videoRepository.save(video);
+
+        return video;
+    }
+
+    public Video viewVideo(Long userId, Long videoId){
+        Video video = getVideo(videoId);
+        video.setView_num(video.getView_num()+1);
         videoRepository.save(video);
 
         return video;
@@ -117,6 +157,8 @@ public class VideoService {
         dto.setInstrument_list(video.getInstrument_list());
         dto.setView_num(video.getView_num());
         dto.setUserId(video.getUser().getId());
+        dto.setLike_num(video.getLike_num());
+        dto.setHashtag_list(video.getHashtag_list());
         return dto;
     }
 

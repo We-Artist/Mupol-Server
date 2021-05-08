@@ -1,6 +1,7 @@
 package com.mupol.mupolserver.domain.video;
 
 import com.mupol.mupolserver.domain.common.BaseTime;
+import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
 import lombok.*;
@@ -46,8 +47,19 @@ public class Video extends BaseTime {
     private int view_num;
 
     @Setter
-    @ElementCollection(fetch = FetchType.EAGER)
+    private int like_num;
+
+    @Setter
+    @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
     private List<Instrument> instrument_list = new ArrayList<>();
+
+    @Setter
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Hashtag> hashtag_list = new ArrayList<>();
+
+    @Setter
+    private String thumbnailUrl;
 
 }
