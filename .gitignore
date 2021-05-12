@@ -36,4 +36,4 @@ build/
 **/application.yml
 
 d
-resources/firebase/firebase-service-key.json
+**/firebase-service-key.json
