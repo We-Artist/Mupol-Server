@@ -1,7 +1,6 @@
 package com.mupol.mupolserver.service.social;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.domain.social.kakao.KakaoProfile;
 import lombok.RequiredArgsConstructor;

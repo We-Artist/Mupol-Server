@@ -8,6 +8,7 @@ import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.UserService;
 import com.mupol.mupolserver.service.VideoService;
+import com.mupol.mupolserver.service.firebase.FcmMessageService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class VideoController {
 
     private final UserService userService;
     private final VideoService videoService;
+    private final FcmMessageService fcmMessageService;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -94,9 +96,10 @@ public class VideoController {
     public ResponseEntity<SingleResult<String>> likeVideo(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String videoId
-    ) {
+    ) throws IOException {
         User user = userService.getUserByJwt(jwt);
         videoService.likeVideo(user.getId(), Long.valueOf(videoId));
+        fcmMessageService.sendMessageTo(videoService.getVideo(Long.valueOf(videoId)).getUser().getFcmToken(), user.getUsername() + "님이 회원님의 영상을 좋아합니다.", null);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
 

@@ -50,6 +50,12 @@ public class UserService {
         return user.isPresent();
     }
 
+    public User registerAccessToken(User user, String accessToken) {
+        user.setFcmToken(accessToken);
+        userRepository.save(user);
+        return user;
+    }
+
     public User save(User user) {
         return userRepository.save(user);
     }

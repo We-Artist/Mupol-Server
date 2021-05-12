@@ -13,6 +13,7 @@ import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
 import com.mupol.mupolserver.service.SignService;
 import com.mupol.mupolserver.service.UserService;
+import com.mupol.mupolserver.service.firebase.FcmMessageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -23,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,7 @@ public class SignController {
 
     private final UserService userService;
     private final SignService signService;
+    private final FcmMessageService fcmMessageService;
     private final ResponseService responseService;
     private final S3Service s3Service;
 
@@ -45,8 +48,9 @@ public class SignController {
     @PostMapping(value = "/signin")
     public ResponseEntity<SingleResult<String>> signinByProvider(
             @ApiParam(value = "json") @RequestBody SigninReqDto signinReqDto
-    ) {
+    ) throws IOException {
         User user = userService.getUserByProviderAndToken(signinReqDto.getProvider(), signinReqDto.getAccessToken());
+        userService.registerAccessToken(user, fcmMessageService.getAccessToken());
         String jwt = jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(jwt));
     }
@@ -55,7 +59,7 @@ public class SignController {
     @PostMapping(value = "/signup")
     public ResponseEntity<SingleResult<String>> signupProvider(
             @ApiParam(value = "json") @RequestBody SignupReqDto signupReqDto
-    ) {
+    ) throws IOException {
         String provider = signupReqDto.getProvider();
         String accessToken = signupReqDto.getAccessToken();
         String name = signupReqDto.getName();
@@ -88,6 +92,8 @@ public class SignController {
                 .isMajor(isMajor)
                 .terms(true)
                 .birth(birth)
+                .fcmToken(fcmMessageService.getAccessToken())
+                .isNotificationAllowed(true)
                 .role(User.Role.USER)
                 .build();
         userService.save(newUser);
