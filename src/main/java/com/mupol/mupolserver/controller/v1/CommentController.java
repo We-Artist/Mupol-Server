@@ -15,6 +15,7 @@ import com.mupol.mupolserver.service.CommentService;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.UserService;
 import com.mupol.mupolserver.service.VideoService;
+import com.mupol.mupolserver.service.firebase.FcmMessageService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class CommentController {
 
     private final UserService userService;
     private final CommentService commentService;
+    private final FcmMessageService fcmMessageService;
     private final ResponseService responseService;
     private final VideoService videoService;
 
@@ -51,6 +53,7 @@ public class CommentController {
         Video video = videoService.getVideo(Long.parseLong(videoId));
 
         CommentResDto dto = commentService.uploadComment(user, video, metaData);
+        fcmMessageService.sendMessageTo(video.getUser().getFcmToken(), user.getUsername() + "님이 댓글을 달았습니다.", metaData.getContent());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
