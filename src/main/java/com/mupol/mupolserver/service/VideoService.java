@@ -23,9 +23,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -65,8 +63,8 @@ public class VideoService {
                 .origin_title(metaData.getOrigin_title())
                 .detail(metaData.getDetail())
                 .is_private(metaData.getIs_private())
-                .instrument_list(instrumentList)
-                .hashtag_list(hashtagList)
+                .instruments(instrumentList)
+                .hashtags(hashtagList)
                 .view_num(0)
                 .user(user)
                 .build();
@@ -154,11 +152,11 @@ public class VideoService {
         dto.setCreatedAt(video.getCreatedAt());
         dto.setUpdatedAt(video.getModifiedDate());
         dto.setFileUrl(video.getFileUrl());
-        dto.setInstrument_list(video.getInstrument_list());
+        dto.setInstrument_list(video.getInstruments());
         dto.setView_num(video.getView_num());
         dto.setUserId(video.getUser().getId());
         dto.setLike_num(video.getLike_num());
-        dto.setHashtag_list(video.getHashtag_list());
+        dto.setHashtag_list(video.getHashtags());
         return dto;
     }
 
@@ -184,5 +182,17 @@ public class VideoService {
                 .orElseThrow(() -> new IllegalArgumentException("video list error"));
 
         return getVideoDtoList(videoList);
+    }
+
+    public List<Video> getVideoByTitle(String keyword) {
+        Optional<List<Video>> videos = videoRepository.findAllByTitleContains(keyword);
+        if(videos.isEmpty()) return Collections.emptyList();
+        return videos.get();
+    }
+
+    public List<Video> getVideoByInstrument(Instrument instrument) {
+        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsContains(instrument);
+        if(videos.isEmpty()) return Collections.emptyList();
+        return videos.get();
     }
 }

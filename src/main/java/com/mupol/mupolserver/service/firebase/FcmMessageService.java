@@ -3,7 +3,6 @@ package com.mupol.mupolserver.service.firebase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.gson.Gson;
 import com.mupol.mupolserver.domain.fcm.FcmMessage;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.ClassPathResource;

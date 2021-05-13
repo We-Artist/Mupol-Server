@@ -52,12 +52,12 @@ public class Video extends BaseTime {
     @Setter
     @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Instrument> instrument_list = new ArrayList<>();
+    private List<Instrument> instruments = new ArrayList<>();
 
     @Setter
     @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Hashtag> hashtag_list = new ArrayList<>();
+    private List<Hashtag> hashtags = new ArrayList<>();
 
     @Setter
     private String thumbnailUrl;
