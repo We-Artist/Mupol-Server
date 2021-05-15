@@ -67,7 +67,6 @@ public class VideoService {
                 .is_private(metaData.getIs_private())
                 .instrument_list(instrumentList)
                 .hashtag_list(hashtagList)
-                .view_num(0)
                 .user(user)
                 .build();
         videoRepository.save(video);
@@ -119,18 +118,30 @@ public class VideoService {
 
     public Video likeVideo(Long userId, Long videoId){
         Video video = getVideo(videoId);
-        video.setLike_num(video.getLike_num()+1);
+        video.setLikeNum(video.getLikeNum()+1);
         videoRepository.save(video);
 
         return video;
     }
 
-    public Video viewVideo(Long userId, Long videoId){
+    public Video viewVideo(Long videoId){
         Video video = getVideo(videoId);
-        video.setView_num(video.getView_num()+1);
+        video.setViewNum(video.getViewNum()+1);
         videoRepository.save(video);
 
         return video;
+    }
+
+    public List<Video> getHotVideo(){
+        return videoRepository.findTop20ByOrderByLikeNumDesc().orElseThrow();
+    }
+
+    public List<Video> getNewVideo(){
+        return videoRepository.findTop20ByOrderByCreatedAtDesc().orElseThrow();
+    }
+
+    public Video getRandomVideo(){
+        return videoRepository.findTop20ByOrderByCreatedAtDesc().orElseThrow();
     }
 
     public void deleteVideo(Long userId, Long videoId) {
@@ -155,9 +166,9 @@ public class VideoService {
         dto.setUpdatedAt(video.getModifiedDate());
         dto.setFileUrl(video.getFileUrl());
         dto.setInstrument_list(video.getInstrument_list());
-        dto.setView_num(video.getView_num());
+        dto.setView_num(video.getViewNum());
         dto.setUserId(video.getUser().getId());
-        dto.setLike_num(video.getLike_num());
+        dto.setLike_num(video.getLikeNum());
         dto.setHashtag_list(video.getHashtag_list());
         return dto;
     }

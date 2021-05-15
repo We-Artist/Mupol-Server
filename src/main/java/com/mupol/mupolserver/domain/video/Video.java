@@ -44,10 +44,12 @@ public class Video extends BaseTime {
     private String fileUrl;
 
     @Setter
-    private int view_num;
+    @Column(name="view_num")
+    private int viewNum;
 
     @Setter
-    private int like_num;
+    @Column(name="like_num")
+    private int likeNum;
 
     @Setter
     @ElementCollection(fetch = FetchType.LAZY)
