@@ -6,6 +6,8 @@ import com.mupol.mupolserver.domain.search.SearchRepository;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.search.SearchResultDto;
+import com.mupol.mupolserver.dto.search.SearchUserResultDto;
+import com.mupol.mupolserver.dto.search.SearchVideoResultDto;
 import com.mupol.mupolserver.dto.search.SuggestionResultDto;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,30 +23,31 @@ public class SearchService {
     private final UserService userService;
     private final VideoService videoService;
 
-    public List<HashMap<String, String>> searchUsersByName(String keyword) {
-        List<HashMap<String, String>> userList = new ArrayList<>();
+    public List<SearchUserResultDto> searchUsersByName(String keyword) {
+        List<SearchUserResultDto> userList = new ArrayList<>();
         List<User> users = userService.getUsersByUsername(keyword);
         for (User user : users) {
-            HashMap<String, String> userMap = new HashMap<>();
-            userMap.put("user_id", user.getId().toString());
-            userMap.put("username", user.getUsername());
-            userMap.put("profile_image", user.getProfileImageUrl());
-            userList.add(userMap);
+            SearchUserResultDto dto = SearchUserResultDto.builder()
+                    .username(user.getUsername())
+                    .userId(user.getId())
+                    .profileImageUrl(user.getProfileImageUrl())
+                    .build();
+            userList.add(dto);
         }
-        userList.sort(Comparator.comparingInt(a -> a.get("username").indexOf(keyword)));
+        userList.sort(Comparator.comparingInt(a -> a.getUsername().indexOf(keyword)));
         return userList;
     }
 
     // 제목으로 영상 검색
-    public List<HashMap<String, String>> searchVideosByTitle(String keyword) {
+    public List<SearchVideoResultDto> searchVideosByTitle(String keyword) {
         List<Video> videos = videoService.getVideoByTitle(keyword);
-        List<HashMap<String, String>> videoHashMapList = getHashMapList(videos);
-        videoHashMapList.sort(Comparator.comparing(a -> a.get("title").indexOf(keyword)));
+        List<SearchVideoResultDto> videoHashMapList = getVideoDtoList(videos);
+        videoHashMapList.sort(Comparator.comparing(a -> a.getTitle().indexOf(keyword)));
         return videoHashMapList;
     }
 
     // 악기로 영상 검색
-    public List<HashMap<String, String>> searchVideosByInstrument(String keyword) {
+    public List<SearchVideoResultDto> searchVideosByInstrument(String keyword) {
         Instrument instrument;
         try {
             instrument = Instrument.valueOf(keyword);
@@ -52,17 +55,18 @@ public class SearchService {
             return Collections.emptyList();
         }
         List<Video> videos = videoService.getVideoByInstrument(instrument);
-        return getHashMapList(videos);
+        return getVideoDtoList(videos);
     }
 
-    private List<HashMap<String, String>> getHashMapList(List<Video> videos) {
-        List<HashMap<String, String>> videoList = new ArrayList<>();
+    private List<SearchVideoResultDto> getVideoDtoList(List<Video> videos) {
+        List<SearchVideoResultDto> videoList = new ArrayList<>();
         for (Video video : videos) {
-            HashMap<String, String> videoMap = new HashMap<>();
-            videoMap.put("video_id", video.getId().toString());
-            videoMap.put("title", video.getTitle());
-            videoMap.put("thumbnail_url", video.getThumbnailUrl());
-            videoList.add(videoMap);
+            SearchVideoResultDto dto = SearchVideoResultDto.builder()
+                    .title(video.getTitle())
+                    .videoId(video.getId())
+                    .thumbnailUrl(video.getThumbnailUrl())
+                    .build();
+            videoList.add(dto);
         }
         return videoList;
     }
@@ -70,7 +74,7 @@ public class SearchService {
     // 자동완성: 왼쪽에서부터 일치하는 순서대로 3개 계정만 노출
     public SuggestionResultDto getSuggestion(String keyword) {
         // result.put("instrument", searchVideosByInstrument(keyword));
-        List<HashMap<String, String>> users = searchUsersByName(keyword);
+        List<SearchUserResultDto> users = searchUsersByName(keyword);
         if (users.size() <= 3)
             return SuggestionResultDto.builder()
                     .userList(users)
@@ -88,7 +92,6 @@ public class SearchService {
                 .userList(searchUsersByName(keyword))
                 .videoListByTitle(searchVideosByTitle(keyword))
                 .build();
-        // result.put("instrument", searchVideosByInstrument(keyword));
         searchRepository.save(Search.builder()
                 .user(user)
                 .keyword(keyword)
@@ -126,3 +129,28 @@ public class SearchService {
         return result;
     }
 }
+
+/*
+
+{
+  "success": true,
+  "msg": "성공했습니다",
+  "data": {
+    "userList": [
+      {
+        "profile_image": "https://mupol-test.s3.ap-northeast-2.amazonaws.com/img/65/profile.jpg",
+        "user_id": "65",
+        "username": "새로운-name1"
+      }
+    ],
+    "videoListByTitle": [
+      {
+        "thumbnail_url": "https://mupol-test.s3.ap-northeast-2.amazonaws.com/img/65/profile.jpg",
+        "video_id": "65",
+        "title": "새로운-title"
+      }
+    ]
+  }
+}
+
+ */
