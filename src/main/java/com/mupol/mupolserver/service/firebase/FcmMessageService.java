@@ -4,7 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.mupol.mupolserver.domain.fcm.FcmMessage;
+import com.mupol.mupolserver.domain.notification.TargetType;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -13,14 +16,15 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.List;
 
-@AllArgsConstructor
+@NoArgsConstructor
 @Service
 public class FcmMessageService {
 
-    private final String API_URL = "https://fcm.googleapis.com/v1/projects/175394342857/messages:send";
-    private final String firebaseConfigPath = "firebase/firebase-service-key.json";
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    @Value("${fcm.apiUrl}")
+    private String API_URL;
+    private String firebaseConfigPath = "firebase/firebase-service-key.json";
+    private RestTemplate restTemplate;
+    private ObjectMapper objectMapper;
 
     public String getAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
@@ -31,8 +35,8 @@ public class FcmMessageService {
         return googleCredentials.getAccessToken().getTokenValue();
     }
 
-    public void sendMessageTo(String targetToken, String title, String body) throws IOException {
-        String message = makeMessage(targetToken, title, body);
+    public void sendMessageTo(String targetToken, String title, String body, TargetType targetType, Long targetId) throws IOException {
+        String message = makeMessage(targetToken, title, body, targetType, targetId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -43,15 +47,14 @@ public class FcmMessageService {
         System.out.println(response.getBody());
     }
 
-    private String makeMessage(String targetToken, String title, String body) throws JsonProcessingException {
+    private String makeMessage(String targetToken, String title, String body, TargetType targetType, Long targetId) throws JsonProcessingException {
         FcmMessage fcmMessage = FcmMessage.builder()
                 .message(FcmMessage.Message.builder()
                         .token(targetToken)
                         .notification(FcmMessage.Notification.builder()
-                                .title(title)
-                                .body(body)
-                                .image(null)
-                                .build())
+                                .title(title).body(body).image(null).build())
+                        .data(FcmMessage.Data.builder()
+                                .target(targetType.getType()).targetId(targetId).build())
                         .build())
                 .validate_only(false)
                 .build();
