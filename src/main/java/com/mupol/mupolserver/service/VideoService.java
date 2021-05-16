@@ -10,6 +10,7 @@ import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 public class VideoService {
 
     private final VideoRepository videoRepository;
+    private final MonthlyGoalService monthlyGoalService;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
 
@@ -95,6 +97,8 @@ public class VideoService {
 
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
+
+        monthlyGoalService.update(user);
 
         return getVideoDto(video);
     }
@@ -171,19 +175,6 @@ public class VideoService {
         file.delete();
     }
 
-    public List<VideoResDto> getVideoAtMonth(User user, int year, int month) {
-        Calendar cal = Calendar.getInstance();
-        int lastDate = cal.getActualMaximum(Calendar.DATE);
-
-        LocalDateTime start = LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.of(0,0,0));
-        LocalDateTime end = LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
-
-        List<Video> videoList = videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
-                .orElseThrow(() -> new IllegalArgumentException("video list error"));
-
-        return getVideoDtoList(videoList);
-    }
-
     public List<Video> getVideoByTitle(String keyword) {
         Optional<List<Video>> videos = videoRepository.findAllByTitleContains(keyword);
         if(videos.isEmpty()) return Collections.emptyList();
@@ -194,5 +185,24 @@ public class VideoService {
         Optional<List<Video>> videos = videoRepository.findAllByInstrumentsContains(instrument);
         if(videos.isEmpty()) return Collections.emptyList();
         return videos.get();
+    }
+
+    public List<VideoResDto> getVideoAtMonth(User user, int year, int month) {
+        LocalDateTime start = MonthExtractor.getStartDate(year, month);
+        LocalDateTime end = MonthExtractor.getEndDate(year, month);
+
+        List<Video> videoList = videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
+                .orElseThrow(() -> new IllegalArgumentException("video list error"));
+
+        return getVideoDtoList(videoList);
+    }
+
+    public Integer getVideoCountAtMonth(User user, int year, int month) {
+        LocalDateTime start = MonthExtractor.getStartDate(year, month);
+        LocalDateTime end = MonthExtractor.getEndDate(year, month);
+        Optional<Integer> cnt = videoRepository.countAllByUserIdAndCreatedAtBetween(user.getId(), start, end);
+        if(cnt.isEmpty())
+            return 0;
+        return cnt.get();
     }
 }

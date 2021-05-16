@@ -6,6 +6,7 @@ import com.mupol.mupolserver.domain.sound.SoundRepository;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
+import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class SoundService {
 
     private final SoundRepository soundRepository;
+    private final MonthlyGoalService monthlyGoalService;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
 
@@ -55,6 +58,8 @@ public class SoundService {
 
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
+
+        monthlyGoalService.update(user);
 
         return getSndDto(sound);
     }
@@ -107,15 +112,22 @@ public class SoundService {
     }
 
     public List<SoundResDto> getSoundAtMonth(User user, int year, int month) {
-        Calendar cal = Calendar.getInstance();
-        int lastDate = cal.getActualMaximum(Calendar.DATE);
-
-        LocalDateTime start = LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.of(0,0,0));
-        LocalDateTime end = LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
+        LocalDateTime start = MonthExtractor.getStartDate(year, month);
+        LocalDateTime end = MonthExtractor.getEndDate(year, month);
 
         List<Sound> soundList = soundRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("sound list error"));
 
         return getSndDtoList(soundList);
+    }
+
+    public Integer getSoundCountAtMonth(User user, int year, int month) {
+        LocalDateTime start = MonthExtractor.getStartDate(year, month);
+        LocalDateTime end = MonthExtractor.getEndDate(year, month);
+
+        Optional<Integer> cnt = soundRepository.countAllByUserIdAndCreatedAtBetween(user.getId(), start, end);
+        if(cnt.isEmpty())
+            return 0;
+        return cnt.get();
     }
 }

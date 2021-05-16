@@ -13,6 +13,8 @@ import java.util.List;
 @Service
 public class MonthlyGoalService {
     private final MonthlyGoalRepository monthlyGoalRepository;
+    private final SoundService soundService;
+    private final VideoService videoService;
 
     public MonthlyGoal getMonthlyGoal(User user, LocalDate startDate) {
         return monthlyGoalRepository.findMonthlyGoalByUserAndStartDate(user, startDate)
@@ -21,6 +23,19 @@ public class MonthlyGoalService {
 
     public boolean isGoalExist(User user, LocalDate startDate) {
         return monthlyGoalRepository.findMonthlyGoalByUserAndStartDate(user, startDate).isPresent();
+    }
+
+    public void update(User user) {
+        int y = LocalDate.now().getYear();
+        int m = LocalDate.now().getMonthValue();
+        LocalDate startDate = LocalDate.of(y, m, 1);
+        MonthlyGoal monthlyGoal = getMonthlyGoal(user, startDate);
+        int year = monthlyGoal.getStartDate().getYear();
+        int month = monthlyGoal.getStartDate().getMonthValue();
+        int videoCnt = videoService.getVideoCountAtMonth(user, year, month);
+        int soundCnt = soundService.getSoundCountAtMonth(user, year, month);
+        monthlyGoal.setAchieveNumber(videoCnt + soundCnt);
+        monthlyGoalRepository.save(monthlyGoal);
     }
 
     public MonthlyGoal save(MonthlyGoal monthlyGoal) {

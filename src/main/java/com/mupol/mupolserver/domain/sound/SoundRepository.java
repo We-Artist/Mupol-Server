@@ -10,4 +10,5 @@ public interface SoundRepository extends JpaRepository<Sound, Long> {
     Optional<List<Sound>> findSoundsByUserId(Long userId);
     Optional<Sound> findSoundByIdAndUserId(Long userId, Long soundId);
     Optional<List<Sound>> findAllByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startTime, LocalDateTime endTime);
+    Optional<Integer> countAllByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startTime, LocalDateTime endTime);
 }

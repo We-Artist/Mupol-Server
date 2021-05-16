@@ -6,7 +6,7 @@ import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.monthlyGoal.CreateGoalReqDto;
-import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusReqDto;
+import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusResDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.*;
@@ -71,7 +71,7 @@ public class MonthlyGoalController {
     })
     @ApiOperation(value = "목표 달성 상태 불러오기")
     @GetMapping("/{year}/{month}")
-    public ResponseEntity<SingleResult<GoalStatusReqDto>> getGoal(
+    public ResponseEntity<SingleResult<GoalStatusResDto>> getGoal(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "year") @PathVariable int year,
             @ApiParam(value = "month") @PathVariable int month
@@ -89,7 +89,7 @@ public class MonthlyGoalController {
         // get sound
         List<SoundResDto> soundList = soundService.getSoundAtMonth(user, year, month);
 
-        GoalStatusReqDto dto = GoalStatusReqDto.builder()
+        GoalStatusResDto dto = GoalStatusResDto.builder()
                 .currentGoal(goal)
                 .videoList(videoList)
                 .soundList(soundList)
