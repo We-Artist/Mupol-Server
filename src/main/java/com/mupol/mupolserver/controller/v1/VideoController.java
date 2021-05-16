@@ -7,10 +7,7 @@ import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
-import com.mupol.mupolserver.service.NotificationService;
-import com.mupol.mupolserver.service.ResponseService;
-import com.mupol.mupolserver.service.UserService;
-import com.mupol.mupolserver.service.VideoService;
+import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +28,7 @@ public class VideoController {
 
     private final UserService userService;
     private final VideoService videoService;
+    private final MonthlyGoalService monthlyGoalService;
     private final NotificationService notificationService;
     private final ResponseService responseService;
 
@@ -48,6 +46,7 @@ public class VideoController {
         if(videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
+        monthlyGoalService.update(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
