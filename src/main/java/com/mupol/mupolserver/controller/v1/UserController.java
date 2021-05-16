@@ -3,6 +3,7 @@ package com.mupol.mupolserver.controller.v1;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.domain.followers.Followers;
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
@@ -10,11 +11,7 @@ import com.mupol.mupolserver.dto.user.FollowersResDto;
 import com.mupol.mupolserver.dto.user.NicknameValidateReqDto;
 import com.mupol.mupolserver.dto.user.NotiSettingReqDto;
 import com.mupol.mupolserver.dto.user.ProfileUpdateReqDto;
-import com.mupol.mupolserver.service.FollowersService;
-import com.mupol.mupolserver.service.ResponseService;
-import com.mupol.mupolserver.service.S3Service;
-import com.mupol.mupolserver.service.UserService;
-import com.mupol.mupolserver.service.firebase.FcmMessageService;
+import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +34,7 @@ public class UserController {
     private final UserService userService;
     private final FollowersService followersService;
     private final ResponseService responseService;
-    private final FcmMessageService fcmMessageService;
+    private final NotificationService notificationService;
     private final S3Service s3Service;
 
     @ApiImplicitParams({
@@ -155,8 +152,14 @@ public class UserController {
                 .to(following)
                 .build();
         followersService.save(followers);
-        fcmMessageService.sendMessageTo(following.getFcmToken(), follower.getUsername() + "님이 회원님을 팔로우했습니다.", null);
-
+        notificationService.send(
+                follower,
+                following,
+                follower.getUsername() + "님이 회원님을 팔로우했습니다.",
+                null,
+                TargetType.follow,
+                follower.getId()
+        );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("success follow"));
     }
 

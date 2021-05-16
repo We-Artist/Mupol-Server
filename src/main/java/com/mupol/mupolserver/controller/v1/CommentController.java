@@ -1,21 +1,14 @@
 package com.mupol.mupolserver.controller.v1;
 
-import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
-import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.comment.Comment;
+import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.domain.video.Video;
-import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.dto.comment.CommentReqDto;
 import com.mupol.mupolserver.dto.comment.CommentResDto;
-import com.mupol.mupolserver.service.CommentService;
-import com.mupol.mupolserver.service.ResponseService;
-import com.mupol.mupolserver.service.UserService;
-import com.mupol.mupolserver.service.VideoService;
-import com.mupol.mupolserver.service.firebase.FcmMessageService;
+import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +28,7 @@ public class CommentController {
 
     private final UserService userService;
     private final CommentService commentService;
-    private final FcmMessageService fcmMessageService;
+    private final NotificationService notificationService;
     private final ResponseService responseService;
     private final VideoService videoService;
 
@@ -53,7 +46,14 @@ public class CommentController {
         Video video = videoService.getVideo(Long.parseLong(videoId));
 
         CommentResDto dto = commentService.uploadComment(user, video, metaData);
-        fcmMessageService.sendMessageTo(video.getUser().getFcmToken(), user.getUsername() + "님이 댓글을 달았습니다.", metaData.getContent());
+        notificationService.send(
+                user,
+                video.getUser(),
+                user.getUsername() + "님이 댓글을 달았습니다.",
+                metaData.getContent(),
+                TargetType.comment,
+                video.getId()
+        );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 

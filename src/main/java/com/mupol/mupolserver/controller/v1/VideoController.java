@@ -1,14 +1,16 @@
 package com.mupol.mupolserver.controller.v1;
 
+import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.service.NotificationService;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.UserService;
 import com.mupol.mupolserver.service.VideoService;
-import com.mupol.mupolserver.service.firebase.FcmMessageService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +31,7 @@ public class VideoController {
 
     private final UserService userService;
     private final VideoService videoService;
-    private final FcmMessageService fcmMessageService;
+    private final NotificationService notificationService;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -98,8 +100,16 @@ public class VideoController {
             @PathVariable String videoId
     ) throws IOException {
         User user = userService.getUserByJwt(jwt);
-        videoService.likeVideo(user.getId(), Long.valueOf(videoId));
-        fcmMessageService.sendMessageTo(videoService.getVideo(Long.valueOf(videoId)).getUser().getFcmToken(), user.getUsername() + "님이 회원님의 영상을 좋아합니다.", null);
+        Video video = videoService.getVideo(Long.valueOf(videoId));
+        videoService.likeVideo(user.getId(), video.getId());
+        notificationService.send(
+                user,
+                video.getUser(),
+                user.getUsername() + "님이 회원님의 영상을 좋아합니다.",
+                null,
+                TargetType.like,
+                video.getId()
+        );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
 
