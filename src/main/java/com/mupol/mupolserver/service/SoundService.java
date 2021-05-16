@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class SoundService {
 
     private final SoundRepository soundRepository;
-    private final MonthlyGoalService monthlyGoalService;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
 
@@ -58,8 +57,6 @@ public class SoundService {
 
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
-
-        monthlyGoalService.update(user);
 
         return getSndDto(sound);
     }

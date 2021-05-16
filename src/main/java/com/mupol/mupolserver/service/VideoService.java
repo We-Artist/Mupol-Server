@@ -21,9 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +31,6 @@ import java.util.stream.Collectors;
 public class VideoService {
 
     private final VideoRepository videoRepository;
-    private final MonthlyGoalService monthlyGoalService;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
 
@@ -97,8 +94,6 @@ public class VideoService {
 
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
-
-        monthlyGoalService.update(user);
 
         return getVideoDto(video);
     }
