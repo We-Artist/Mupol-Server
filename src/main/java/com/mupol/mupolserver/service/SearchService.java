@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.service;
 
+import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.search.Search;
 import com.mupol.mupolserver.domain.search.SearchRepository;
@@ -10,6 +11,7 @@ import com.mupol.mupolserver.dto.search.SearchUserResultDto;
 import com.mupol.mupolserver.dto.search.SearchVideoResultDto;
 import com.mupol.mupolserver.dto.search.SuggestionResultDto;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -100,6 +102,7 @@ public class SearchService {
     }
 
     // 24시간 인기 검색어 3개 가져오기
+    @Cacheable(value = CacheKey.HOT_KEYWORD)
     public List<String> getHotKeyword() {
         List<String> result = new ArrayList<>();
         List<HashMap<String, String>> resultHashmap = new ArrayList<>();
@@ -123,9 +126,10 @@ public class SearchService {
             resultHashmap.add(word);
         });
 
-        resultHashmap.sort((a, b) -> Integer.parseInt(a.get("count")) > Integer.parseInt(b.get("count")) ? 1 : 0);
-        resultHashmap.forEach((a) -> result.add(a.get("keyword")));
-
+        resultHashmap.sort((a, b) -> Integer.compare(Integer.parseInt(b.get("count")), Integer.parseInt(a.get("count"))));
+        for(int i=0; i<Math.min(3, resultHashmap.size()); i++) {
+            result.add(resultHashmap.get(i).get("keyword"));
+        }
         return result;
     }
 }
