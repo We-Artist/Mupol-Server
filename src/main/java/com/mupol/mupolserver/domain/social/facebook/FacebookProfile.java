@@ -15,4 +15,5 @@ public class FacebookProfile {
     @JsonProperty("last_name")
     private String lastName;
     private String email;
+    private String picture;
 }

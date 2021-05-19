@@ -1,61 +1,71 @@
 package com.mupol.mupolserver.service;
 
-import com.mupol.mupolserver.advice.exception.SnsNotSupportedException;
+import com.mupol.mupolserver.advice.exception.CUserIdDuplicatedException;
+import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
+import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
+import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.SnsType;
-import com.mupol.mupolserver.service.social.FacebookService;
-import com.mupol.mupolserver.service.social.GoogleService;
-import com.mupol.mupolserver.service.social.KakaoService;
+import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.dto.auth.SignupReqDto;
+import com.mupol.mupolserver.service.firebase.FcmMessageService;
+import com.mupol.mupolserver.service.social.*;
+import com.mupol.mupolserver.util.ImageExtractor;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @Service
 public class SignService {
 
-    private final KakaoService kakaoService;
-    private final FacebookService facebookService;
-    private final GoogleService googleService;
+    private final UserService userService;
+    private final SocialServiceFactory socialServiceFactory;
 
-    public String getSnsId(String provider, String accessToken) {
-        String snsId;
-        if (provider.equals(SnsType.kakao.getType())) {
-            snsId = kakaoService.getSnsId(accessToken);
-        } else if (provider.equals(SnsType.facebook.getType())) {
-            snsId = facebookService.getSnsId(accessToken);
-        }  else if (provider.equals(SnsType.google.getType())) {
-            snsId = googleService.getSnsId(accessToken);
-        } else if (provider.equals(SnsType.test.getType())) {
-            snsId = accessToken;
-        } else if (provider.equals(SnsType.apple.getType())) {
-            throw new SnsNotSupportedException();
-        }else {
-            throw new SnsNotSupportedException();
+    public User getUserFromDto(SignupReqDto dto) throws IOException {
+        String accessToken = dto.getAccessToken();
+        String name = dto.getName();
+        boolean terms = dto.isTerms();
+        boolean isMajor = dto.isMajor();
+        List<String> instruments = dto.getInstruments();
+        LocalDate birth = dto.getBirth();
+        SnsType snsType = SnsType.valueOf(dto.getProvider());
+        List<Instrument> instrumentList = new ArrayList<>();
+
+        if (!terms) throw new UserDoesNotAgreeException();
+        if (userService.isUserExist(snsType, accessToken)) throw new CUserIdDuplicatedException();
+        if (!userService.validateUsername(name)) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
+
+        // 악기 구분
+        if (instruments != null) {
+            try {
+                for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
+            } catch (Exception e) {
+                throw new InstrumentNotExistException();
+            }
         }
-        return snsId;
+
+        return(User.builder()
+                .snsId(userService.getSnsId(snsType, accessToken))
+                .provider(snsType)
+                .username(name)
+                .favoriteInstrument(instrumentList)
+                .isMajor(isMajor)
+                .terms(true)
+                .birth(birth)
+                .email(userService.getEmailFromSocialProfile(snsType, accessToken))
+                .fcmToken(FcmMessageService.getAccessToken())
+                .isNotificationAllowed(true)
+                .role(User.Role.USER)
+                .build());
     }
 
-    // TODO: sns 별로 profile 가져오기
-    public MultipartFile getProfileImage(String provider, String accessToken) {
-        MultipartFile profileImageFile = null;
-        try {
-            if (provider.equals(SnsType.kakao.getType())) {
-                profileImageFile = kakaoService.getProfileImage(accessToken);
-            } else if (provider.equals(SnsType.facebook.getType())) {
-                return null;
-            } else if (provider.equals(SnsType.apple.getType())) {
-                return null;
-            } else if (provider.equals(SnsType.google.getType())) {
-                profileImageFile = googleService.getProfileImage(accessToken);
-            } else if (provider.equals(SnsType.test.getType())) {
-                return null;
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return profileImageFile;
+    public MultipartFile getProfileImage(String provider, String accessToken) throws IOException {
+        String url = socialServiceFactory.getService(SnsType.valueOf(provider)).getProfileImageUrl(accessToken);
+        return ImageExtractor.getImageFile(url);
     }
 }

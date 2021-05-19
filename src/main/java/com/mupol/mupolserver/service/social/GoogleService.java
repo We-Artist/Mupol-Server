@@ -3,18 +3,13 @@ package com.mupol.mupolserver.service.social;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
+import com.mupol.mupolserver.domain.user.SnsType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -22,7 +17,7 @@ import java.net.URL;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class GoogleService {
+public class GoogleService implements SocialService {
 
     @Value("${spring.social.google.id_token}")
     private String googleProfileUrl;
@@ -71,34 +66,29 @@ public class GoogleService {
         throw new CUserNotFoundException();
     }
 
-    public String getSnsId(String accessToken) {
+    @Override
+    public String getSnsId(String token) {
         JsonParser parser = new JsonParser();
-        JsonElement element = parser.parse(getGoogleProfile(accessToken));
+        JsonElement element = parser.parse(getGoogleProfile(token));
         return element.getAsJsonObject().get("id").getAsString();
     }
 
-    public MultipartFile getProfileImage(String accessToken){
+    @Override
+    public String getProfileImageUrl(String token) {
         JsonParser parser = new JsonParser();
-        JsonElement element = parser.parse(getGoogleProfile(accessToken));
-
-        String imageUrl = element.getAsJsonObject().get("picture").getAsString();
-
-        //구글 프로필 이미지가 존재하지 않을 경우
-        if(imageUrl == null) {
-            return null;
-        }
-
-        BufferedImage img = null;
-        try {
-            img = ImageIO.read(new URL(imageUrl));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(img, "jpg", baos);
-            return new MockMultipartFile("profile_image","profile_image.jpg" ,"image/jpg", baos.toByteArray());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        JsonElement element = parser.parse(getGoogleProfile(token));
+        return element.getAsJsonObject().get("picture").getAsString();
     }
 
+    @Override
+    public String getEmail(String token) {
+        JsonParser parser = new JsonParser();
+        JsonElement element = parser.parse(getGoogleProfile(token));
+        return element.getAsJsonObject().get("email").getAsString();
+    }
 
+    @Override
+    public SnsType getSnsType() {
+        return SnsType.google;
+    }
 }

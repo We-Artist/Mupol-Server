@@ -34,6 +34,8 @@ build/
 .vscode/
 
 **/application.yml
+**/application-local.yml
+**/application-deploy.yml
 
 d
 **/firebase-service-key.json

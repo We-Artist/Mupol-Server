@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service.firebase;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.mupol.mupolserver.domain.fcm.FcmMessage;
 import com.mupol.mupolserver.domain.notification.TargetType;
@@ -17,20 +18,20 @@ import java.io.IOException;
 import java.util.List;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Service
 public class FcmMessageService {
 
     @Value("${fcm.apiUrl}")
     private String API_URL;
-    private String firebaseConfigPath = "firebase/firebase-service-key.json";
     private RestTemplate restTemplate;
     private ObjectMapper objectMapper;
 
-    public String getAccessToken() throws IOException {
+    public static String getAccessToken() throws IOException {
+        String firebaseConfigPath = "firebase/firebase-service-key.json";
         GoogleCredentials googleCredentials = GoogleCredentials
                 .fromStream(new ClassPathResource(firebaseConfigPath).getInputStream())
-                .createScoped(List.of("https://www.googlapis.com/auth/cloud-platform"));
-
+                .createScoped(List.of("https://www.googleapis.com/auth/cloud-platform"));
         googleCredentials.refreshIfExpired();
         return googleCredentials.getAccessToken().getTokenValue();
     }

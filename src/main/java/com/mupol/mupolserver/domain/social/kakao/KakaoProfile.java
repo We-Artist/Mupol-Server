@@ -17,13 +17,14 @@ public class KakaoProfile {
     @ToString
      public class KakaoAccount {
         private Profile profile;
+        private String email;
+    }
 
-        @Getter
-        @Setter
-        @ToString
-        public class Profile {
-            private String nickname;
-            private String profile_image_url;
-        }
+    @Getter
+    @Setter
+    @ToString
+    public class Profile {
+        private String nickname;
+        private String profile_image_url;
     }
 }
