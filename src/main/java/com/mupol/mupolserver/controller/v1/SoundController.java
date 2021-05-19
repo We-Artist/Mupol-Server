@@ -7,6 +7,7 @@ import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.dto.sound.SoundOptionDto;
 import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.service.MonthlyGoalService;
@@ -52,6 +53,19 @@ public class SoundController {
         SoundResDto dto = soundService.uploadSound(soundFile, user, metaData);
         monthlyGoalService.update(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "최근 녹음 설정 가져오기", notes = "최대 3개")
+    @GetMapping(value = "/current-options")
+    public ResponseEntity<ListResult<SoundOptionDto>> getCurrentOptions(
+            @RequestHeader(value = "Authorization") String jwt
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        List<SoundOptionDto> dto = soundService.getCurrentOptions(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dto));
     }
 
     @ApiImplicitParams({

@@ -1,9 +1,11 @@
 package com.mupol.mupolserver.service;
 
+import com.mupol.mupolserver.domain.common.BaseTime;
 import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.sound.SoundRepository;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.dto.sound.SoundOptionDto;
 import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.util.MonthExtractor;
@@ -15,10 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -66,7 +67,7 @@ public class SoundService {
     }
 
     public List<Sound> getSounds(Long userId) {
-        return soundRepository.findSoundsByUserId(userId).orElseThrow();
+        return soundRepository.findSoundsByUserIdOrderByCreatedAtDesc(userId).orElseThrow();
     }
 
     public Sound updateTitle(Long soundId, String title) {
@@ -97,9 +98,9 @@ public class SoundService {
         return dto;
     }
 
-    static void deleteFolder(File file){
+    static void deleteFolder(File file) {
         for (File subFile : file.listFiles()) {
-            if(subFile.isDirectory()) {
+            if (subFile.isDirectory()) {
                 deleteFolder(subFile);
             } else {
                 subFile.delete();
@@ -123,8 +124,21 @@ public class SoundService {
         LocalDateTime end = MonthExtractor.getEndDate(year, month);
 
         Optional<Integer> cnt = soundRepository.countAllByUserIdAndCreatedAtBetween(user.getId(), start, end);
-        if(cnt.isEmpty())
+        if (cnt.isEmpty())
             return 0;
         return cnt.get();
+    }
+
+    public List<SoundOptionDto> getCurrentOptions(User user) {
+        List<Sound> soundList = getSounds(user.getId());
+        List<SoundOptionDto> dtoList = new ArrayList<>();
+        for (int i = 0; i < Math.min(soundList.size(), 3); i++) {
+            dtoList.add(SoundOptionDto.builder()
+                    .id(soundList.get(i).getId())
+                    .title(soundList.get(i).getTitle())
+                    .bpm(soundList.get(i).getBpm())
+                    .build());
+        }
+        return dtoList;
     }
 }
