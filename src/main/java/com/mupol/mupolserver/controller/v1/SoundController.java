@@ -59,7 +59,7 @@ public class SoundController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "최근 녹음 설정 가져오기", notes = "최대 3개")
-    @GetMapping(value = "/current-options")
+    @GetMapping(value = "/recent-options")
     public ResponseEntity<ListResult<SoundOptionDto>> getCurrentOptions(
             @RequestHeader(value = "Authorization") String jwt
     ) {

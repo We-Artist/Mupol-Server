@@ -1,9 +1,7 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.advice.exception.*;
-import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
-import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
@@ -25,9 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Api(tags = {"2. Sign"})
@@ -38,10 +33,8 @@ public class SignController {
 
     private final UserService userService;
     private final SignService signService;
-    private final FcmMessageService fcmMessageService;
     private final ResponseService responseService;
     private final S3Service s3Service;
-
     private final JwtTokenProvider jwtTokenProvider;
 
     @ApiOperation(value = "소셜 로그인")
@@ -49,8 +42,8 @@ public class SignController {
     public ResponseEntity<SingleResult<String>> signinByProvider(
             @ApiParam(value = "json") @RequestBody SigninReqDto signinReqDto
     ) throws IOException {
-        User user = userService.getUserByProviderAndToken(signinReqDto.getProvider(), signinReqDto.getAccessToken());
-        userService.registerAccessToken(user, fcmMessageService.getAccessToken());
+        User user = userService.getUserByProviderAndToken(SnsType.valueOf(signinReqDto.getProvider()), signinReqDto.getAccessToken());
+        userService.registerAccessToken(user, FcmMessageService.getAccessToken());
         String jwt = jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(jwt));
     }
@@ -58,48 +51,13 @@ public class SignController {
     @ApiOperation(value = "소셜 계정 가입", notes = "성공시 jwt 토큰을 반환합니다")
     @PostMapping(value = "/signup")
     public ResponseEntity<SingleResult<String>> signupProvider(
-            @ApiParam(value = "json") @RequestBody SignupReqDto signupReqDto
+            @ApiParam(value = "json") @RequestBody SignupReqDto dto
     ) throws IOException {
-        String provider = signupReqDto.getProvider();
-        String accessToken = signupReqDto.getAccessToken();
-        String name = signupReqDto.getName();
-        boolean terms = signupReqDto.isTerms();
-        boolean isMajor = signupReqDto.isMajor();
-        List<String> instruments = signupReqDto.getInstruments();
-        LocalDate birth = signupReqDto.getBirth();
-        String snsId = signService.getSnsId(provider, accessToken);
-        SnsType snsType = SnsType.valueOf(provider);
-        List<Instrument> instrumentList = new ArrayList<>();
-
-        if (!terms) throw new UserDoesNotAgreeException();
-        if (userService.isUserExist(provider, accessToken)) throw new CUserIdDuplicatedException();
-        if (!userService.validateUsername(name)) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
-
-        // 악기 구분
-        if (instruments != null) {
-            try {
-                for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
-            } catch (Exception e) {
-                throw new InstrumentNotExistException();
-            }
-        }
-
-        User newUser = User.builder()
-                .snsId(snsId)
-                .provider(snsType)
-                .username(name)
-                .favoriteInstrument(instrumentList)
-                .isMajor(isMajor)
-                .terms(true)
-                .birth(birth)
-                .fcmToken(fcmMessageService.getAccessToken())
-                .isNotificationAllowed(true)
-                .role(User.Role.USER)
-                .build();
+        User newUser = signService.getUserFromDto(dto);
         userService.save(newUser);
 
         try {
-            MultipartFile profileImage = signService.getProfileImage(provider, accessToken);
+            MultipartFile profileImage = signService.getProfileImage(dto.getProvider(), dto.getAccessToken());
             if (profileImage != null) {
                 String profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
                 newUser.setProfileImageUrl(profileImageUrl);

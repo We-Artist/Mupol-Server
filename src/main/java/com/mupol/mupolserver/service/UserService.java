@@ -5,6 +5,7 @@ import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.service.social.SocialServiceFactory;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final SignService signService;
+    private final SocialServiceFactory socialServiceFactory;
     private final JwtTokenProvider jwtTokenProvider;
 
     public boolean validateUsername(String username) {
@@ -38,17 +39,23 @@ public class UserService {
         return userRepository.findById(Long.valueOf(userId)).orElseThrow(CUserNotFoundException::new);
     }
 
-    public User getUserByProviderAndToken(String provider, String accessToken) {
-        String snsId = signService.getSnsId(provider, accessToken);
-        SnsType snsType = SnsType.valueOf(provider);
-        return userRepository.findBySnsIdAndProvider(snsId, snsType).orElseThrow(CUserNotFoundException::new);
+    public User getUserByProviderAndToken(SnsType provider, String accessToken) {
+        String snsId = this.getSnsId(provider, accessToken);
+        return userRepository.findBySnsIdAndProvider(snsId, provider).orElseThrow(CUserNotFoundException::new);
     }
 
-    public boolean isUserExist(String provider, String accessToken) {
-        String snsId = signService.getSnsId(provider, accessToken);
-        SnsType snsType = SnsType.valueOf(provider);
-        Optional<User> user = userRepository.findBySnsIdAndProvider(snsId, snsType);
+    public boolean isUserExist(SnsType provider, String accessToken) {
+        String snsId = this.getSnsId(provider, accessToken);
+        Optional<User> user = userRepository.findBySnsIdAndProvider(snsId, provider);
         return user.isPresent();
+    }
+
+    public String getSnsId(SnsType provider, String accessToken) {
+        return socialServiceFactory.getService(provider).getSnsId(accessToken);
+    }
+
+    public String getEmailFromSocialProfile(SnsType provider, String accessToken) {
+        return socialServiceFactory.getService(provider).getEmail(accessToken);
     }
 
     public void registerAccessToken(User user, String accessToken) {
