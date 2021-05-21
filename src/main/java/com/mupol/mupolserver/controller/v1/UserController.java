@@ -1,20 +1,20 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
-import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.followers.Followers;
-import com.mupol.mupolserver.domain.followers.FollowersRepository;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.user.FollowersResDto;
 import com.mupol.mupolserver.dto.user.NicknameValidateReqDto;
+import com.mupol.mupolserver.dto.user.NotiSettingReqDto;
 import com.mupol.mupolserver.dto.user.ProfileUpdateReqDto;
 import com.mupol.mupolserver.service.FollowersService;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.S3Service;
 import com.mupol.mupolserver.service.UserService;
+import com.mupol.mupolserver.service.firebase.FcmMessageService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +37,7 @@ public class UserController {
     private final UserService userService;
     private final FollowersService followersService;
     private final ResponseService responseService;
+    private final FcmMessageService fcmMessageService;
     private final S3Service s3Service;
 
     @ApiImplicitParams({
@@ -120,7 +121,7 @@ public class UserController {
             }
         }
 
-        if(!userService.validateUsername(dto.getUsername()))
+        if (!userService.validateUsername(dto.getUsername()))
             throw new IllegalArgumentException("올바르지 않은 이름입니다.");
 
         user.setBio(dto.getBio());
@@ -140,13 +141,13 @@ public class UserController {
     public ResponseEntity<SingleResult<String>> follow(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "user to follow") @PathVariable String userId
-    ) {
+    ) throws IOException {
         long followingId = Long.parseLong(userId);
 
         User follower = userService.getUserByJwt(jwt);
         User following = userService.getUserById(followingId);
 
-        if(followersService.isAlreadyFollowed(follower, following))
+        if (followersService.isAlreadyFollowed(follower, following))
             throw new IllegalArgumentException("already followed");
 
         Followers followers = Followers.builder()
@@ -154,6 +155,7 @@ public class UserController {
                 .to(following)
                 .build();
         followersService.save(followers);
+        fcmMessageService.sendMessageTo(following.getFcmToken(), follower.getUsername() + "님이 회원님을 팔로우했습니다.", null);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("success follow"));
     }
@@ -204,12 +206,27 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "알림 설정")
+    @PostMapping("/me/notification")
+    public ResponseEntity<SingleResult<String>> setNotification(
+            @RequestHeader("Authorization") String jwt,
+            @ApiParam(value = "true or false") @RequestBody NotiSettingReqDto dto
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        user.setNotificationAllowed(dto.getIsNotiAllowed());
+        userService.save(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("notification setting: " + dto.getIsNotiAllowed().toString()));
+    }
+
     @ApiOperation(value = "닉네임 벨리데이션 체크")
     @PostMapping("/validate-name")
     public ResponseEntity<SingleResult<Boolean>> updateProfile(
             @ApiParam(value = "username") @RequestBody NicknameValidateReqDto dto
     ) {
-        if(!userService.validateUsername(dto.getUsername())) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
+        if (!userService.validateUsername(dto.getUsername())) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(true));
     }
 }

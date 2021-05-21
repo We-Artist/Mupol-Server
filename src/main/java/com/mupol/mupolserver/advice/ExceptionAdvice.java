@@ -35,7 +35,7 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    protected CommonResult IllegalArgumentException(HttpServletRequest request, Exception e) {
+    protected CommonResult illegalArgumentException(HttpServletRequest request, Exception e) {
         e.printStackTrace();
         return responseService.getFailResult(e.getMessage());
     }

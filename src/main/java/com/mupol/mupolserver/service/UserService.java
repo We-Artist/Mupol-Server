@@ -8,6 +8,7 @@ import com.mupol.mupolserver.domain.user.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -50,11 +51,22 @@ public class UserService {
         return user.isPresent();
     }
 
+    public void registerAccessToken(User user, String accessToken) {
+        user.setFcmToken(accessToken);
+        userRepository.save(user);
+    }
+
+    public List<User> getUsersByUsername(String keyword) {
+        Optional<List<User>> users = userRepository.findAllByUsernameContains(keyword);
+        if (users.isEmpty()) return Collections.emptyList();
+        return users.get();
+    }
+
     public User save(User user) {
         return userRepository.save(user);
     }
 
-    public void delete(User user){
+    public void delete(User user) {
         userRepository.delete(user);
     }
 }

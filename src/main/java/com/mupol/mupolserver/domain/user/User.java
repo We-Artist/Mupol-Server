@@ -63,6 +63,13 @@ public class User extends BaseTime implements UserDetails {
     private String bgImageUrl;
 
     @Setter
+    private boolean isNotificationAllowed;
+
+    @JsonIgnore
+    @Setter
+    private String fcmToken;
+
+    @Setter
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     private List<Instrument> favoriteInstrument = new ArrayList<>();
