@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.domain.fcm;
 
+import com.mupol.mupolserver.domain.common.BaseTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,7 +8,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 @Getter
-public class FcmMessage {
+public class FcmMessage extends BaseTime {
     private boolean validate_only;
     private Message message;
 
@@ -16,6 +17,7 @@ public class FcmMessage {
     @Getter
     public static class Message {
         private Notification notification;
+        private Data data;
         private String token;
     }
 
@@ -26,5 +28,13 @@ public class FcmMessage {
         private String title;
         private String body;
         private String image;
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @Getter
+    public static class Data {
+        private String target;
+        private Long targetId;
     }
 }

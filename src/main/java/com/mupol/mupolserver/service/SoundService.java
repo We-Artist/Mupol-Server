@@ -1,11 +1,14 @@
 package com.mupol.mupolserver.service;
 
+import com.mupol.mupolserver.domain.common.BaseTime;
 import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.sound.SoundRepository;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.dto.sound.SoundOptionDto;
 import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
+import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,11 +17,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -64,7 +67,7 @@ public class SoundService {
     }
 
     public List<Sound> getSounds(Long userId) {
-        return soundRepository.findSoundsByUserId(userId).orElseThrow();
+        return soundRepository.findSoundsByUserIdOrderByCreatedAtDesc(userId).orElseThrow();
     }
 
     public Sound updateTitle(Long soundId, String title) {
@@ -95,9 +98,9 @@ public class SoundService {
         return dto;
     }
 
-    static void deleteFolder(File file){
+    static void deleteFolder(File file) {
         for (File subFile : file.listFiles()) {
-            if(subFile.isDirectory()) {
+            if (subFile.isDirectory()) {
                 deleteFolder(subFile);
             } else {
                 subFile.delete();
@@ -107,15 +110,35 @@ public class SoundService {
     }
 
     public List<SoundResDto> getSoundAtMonth(User user, int year, int month) {
-        Calendar cal = Calendar.getInstance();
-        int lastDate = cal.getActualMaximum(Calendar.DATE);
-
-        LocalDateTime start = LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.of(0,0,0));
-        LocalDateTime end = LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
+        LocalDateTime start = MonthExtractor.getStartDate(year, month);
+        LocalDateTime end = MonthExtractor.getEndDate(year, month);
 
         List<Sound> soundList = soundRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("sound list error"));
 
         return getSndDtoList(soundList);
+    }
+
+    public Integer getSoundCountAtMonth(User user, int year, int month) {
+        LocalDateTime start = MonthExtractor.getStartDate(year, month);
+        LocalDateTime end = MonthExtractor.getEndDate(year, month);
+
+        Optional<Integer> cnt = soundRepository.countAllByUserIdAndCreatedAtBetween(user.getId(), start, end);
+        if (cnt.isEmpty())
+            return 0;
+        return cnt.get();
+    }
+
+    public List<SoundOptionDto> getCurrentOptions(User user) {
+        List<Sound> soundList = getSounds(user.getId());
+        List<SoundOptionDto> dtoList = new ArrayList<>();
+        for (int i = 0; i < Math.min(soundList.size(), 3); i++) {
+            dtoList.add(SoundOptionDto.builder()
+                    .id(soundList.get(i).getId())
+                    .title(soundList.get(i).getTitle())
+                    .bpm(soundList.get(i).getBpm())
+                    .build());
+        }
+        return dtoList;
     }
 }

@@ -35,6 +35,7 @@ public class MonthlyGoal extends BaseTime {
     @Column(nullable = false)
     private int goalNumber;
 
+    @Setter
     @Column(nullable = false)
     private int achieveNumber;
 }

@@ -7,8 +7,10 @@ import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.dto.sound.SoundOptionDto;
 import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
+import com.mupol.mupolserver.service.MonthlyGoalService;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.SoundService;
 import com.mupol.mupolserver.service.UserService;
@@ -32,6 +34,7 @@ public class SoundController {
 
     private final UserService userService;
     private final SoundService soundService;
+    private final MonthlyGoalService monthlyGoalService;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -48,7 +51,21 @@ public class SoundController {
         if (soundFile == null || soundFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         SoundResDto dto = soundService.uploadSound(soundFile, user, metaData);
+        monthlyGoalService.update(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "최근 녹음 설정 가져오기", notes = "최대 3개")
+    @GetMapping(value = "/recent-options")
+    public ResponseEntity<ListResult<SoundOptionDto>> getCurrentOptions(
+            @RequestHeader(value = "Authorization") String jwt
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        List<SoundOptionDto> dto = soundService.getCurrentOptions(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dto));
     }
 
     @ApiImplicitParams({

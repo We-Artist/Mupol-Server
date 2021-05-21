@@ -18,7 +18,8 @@ public class FCMInitializer {
 
     @PostConstruct
     public void initialize() throws IOException {
-        GoogleCredentials googleCredentials = GoogleCredentials.fromStream(new ClassPathResource(FIREBASE_CONFIG_PATH).getInputStream());
+        GoogleCredentials googleCredentials = GoogleCredentials
+                .fromStream(new ClassPathResource(FIREBASE_CONFIG_PATH).getInputStream());
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(googleCredentials).build();
 

@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @Getter
 @ToString
-public class GoalStatusReqDto {
+public class GoalStatusResDto {
     private MonthlyGoal currentGoal;
     private List<VideoResDto> videoList;
     private List<SoundResDto> soundList;

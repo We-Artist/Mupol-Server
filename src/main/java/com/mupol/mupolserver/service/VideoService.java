@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service;
 
 import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
+import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
@@ -10,9 +11,13 @@ import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,9 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,6 +41,13 @@ public class VideoService {
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
 
+    @Caching(evict = {
+            @CacheEvict(value = CacheKey.VIDEO_ID, key = "#user.getId().toString()"),
+            @CacheEvict(value = CacheKey.VIDEOS_USER_ID, key = "#metaData.getTitle()"),
+            @CacheEvict(value = CacheKey.VIDEOS_KEYWORD, allEntries = true),
+            @CacheEvict(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()")
+        }
+    )
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
         List<String> instruments = metaData.getInstrument_list();
@@ -98,10 +108,12 @@ public class VideoService {
         return getVideoDto(video);
     }
 
+    @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
     public Video getVideo(Long videoId) {
         return videoRepository.findById(videoId).orElseThrow(() -> new IllegalArgumentException("not exist video"));
     }
 
+    @Cacheable(value = CacheKey.VIDEOS_USER_ID, key = "#userId.toString()", unless = "#result == null")
     public List<Video> getVideos(Long userId) {
         return videoRepository.findVideosByUserId(userId).orElseThrow();
     }
@@ -114,9 +126,10 @@ public class VideoService {
         return video;
     }
 
-    public Video likeVideo(Long userId, Long videoId){
+    public Video likeVideo(Long userId, Long videoId) {
         Video video = getVideo(videoId);
         video.setLikeNum(video.getLikeNum()+1);
+
         videoRepository.save(video);
 
         return video;
@@ -131,11 +144,11 @@ public class VideoService {
     }
 
     public List<Video> getHotVideo(){
-        return videoRepository.findTop20ByOrderByLikeNumDesc().orElseThrow();
+        return videoRepository.findAllByOrderByLikeNumDesc().orElseThrow();
     }
 
     public List<Video> getNewVideo(){
-        return videoRepository.findTop20ByOrderByCreatedAtDesc().orElseThrow();
+        return videoRepository.findAllByOrderByCreatedAtDesc().orElseThrow();
     }
 
 
@@ -149,9 +162,7 @@ public class VideoService {
     }
 
     public VideoResDto getVideoDto(Video video) {
-
         VideoResDto dto = new VideoResDto();
-
         dto.setId(video.getId());
         dto.setTitle(video.getTitle());
         dto.setOrigin_title(video.getOrigin_title());
@@ -176,9 +187,9 @@ public class VideoService {
         return dto;
     }
 
-    static void deleteFolder(File file){
+    static void deleteFolder(File file) {
         for (File subFile : file.listFiles()) {
-            if(subFile.isDirectory()) {
+            if (subFile.isDirectory()) {
                 deleteFolder(subFile);
             } else {
                 subFile.delete();
@@ -187,12 +198,23 @@ public class VideoService {
         file.delete();
     }
 
-    public List<VideoResDto> getVideoAtMonth(User user, int year, int month) {
-        Calendar cal = Calendar.getInstance();
-        int lastDate = cal.getActualMaximum(Calendar.DATE);
+    @Cacheable(value = CacheKey.VIDEOS_KEYWORD, key = "#keyword", unless = "#result == null")
+    public List<Video> getVideoByTitle(String keyword) {
+        Optional<List<Video>> videos = videoRepository.findAllByTitleContains(keyword);
+        if (videos.isEmpty()) return Collections.emptyList();
+        return videos.get();
+    }
 
-        LocalDateTime start = LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.of(0,0,0));
-        LocalDateTime end = LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
+    public List<Video> getVideoByInstrument(Instrument instrument) {
+        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsContains(instrument);
+        if (videos.isEmpty()) return Collections.emptyList();
+        return videos.get();
+    }
+
+    @Cacheable(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()", unless = "#result == null")
+    public List<VideoResDto> getVideoAtMonth(User user, int year, int month) {
+        LocalDateTime start = MonthExtractor.getStartDate(year, month);
+        LocalDateTime end = MonthExtractor.getEndDate(year, month);
 
         List<Video> videoList = videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("video list error"));
@@ -200,15 +222,7 @@ public class VideoService {
         return getVideoDtoList(videoList);
     }
 
-    public List<Video> getVideoByTitle(String keyword) {
-        Optional<List<Video>> videos = videoRepository.findAllByTitleContains(keyword);
-        if(videos.isEmpty()) return Collections.emptyList();
-        return videos.get();
-    }
-
-    public List<Video> getVideoByInstrument(Instrument instrument) {
-        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsContains(instrument);
-        if(videos.isEmpty()) return Collections.emptyList();
-        return videos.get();
+    public Integer getVideoCountAtMonth(User user, int year, int month) {
+        return getVideoAtMonth(user, year, month).size();
     }
 }
