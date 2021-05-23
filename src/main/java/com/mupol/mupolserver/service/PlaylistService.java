@@ -42,8 +42,8 @@ public class PlaylistService {
         return dto;
     }
 
-    public List<PlaylistResDto> getSndDtoList(List<Playlist> commentList) {
-        return commentList.stream().map(this::getSndDto).collect(Collectors.toList());
+    public List<PlaylistResDto> getSndDtoList(List<Playlist> playlistList) {
+        return playlistList.stream().map(this::getSndDto).collect(Collectors.toList());
     }
 
     public Playlist getPlaylist(Long playlistId) {
@@ -54,11 +54,12 @@ public class PlaylistService {
         return playlistRepository.findPlaylistByUserId(userId).orElseThrow(()->new IllegalArgumentException("not exist video"));
     }
 
-    public Playlist updateContent(Long commentId, String content) {
-        Playlist comment = getPlaylist(commentId);
-        playlistRepository.save(comment);
+    public Playlist updateName(Long playlistId, String name) {
+        Playlist playlist = getPlaylist(playlistId);
+        playlist.setName(name);
+        playlistRepository.save(playlist);
 
-        return comment;
+        return playlist;
     }
 
     public void deletePlaylist(Long playlistId) {
