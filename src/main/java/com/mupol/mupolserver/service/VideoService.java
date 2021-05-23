@@ -4,16 +4,20 @@ import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
+import com.mupol.mupolserver.domain.followers.FollowersRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
+import com.mupol.mupolserver.domain.viewHistory.ViewHistoryRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,7 +30,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,6 +42,8 @@ import java.util.stream.Collectors;
 public class VideoService {
 
     private final VideoRepository videoRepository;
+    private final FollowersRepository followersRepository;
+    private final ViewHistoryRepository viewHistoryRepository;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
 
@@ -129,7 +138,6 @@ public class VideoService {
     public Video likeVideo(Long userId, Long videoId) {
         Video video = getVideo(videoId);
         video.setLikeNum(video.getLikeNum()+1);
-
         videoRepository.save(video);
 
         return video;
@@ -143,18 +151,53 @@ public class VideoService {
         return video;
     }
 
-    public List<Video> getHotVideo(){
-        return videoRepository.findAllByOrderByLikeNumDesc().orElseThrow();
+    public List<Video> getHotVideo() {
+        LocalDate now = LocalDate.now();
+        LocalDate monday = now.withDayOfWeek(DateTimeConstants.MONDAY);
+        LocalDate sunday = now.withDayOfWeek(DateTimeConstants.SUNDAY);
+        System.out.println("시작" + monday);
+        System.out.println("끝" + sunday);
+
+        List<Long> videoIdList = new ArrayList<>();
+        videoIdList = viewHistoryRepository.getHotVideoList(monday, sunday).orElseThrow();
+
+        List<Video> videoList = new ArrayList<>();
+        for (int i = 0; i < videoIdList.size(); i++){
+            videoList.add(videoRepository.findById(videoIdList.get(i)).orElseThrow());
+        }
+
+        return videoList;
     }
 
     public List<Video> getNewVideo(){
         return videoRepository.findAllByOrderByCreatedAtDesc().orElseThrow();
     }
 
+    public Video getRandomVideo(){ return videoRepository.getRandomVideo().orElseThrow();}
 
     public void deleteVideo(Long userId, Long videoId) {
         s3Service.deleteMedia(userId, videoId, MediaType.Video);
         videoRepository.deleteById(videoId);
+    }
+
+    public List<Video> getFollowingVideo(User user){
+        List<Long> followersList = new ArrayList<>();
+        followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
+
+        List<Video> videoList = new ArrayList<>();
+        videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList).orElseThrow();
+
+        return videoList;
+    }
+
+    public List<Video> getInstVideo(User user){
+        List<Long> followersList = new ArrayList<>();
+        followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
+
+        List<Video> videoList = new ArrayList<>();
+        videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList).orElseThrow();
+
+        return videoList;
     }
 
     public List<VideoResDto> getVideoDtoList(List<Video> VideoList) {

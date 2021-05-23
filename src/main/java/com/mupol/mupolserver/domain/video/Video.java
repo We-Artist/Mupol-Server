@@ -47,11 +47,9 @@ public class Video extends BaseTime implements Serializable {
     private String fileUrl;
 
     @Setter
-    @Column(name="view_num")
     private int viewNum;
 
     @Setter
-    @Column(name="like_num")
     private int likeNum;
 
     @Setter
