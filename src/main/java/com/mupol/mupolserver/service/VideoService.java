@@ -8,6 +8,7 @@ import com.mupol.mupolserver.domain.followers.FollowersRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistory;
@@ -48,6 +49,7 @@ public class VideoService {
     private final ViewHistoryRepository viewHistoryRepository;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
+    private final UserRepository userRepository;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -205,13 +207,13 @@ public class VideoService {
     }
 
     public List<Video> getInstVideo(User user){
-        List<Long> followersList = new ArrayList<>();
-        followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
+        List<Instrument> instrumentList = new ArrayList<>();
+        instrumentList = user.getFavoriteInstrument();
 
-        List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList).orElseThrow();
+        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList);
 
-        return videoList;
+        if (videos.isEmpty()) return Collections.emptyList();
+        return videos.get();
     }
 
     public List<VideoResDto> getVideoDtoList(List<Video> VideoList) {
