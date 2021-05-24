@@ -85,7 +85,7 @@ public class S3Service {
             if (fileExtension.equals("ts") || fileExtension.equals("m3u8")) {
                 uploadMedia(fileEntry, userId, mediaId, mediaType);
                 if (fileExtension.equals("m3u8")) {
-                    fileUrl = cloudFrontDomain + "/" + userId + "/" + mediaId + "/" + "s.m3u8";
+                    fileUrl = cloudFrontDomain + "/" + mediaType.getValue() + "/" + userId + "/" + mediaId + "/" + mediaType.getValue() + ".m3u8";
                 }
             }
         }
@@ -93,13 +93,13 @@ public class S3Service {
         return fileUrl;
     }
 
-    public void uploadMedia(File file, Long userId, Long soundId, MediaType mediaType) throws IOException {
+    public void uploadMedia(File file, Long userId, Long mediaId, MediaType mediaType) throws IOException {
         String filePath = "";
 
         if (mediaType == MediaType.Video) {
-            filePath = "video/" + userId + "/" + soundId.toString() + "/" + file.getName();
+            filePath = "video/" + userId + "/" + mediaId.toString() + "/" + file.getName();
         } else if (mediaType == MediaType.Sound) {
-            filePath = "sound/" + userId + "/" + soundId.toString() + "/" + file.getName();
+            filePath = "sound/" + userId + "/" + mediaId.toString() + "/" + file.getName();
         }
 
         log.info(filePath + " uploaded");

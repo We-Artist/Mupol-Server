@@ -3,6 +3,7 @@ package com.mupol.mupolserver.service;
 import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoalRepository;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +27,7 @@ public class MonthlyGoalService {
     }
 
     public void update(User user) {
-        int y = LocalDate.now().getYear();
-        int m = LocalDate.now().getMonthValue();
-        LocalDate startDate = LocalDate.of(y, m, 1);
+        LocalDate startDate = MonthExtractor.getCurrentMonthFirstDate();
         MonthlyGoal monthlyGoal = getMonthlyGoal(user, startDate);
         int year = monthlyGoal.getStartDate().getYear();
         int month = monthlyGoal.getStartDate().getMonthValue();

@@ -9,6 +9,7 @@ import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.dto.video.ViewHistoryDto;
 import com.mupol.mupolserver.service.*;
+import com.mupol.mupolserver.util.MonthExtractor;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +48,9 @@ public class VideoController {
         if(videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
-        monthlyGoalService.update(user);
+        if(monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
+            monthlyGoalService.update(user);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 

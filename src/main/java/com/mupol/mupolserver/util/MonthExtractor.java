@@ -6,6 +6,18 @@ import java.time.LocalTime;
 import java.util.Calendar;
 
 public class MonthExtractor {
+    public static LocalDate getCurrentMonthFirstDate() {
+        int y = LocalDate.now().getYear();
+        int m = LocalDate.now().getMonthValue();
+        return LocalDate.from(getStartDate(y, m));
+    }
+
+    public static LocalDate getCurrentMonthLastDate() {
+        int y = LocalDate.now().getYear();
+        int m = LocalDate.now().getMonthValue();
+        return LocalDate.from(getEndDate(y, m));
+    }
+
     public static LocalDateTime getStartDate(int year, int month) {
         return LocalDateTime.of(LocalDate.of(year, month, 1), LocalTime.of(0,0,0));
     }

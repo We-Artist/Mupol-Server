@@ -14,6 +14,7 @@ import com.mupol.mupolserver.service.MonthlyGoalService;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.SoundService;
 import com.mupol.mupolserver.service.UserService;
+import com.mupol.mupolserver.util.MonthExtractor;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,9 @@ public class SoundController {
         if (soundFile == null || soundFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         SoundResDto dto = soundService.uploadSound(soundFile, user, metaData);
-        monthlyGoalService.update(user);
+        if(monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
+            monthlyGoalService.update(user);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
