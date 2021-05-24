@@ -10,9 +10,11 @@ import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
+import com.mupol.mupolserver.domain.viewHistory.ViewHistory;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistoryRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.dto.video.ViewHistoryDto;
 import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -151,12 +153,24 @@ public class VideoService {
         return video;
     }
 
+    public ViewHistoryDto createViewHistory(User user, Video video){
+        ViewHistory viewHistory = ViewHistory
+                .builder()
+                .user(user)
+                .video(video)
+                .build();
+        viewHistoryRepository.save(viewHistory);
+
+        System.out.println(viewHistory.getCreatedAt());
+
+        return getViewHistory(viewHistory);
+
+    }
+
     public List<Video> getHotVideo() {
         LocalDate now = LocalDate.now();
         LocalDate monday = now.withDayOfWeek(DateTimeConstants.MONDAY);
         LocalDate sunday = now.withDayOfWeek(DateTimeConstants.SUNDAY);
-        System.out.println("시작" + monday);
-        System.out.println("끝" + sunday);
 
         List<Long> videoIdList = new ArrayList<>();
         videoIdList = viewHistoryRepository.getHotVideoList(monday, sunday).orElseThrow();
@@ -228,6 +242,18 @@ public class VideoService {
         dto.setHashtag_list(video.getHashtags());
 
         return dto;
+    }
+
+    public ViewHistoryDto getViewHistory(ViewHistory viewHistory){
+        ViewHistoryDto dto = new ViewHistoryDto();
+
+        dto.setCreatedAt(viewHistory.getCreatedAt());
+        dto.setId(viewHistory.getId());
+        dto.setUserId(viewHistory.getUser().getId());
+        dto.setVideoId(viewHistory.getVideo().getId());
+
+        return dto;
+
     }
 
     static void deleteFolder(File file) {
