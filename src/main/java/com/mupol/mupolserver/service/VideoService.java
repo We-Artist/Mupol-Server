@@ -59,16 +59,21 @@ public class VideoService {
             @CacheEvict(value = CacheKey.VIDEOS_USER_ID, key = "#metaData.getTitle()"),
             @CacheEvict(value = CacheKey.VIDEOS_KEYWORD, allEntries = true),
             @CacheEvict(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()")
-        }
+    }
     )
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
+        System.out.println(metaData);
         List<String> instruments = metaData.getInstrument_list();
         List<Instrument> instrumentList = new ArrayList<>();
 
         try {
-            for (String inst : instruments) instrumentList.add(Instrument.valueOf(inst));
+            if (instruments != null)
+                for (String inst : instruments) {
+                    instrumentList.add(Instrument.valueOf(inst));
+                }
         } catch (Exception e) {
+            e.printStackTrace();
             throw new InstrumentNotExistException();
         }
 
@@ -76,9 +81,10 @@ public class VideoService {
         List<Hashtag> hashtagList = new ArrayList<>();
 
         try {
-            for (String inst : hashtags) hashtagList.add(Hashtag.valueOf(inst));
+            if (hashtags != null)
+                for (String inst : hashtags) hashtagList.add(Hashtag.valueOf(inst));
         } catch (Exception e) {
-            throw new InstrumentNotExistException();
+            throw new IllegalArgumentException("not supported hashtag");
         }
 
         Video video = Video.builder()
@@ -141,21 +147,21 @@ public class VideoService {
 
     public Video likeVideo(Long userId, Long videoId) {
         Video video = getVideo(videoId);
-        video.setLikeNum(video.getLikeNum()+1);
+        video.setLikeNum(video.getLikeNum() + 1);
         videoRepository.save(video);
 
         return video;
     }
 
-    public Video viewVideo(Long videoId){
+    public Video viewVideo(Long videoId) {
         Video video = getVideo(videoId);
-        video.setViewNum(video.getViewNum()+1);
+        video.setViewNum(video.getViewNum() + 1);
         videoRepository.save(video);
 
         return video;
     }
 
-    public ViewHistoryDto createViewHistory(User user, Video video){
+    public ViewHistoryDto createViewHistory(User user, Video video) {
         ViewHistory viewHistory = ViewHistory
                 .builder()
                 .user(user)
@@ -178,25 +184,27 @@ public class VideoService {
         videoIdList = viewHistoryRepository.getHotVideoList(monday, sunday).orElseThrow();
 
         List<Video> videoList = new ArrayList<>();
-        for (int i = 0; i < videoIdList.size(); i++){
+        for (int i = 0; i < videoIdList.size(); i++) {
             videoList.add(videoRepository.findById(videoIdList.get(i)).orElseThrow());
         }
 
         return videoList;
     }
 
-    public List<Video> getNewVideo(){
+    public List<Video> getNewVideo() {
         return videoRepository.findAllByOrderByCreatedAtDesc().orElseThrow();
     }
 
-    public Video getRandomVideo(){ return videoRepository.getRandomVideo().orElseThrow();}
+    public Video getRandomVideo() {
+        return videoRepository.getRandomVideo().orElseThrow();
+    }
 
     public void deleteVideo(Long userId, Long videoId) {
         s3Service.deleteMedia(userId, videoId, MediaType.Video);
         videoRepository.deleteById(videoId);
     }
 
-    public List<Video> getFollowingVideo(User user){
+    public List<Video> getFollowingVideo(User user) {
         List<Long> followersList = new ArrayList<>();
         followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
 
@@ -206,7 +214,7 @@ public class VideoService {
         return videoList;
     }
 
-    public List<Video> getInstVideo(User user){
+    public List<Video> getInstVideo(User user) {
         List<Instrument> instrumentList = new ArrayList<>();
         instrumentList = user.getFavoriteInstrument();
 
@@ -246,7 +254,7 @@ public class VideoService {
         return dto;
     }
 
-    public ViewHistoryDto getViewHistory(ViewHistory viewHistory){
+    public ViewHistoryDto getViewHistory(ViewHistory viewHistory) {
         ViewHistoryDto dto = new ViewHistoryDto();
 
         dto.setCreatedAt(viewHistory.getCreatedAt());

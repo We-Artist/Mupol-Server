@@ -13,8 +13,10 @@ import java.time.LocalDateTime;
 public class NotificationDto {
     private String title;
     private String body;
+    private String senderName;
     private String senderProfileImageUrl;
     private LocalDateTime createdAt;
+    private boolean isRead;
 
     @ApiParam("연결되는 영상 id")
     private Long videoId;

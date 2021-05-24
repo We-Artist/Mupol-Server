@@ -52,7 +52,7 @@ public class FFmpegService {
                     "-hls_time", "20",
                     "-hls_list_size", "0",
                     "-f", "hls",
-                    "v.m3u8"
+                    "video.m3u8"
             );
         } else if (mediaType == MediaType.Sound) {
             builder.command(
@@ -62,7 +62,7 @@ public class FFmpegService {
                     "-vn",
                     "-hls_list_size", "0",
                     "-hls_time", "4",
-                    "s.m3u8"
+                    "sound.m3u8"
             );
         }
         builder.directory(new File(filePath));

@@ -66,6 +66,8 @@ public class SignService {
 
     public MultipartFile getProfileImage(String provider, String accessToken) throws IOException {
         String url = socialServiceFactory.getService(SnsType.valueOf(provider)).getProfileImageUrl(accessToken);
+        if(url == null)
+            return null;
         return ImageExtractor.getImageFile(url);
     }
 }

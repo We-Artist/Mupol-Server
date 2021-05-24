@@ -47,6 +47,7 @@ public class NotificationService {
                 .receiver(receiver)
                 .videoId(videoId)
                 .userId(userId)
+                .isRead(false)
                 .build();
 
         fcmMessageService.sendMessageTo(receiver.getFcmToken(), title, body, type, targetId);
@@ -72,10 +73,12 @@ public class NotificationService {
             dtoList.add(NotificationDto.builder()
                     .title(noti.getTitle())
                     .body(noti.getBody())
+                    .senderName(noti.getSender().getUsername())
                     .senderProfileImageUrl(noti.getSenderProfileImageUrl())
                     .createdAt(noti.getCreatedAt())
                     .userId(noti.getUserId())
                     .videoId(noti.getVideoId())
+                    .isRead(noti.isRead())
                     .build());
         }
         return dtoList;
