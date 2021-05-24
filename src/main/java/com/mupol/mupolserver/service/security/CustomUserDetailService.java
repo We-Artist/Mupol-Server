@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.service.security;
 
+import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,6 @@ public class CustomUserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
 
     public UserDetails loadUserByUsername(String userPk) {
-        return (UserDetails) userRepository.findById(Long.valueOf(userPk)).orElseThrow(() -> new IllegalArgumentException("no such user"));
+        return (UserDetails) userRepository.findById(Long.valueOf(userPk)).orElseThrow(CUserNotFoundException::new);
     }
 }
