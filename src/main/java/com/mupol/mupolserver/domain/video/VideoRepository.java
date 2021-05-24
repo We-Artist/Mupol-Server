@@ -26,4 +26,5 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
 
     Optional <List<Video>> findByUserIdInOrderByCreatedAtDesc(List<Long> userId);
 
+    Optional <List<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList);
 }

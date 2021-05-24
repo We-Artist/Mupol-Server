@@ -25,5 +25,5 @@ public class PlaylistResDto {
     private LocalDateTime updatedAt;
 
     @ApiModelProperty(notes ="비디오 개수")
-    private int videoNum;
+    private Long videoNum;
 }
