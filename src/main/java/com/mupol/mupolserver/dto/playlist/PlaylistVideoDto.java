@@ -1,22 +1,23 @@
 package com.mupol.mupolserver.dto.playlist;
 
-import io.swagger.annotations.ApiParam;
-import lombok.Builder;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
-import lombok.ToString;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
-@ToString
+@Setter
 public class PlaylistVideoDto {
+    @ApiModelProperty(notes ="Id")
+    private Long id;
 
-    private LocalDateTime createdAt;
+    @ApiModelProperty(notes ="재생 목록 Id")
+    private Long playlistId;
 
-    @ApiParam("연결되는 영상 id")
+    @ApiModelProperty(notes ="비디오 Id")
     private Long videoId;
 
-    @ApiParam("연결되는 재생목록 id")
-    private Long playlistId;
+    @ApiModelProperty(notes ="재생 목록에 비디오 추가 시간")
+    private LocalDateTime createdAt;
 }
