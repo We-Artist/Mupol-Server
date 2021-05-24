@@ -8,11 +8,14 @@ import com.mupol.mupolserver.domain.followers.FollowersRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
+import com.mupol.mupolserver.domain.viewHistory.ViewHistory;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistoryRepository;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.dto.video.ViewHistoryDto;
 import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +49,7 @@ public class VideoService {
     private final ViewHistoryRepository viewHistoryRepository;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
+    private final UserRepository userRepository;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -151,12 +155,24 @@ public class VideoService {
         return video;
     }
 
+    public ViewHistoryDto createViewHistory(User user, Video video){
+        ViewHistory viewHistory = ViewHistory
+                .builder()
+                .user(user)
+                .video(video)
+                .build();
+        viewHistoryRepository.save(viewHistory);
+
+        System.out.println(viewHistory.getCreatedAt());
+
+        return getViewHistory(viewHistory);
+
+    }
+
     public List<Video> getHotVideo() {
         LocalDate now = LocalDate.now();
         LocalDate monday = now.withDayOfWeek(DateTimeConstants.MONDAY);
         LocalDate sunday = now.withDayOfWeek(DateTimeConstants.SUNDAY);
-        System.out.println("시작" + monday);
-        System.out.println("끝" + sunday);
 
         List<Long> videoIdList = new ArrayList<>();
         videoIdList = viewHistoryRepository.getHotVideoList(monday, sunday).orElseThrow();
@@ -191,13 +207,13 @@ public class VideoService {
     }
 
     public List<Video> getInstVideo(User user){
-        List<Long> followersList = new ArrayList<>();
-        followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
+        List<Instrument> instrumentList = new ArrayList<>();
+        instrumentList = user.getFavoriteInstrument();
 
-        List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList).orElseThrow();
+        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList);
 
-        return videoList;
+        if (videos.isEmpty()) return Collections.emptyList();
+        return videos.get();
     }
 
     public List<VideoResDto> getVideoDtoList(List<Video> VideoList) {
@@ -228,6 +244,18 @@ public class VideoService {
         dto.setHashtag_list(video.getHashtags());
 
         return dto;
+    }
+
+    public ViewHistoryDto getViewHistory(ViewHistory viewHistory){
+        ViewHistoryDto dto = new ViewHistoryDto();
+
+        dto.setCreatedAt(viewHistory.getCreatedAt());
+        dto.setId(viewHistory.getId());
+        dto.setUserId(viewHistory.getUser().getId());
+        dto.setVideoId(viewHistory.getVideo().getId());
+
+        return dto;
+
     }
 
     static void deleteFolder(File file) {

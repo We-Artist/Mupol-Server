@@ -7,6 +7,7 @@ import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.dto.video.ViewHistoryDto;
 import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -112,9 +113,6 @@ public class VideoController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = false, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value = "비디오 조회수 추가")
     @PatchMapping("/view/{videoId}")
     public ResponseEntity<SingleResult<String>> viewNumVideo(
@@ -122,6 +120,21 @@ public class VideoController {
     ) {
         videoService.viewVideo(Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("view video"));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = false, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "비디오 조회 기록 추가")
+    @PostMapping("/viewHistory/add/{videoId}")
+    public ResponseEntity<SingleResult<ViewHistoryDto>> createViewHistory(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String videoId
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        Video video = videoService.getVideo(Long.valueOf(videoId));
+        ViewHistoryDto dto = videoService.createViewHistory(user, video);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
     @ApiOperation(value = "최신 영상 조회")
@@ -155,7 +168,7 @@ public class VideoController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "팔로우 악기 영상 조회")
-    @PostMapping("/view/follow/inst")
+    @GetMapping("/view/follow/inst")
     public ResponseEntity<ListResult<VideoResDto>> viewFollowInstVideo(
             @RequestHeader("Authorization") String jwt
     ) {
