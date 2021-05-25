@@ -140,43 +140,49 @@ public class VideoController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
-    @ApiOperation(value = "최신 영상 조회")
-    @GetMapping("/view/new")
-    public ResponseEntity<ListResult<VideoResDto>> viewNewVideo() {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getNewVideo());
+    @ApiOperation(value = "최신 영상 조회 (20개씩)")
+    @GetMapping("/view/new/{page}")
+    public ResponseEntity<ListResult<VideoResDto>> viewNewVideo(
+            @PathVariable int page
+    ) {
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getNewVideo(page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
-    @ApiOperation(value = "인기 영상 조회")
-    @GetMapping("/view/hot")
-    public ResponseEntity<ListResult<VideoResDto>> viewHotVideo() {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getHotVideo());
+    @ApiOperation(value = "인기 영상 조회 (20개씩)")
+    @GetMapping("/view/hot/{page}")
+    public ResponseEntity<ListResult<VideoResDto>> viewHotVideo(
+            @PathVariable int page
+    ) {
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getHotVideo(page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "팔로우 계정 영상 조회")
-    @GetMapping("/view/follow/user")
+    @ApiOperation(value = "팔로우 계정 영상 조회 (20개씩)")
+    @GetMapping("/view/follow/user/{page}")
     public ResponseEntity<ListResult<VideoResDto>> viewFollowUserVideo(
-            @RequestHeader("Authorization") String jwt
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getFollowingVideo(user));
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getFollowingVideo(user, page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "팔로우 악기 영상 조회")
-    @GetMapping("/view/follow/inst")
+    @ApiOperation(value = "팔로우 악기 영상 조회 (20개씩)")
+    @GetMapping("/view/follow/inst/{page}")
     public ResponseEntity<ListResult<VideoResDto>> viewFollowInstVideo(
-            @RequestHeader("Authorization") String jwt
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getInstVideo(user));
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getInstVideo(user, page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 

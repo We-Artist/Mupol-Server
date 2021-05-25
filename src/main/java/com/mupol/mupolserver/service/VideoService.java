@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -175,7 +176,9 @@ public class VideoService {
 
     }
 
-    public List<Video> getHotVideo() {
+    public List<Video> getHotVideo(int pageNum) {
+        PageRequest pageRequest = PageRequest.of(pageNum, 20);
+
         LocalDate now = LocalDate.now();
         LocalDate monday = now.withDayOfWeek(DateTimeConstants.MONDAY);
         LocalDate sunday = now.withDayOfWeek(DateTimeConstants.SUNDAY);
@@ -184,15 +187,14 @@ public class VideoService {
         videoIdList = viewHistoryRepository.getHotVideoList(monday, sunday).orElseThrow();
 
         List<Video> videoList = new ArrayList<>();
-        for (int i = 0; i < videoIdList.size(); i++) {
-            videoList.add(videoRepository.findById(videoIdList.get(i)).orElseThrow());
-        }
+        videoList = videoRepository.findByIdInOrderByCreatedAtDesc(videoIdList, pageRequest).orElseThrow();
 
         return videoList;
     }
 
-    public List<Video> getNewVideo() {
-        return videoRepository.findAllByOrderByCreatedAtDesc().orElseThrow();
+    public List<Video> getNewVideo(int pageNum) {
+        PageRequest pageRequest = PageRequest.of(pageNum, 20);
+        return videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
     }
 
     public Video getRandomVideo() {
@@ -204,21 +206,25 @@ public class VideoService {
         videoRepository.deleteById(videoId);
     }
 
-    public List<Video> getFollowingVideo(User user) {
+    public List<Video> getFollowingVideo(User user, int pageNum) {
+        PageRequest pageRequest = PageRequest.of(pageNum, 20);
+
         List<Long> followersList = new ArrayList<>();
         followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
 
         List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList).orElseThrow();
+        videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
 
         return videoList;
     }
 
-    public List<Video> getInstVideo(User user) {
+    public List<Video> getInstVideo(User user, int pageNum) {
+        PageRequest pageRequest = PageRequest.of(pageNum, 20);
+
         List<Instrument> instrumentList = new ArrayList<>();
         instrumentList = user.getFavoriteInstrument();
 
-        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList);
+        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList, pageRequest);
 
         if (videos.isEmpty()) return Collections.emptyList();
         return videos.get();
@@ -304,4 +310,5 @@ public class VideoService {
     public Integer getVideoCountAtMonth(User user, int year, int month) {
         return getVideoAtMonth(user, year, month).size();
     }
+
 }
