@@ -1,6 +1,7 @@
 package com.mupol.mupolserver.domain.video;
 
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -24,7 +25,11 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     @Query(value = "select * from video order by rand() limit 1", nativeQuery=true)
     Optional<Video> getRandomVideo();
 
-    Optional <List<Video>> findByUserIdInOrderByCreatedAtDesc(List<Long> userId);
+    Optional <List<Video>> findByUserIdInOrderByCreatedAtDesc(List<Long> userId, PageRequest pageRequest);
 
-    Optional <List<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList);
+    Optional <List<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList, PageRequest pageRequest);
+
+    Optional <List<Video>> findAllByOrderByCreatedAtDesc(PageRequest pageRequest);
+
+    Optional <List<Video>> findByIdInOrderByCreatedAtDesc(List<Long> videoId, PageRequest pageRequest);
 }
