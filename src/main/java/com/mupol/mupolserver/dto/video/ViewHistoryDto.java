@@ -22,5 +22,5 @@ public class ViewHistoryDto {
     private Long userId;
 
     @ApiModelProperty(notes = "Video Id")
-    private Long VideoId;
+    private Long videoId;
 }

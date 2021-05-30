@@ -1,6 +1,5 @@
 package com.mupol.mupolserver.service;
 
-import com.mupol.mupolserver.domain.common.BaseTime;
 import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.sound.SoundRepository;
@@ -18,10 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,10 +32,10 @@ public class SoundService {
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
 
-    public SoundResDto uploadSound(MultipartFile soundFile, User user, SoundReqDto metaData) throws IOException, InterruptedException {
+    public SoundResDto uploadSound(MultipartFile soundFile, User user, String title, int bpm) throws IOException, InterruptedException {
         Sound sound = Sound.builder()
-                .bpm(metaData.getBpm())
-                .title(metaData.getTitle())
+                .bpm(bpm)
+                .title(title)
                 .user(user)
                 .build();
         soundRepository.save(sound);
@@ -99,7 +95,7 @@ public class SoundService {
     }
 
     static void deleteFolder(File file) {
-        for (File subFile : file.listFiles()) {
+        for (File subFile : Objects.requireNonNull(file.listFiles())) {
             if (subFile.isDirectory()) {
                 deleteFolder(subFile);
             } else {

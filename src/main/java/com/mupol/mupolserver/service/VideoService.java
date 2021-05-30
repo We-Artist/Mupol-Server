@@ -65,7 +65,7 @@ public class VideoService {
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
         System.out.println(metaData);
-        List<String> instruments = metaData.getInstrument_list();
+        List<String> instruments = metaData.getInstrumentList();
         List<Instrument> instrumentList = new ArrayList<>();
 
         try {
@@ -78,7 +78,7 @@ public class VideoService {
             throw new InstrumentNotExistException();
         }
 
-        List<String> hashtags = metaData.getHashtag_list();
+        List<String> hashtags = metaData.getHashtagList();
         List<Hashtag> hashtagList = new ArrayList<>();
 
         try {
@@ -90,9 +90,9 @@ public class VideoService {
 
         Video video = Video.builder()
                 .title(metaData.getTitle())
-                .origin_title(metaData.getOrigin_title())
+                .originTitle(metaData.getOriginTitle())
                 .detail(metaData.getDetail())
-                .is_private(metaData.getIs_private())
+                .isPrivate(metaData.getIsPrivate())
                 .instruments(instrumentList)
                 .hashtags(hashtagList)
                 .user(user)
@@ -150,7 +150,6 @@ public class VideoService {
         Video video = getVideo(videoId);
         video.setLikeNum(video.getLikeNum() + 1);
         videoRepository.save(video);
-
         return video;
     }
 
@@ -238,9 +237,9 @@ public class VideoService {
         VideoResDto dto = new VideoResDto();
         dto.setId(video.getId());
         dto.setTitle(video.getTitle());
-        dto.setOrigin_title(video.getOrigin_title());
+        dto.setOriginTitle(video.getOriginTitle());
         dto.setDetail(video.getDetail());
-        dto.setIs_private(video.getIs_private());
+        dto.setIsPrivate(video.getIsPrivate());
         dto.setCreatedAt(video.getCreatedAt());
         dto.setUpdatedAt(video.getModifiedDate());
         dto.setFileUrl(video.getFileUrl());
@@ -251,11 +250,11 @@ public class VideoService {
         //dto.setLike_num(video.getLikeNum());
         //dto.setHashtag_list(video.getHashtag_list());
 
-        dto.setInstrument_list(video.getInstruments());
-        dto.setView_num(video.getViewNum());
+        dto.setInstrumentList(video.getInstruments());
+        dto.setViewNum(video.getViewNum());
         dto.setUserId(video.getUser().getId());
-        dto.setLike_num(video.getLikeNum());
-        dto.setHashtag_list(video.getHashtags());
+        dto.setLikeNum(video.getLikeNum());
+        dto.setHashtagList(video.getHashtags());
 
         return dto;
     }
