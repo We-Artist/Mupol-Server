@@ -45,13 +45,14 @@ public class SoundController {
     @PostMapping(value = "/new", consumes = {"multipart/form-data"})
     public ResponseEntity<SingleResult<SoundResDto>> addSound(
             @RequestHeader("Authorization") String jwt,
-            @ApiParam(value = "metaData") @RequestPart SoundReqDto metaData,
-            @ApiParam(value = "음성파일") @RequestPart(value = "soundFile", required = false) MultipartFile soundFile
+            @ApiParam(value = "bpm") @RequestPart Integer bpm,
+            @ApiParam(value = "title") @RequestPart String title,
+            @ApiParam(value = "음성파일") @RequestPart(value = "soundFile") MultipartFile soundFile
     ) throws IOException, InterruptedException {
         User user = userService.getUserByJwt(jwt);
         if (soundFile == null || soundFile.isEmpty())
             throw new IllegalArgumentException("File is null");
-        SoundResDto dto = soundService.uploadSound(soundFile, user, metaData);
+        SoundResDto dto = soundService.uploadSound(soundFile, user, title, bpm);
         if(monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
             monthlyGoalService.update(user);
         }
