@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,7 +58,7 @@ public class VideoService {
 
     @Caching(evict = {
             @CacheEvict(value = CacheKey.VIDEO_ID, key = "#user.getId().toString()"),
-            @CacheEvict(value = CacheKey.VIDEOS_USER_ID, key = "#metaData.getTitle()"),
+            @CacheEvict(value = CacheKey.VIDEOS_USER_ID, key = "#user.getId().toString()"),
             @CacheEvict(value = CacheKey.VIDEOS_KEYWORD, allEntries = true),
             @CacheEvict(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()")
     }
@@ -65,12 +66,16 @@ public class VideoService {
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
         System.out.println(metaData);
+        log.info(metaData.getTitle());
+        log.info(metaData.getOriginTitle());
+        log.info(metaData.getDetail());
         List<String> instruments = metaData.getInstrumentList();
         List<Instrument> instrumentList = new ArrayList<>();
 
         try {
             if (instruments != null)
                 for (String inst : instruments) {
+                    log.info(inst);
                     instrumentList.add(Instrument.valueOf(inst));
                 }
         } catch (Exception e) {
@@ -133,17 +138,9 @@ public class VideoService {
         return videoRepository.findById(videoId).orElseThrow(() -> new IllegalArgumentException("not exist video"));
     }
 
-    @Cacheable(value = CacheKey.VIDEOS_USER_ID, key = "#userId.toString()", unless = "#result == null")
+//    @Cacheable(value = CacheKey.VIDEOS_USER_ID, key = "#userId", unless = "#result == null")
     public List<Video> getVideos(Long userId) {
         return videoRepository.findVideosByUserId(userId).orElseThrow();
-    }
-
-    public Video updateTitle(Long videoId, String title) {
-        Video video = getVideo(videoId);
-        video.setTitle(title);
-        videoRepository.save(video);
-
-        return video;
     }
 
     public Video likeVideo(Long userId, Long videoId) {
@@ -229,8 +226,8 @@ public class VideoService {
         return videos.get();
     }
 
-    public List<VideoResDto> getVideoDtoList(List<Video> VideoList) {
-        return VideoList.stream().map(this::getVideoDto).collect(Collectors.toList());
+    public List<VideoResDto> getVideoDtoList(List<Video> videoList) {
+        return videoList.stream().map(this::getVideoDto).collect(Collectors.toList());
     }
 
     public VideoResDto getVideoDto(Video video) {
@@ -240,16 +237,9 @@ public class VideoService {
         dto.setOriginTitle(video.getOriginTitle());
         dto.setDetail(video.getDetail());
         dto.setIsPrivate(video.getIsPrivate());
-        dto.setCreatedAt(video.getCreatedAt());
-        dto.setUpdatedAt(video.getModifiedDate());
+        dto.setCreatedAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        dto.setUpdatedAt(video.getModifiedDate().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
         dto.setFileUrl(video.getFileUrl());
-
-        //dto.setInstrument_list(video.getInstrument_list());
-        //dto.setView_num(video.getViewNum());
-        //dto.setUserId(video.getUser().getId());
-        //dto.setLike_num(video.getLikeNum());
-        //dto.setHashtag_list(video.getHashtag_list());
-
         dto.setInstrumentList(video.getInstruments());
         dto.setViewNum(video.getViewNum());
         dto.setUserId(video.getUser().getId());
@@ -262,7 +252,7 @@ public class VideoService {
     public ViewHistoryDto getViewHistory(ViewHistory viewHistory) {
         ViewHistoryDto dto = new ViewHistoryDto();
 
-        dto.setCreatedAt(viewHistory.getCreatedAt());
+        dto.setCreatedAt(viewHistory.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
         dto.setId(viewHistory.getId());
         dto.setUserId(viewHistory.getUser().getId());
         dto.setVideoId(viewHistory.getVideo().getId());

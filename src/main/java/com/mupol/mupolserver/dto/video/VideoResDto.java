@@ -31,10 +31,10 @@ public class VideoResDto {
     private Boolean isPrivate;
 
     @ApiModelProperty(notes ="created at")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     @ApiModelProperty(notes ="updated at")
-    private LocalDateTime updatedAt;
+    private Long updatedAt;
 
     @ApiModelProperty(notes ="file url")
     private String fileUrl;

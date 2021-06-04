@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -90,7 +91,7 @@ public class SoundService {
         dto.setTitle(snd.getTitle());
         dto.setUserId(snd.getUser().getId());
         dto.setFileUrl(snd.getFileUrl());
-        dto.setCreatedAt(snd.getCreatedAt());
+        dto.setCreatedAt(snd.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
         return dto;
     }
 

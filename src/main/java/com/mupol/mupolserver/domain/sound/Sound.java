@@ -15,7 +15,7 @@ import java.io.Serializable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "sound")
-public class Sound extends BaseTime implements Serializable {
+public class Sound extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

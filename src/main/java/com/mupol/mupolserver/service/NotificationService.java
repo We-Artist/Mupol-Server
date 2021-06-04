@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -75,7 +76,7 @@ public class NotificationService {
                     .body(noti.getBody())
                     .senderName(noti.getSender().getUsername())
                     .senderProfileImageUrl(noti.getSenderProfileImageUrl())
-                    .createdAt(noti.getCreatedAt())
+                    .createdAt(noti.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
                     .userId(noti.getUserId())
                     .videoId(noti.getVideoId())
                     .isRead(noti.isRead())

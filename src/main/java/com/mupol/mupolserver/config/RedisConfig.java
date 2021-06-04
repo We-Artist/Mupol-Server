@@ -20,7 +20,6 @@ import java.util.Map;
 @EnableCaching
 @Configuration
 public class RedisConfig {
-
     @Bean(name = "cacheManager")
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
 
@@ -38,6 +37,7 @@ public class RedisConfig {
                 .entryTtl(Duration.ofSeconds(CacheKey.USER_EXPIRE_SEC)));
         cacheConfigurations.put(CacheKey.USER_KEYWORD, RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofSeconds(CacheKey.USER_EXPIRE_SEC)));
+
         cacheConfigurations.put(CacheKey.VIDEO_ID, RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofSeconds(CacheKey.VIDEO_EXPIRE_SEC)));
         cacheConfigurations.put(CacheKey.VIDEOS_USER_ID, RedisCacheConfiguration.defaultCacheConfig()
@@ -46,6 +46,7 @@ public class RedisConfig {
                 .entryTtl(Duration.ofSeconds(CacheKey.VIDEO_EXPIRE_SEC)));
         cacheConfigurations.put(CacheKey.MONTH_VIDEOS, RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofSeconds(CacheKey.VIDEO_EXPIRE_SEC)));
+
         cacheConfigurations.put(CacheKey.HOT_KEYWORD, RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofSeconds(CacheKey.HOT_KEYWORD_EXPIRE_SEC)));
 

@@ -6,12 +6,15 @@ import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
+import com.mupol.mupolserver.dto.user.UserResDto;
 import com.mupol.mupolserver.service.social.SocialServiceFactory;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,8 +37,13 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(CUserNotFoundException::new);
     }
 
-    public List<User> getAllUser() {
-        return userRepository.findAll();
+    public List<UserResDto> getAllUserDtos() {
+        List<User> users = userRepository.findAll();
+        List<UserResDto> dtoList = new ArrayList<>();
+        for(User user: users) {
+            dtoList.add(getDto(user));
+        }
+        return dtoList;
     }
 
     @Cacheable(value = CacheKey.USER_JWT, key = "#jwt", unless = "#result == null")
@@ -66,6 +74,20 @@ public class UserService {
     public void registerAccessToken(User user, String accessToken) {
         user.setFcmToken(accessToken);
         userRepository.save(user);
+    }
+
+    public UserResDto getDto(User user) {
+        return UserResDto.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .profileImageUrl(user.getProfileImageUrl())
+                .bgImageUrl(user.getBgImageUrl())
+                .bio(user.getBio())
+                .createdAt(user.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .email(user.getEmail())
+                .favoriteInstrumentList(user.getFavoriteInstrument())
+                .major(user.isMajor())
+                .build();
     }
 
     @Cacheable(value = CacheKey.USER_KEYWORD, key = "#keyword", unless = "#result == null")
