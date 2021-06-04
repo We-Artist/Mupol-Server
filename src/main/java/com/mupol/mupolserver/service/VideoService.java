@@ -113,6 +113,11 @@ public class VideoService {
         String fileUrl = s3Service.uploadMediaFolder(folder, userId, videoId, MediaType.Video);
         video.setFileUrl(fileUrl);
 
+        //get video duration(length)
+        String length = ffmpegService.getVideoLength(videoFile, userId, videoId);
+        video.setLength(length);
+        System.out.println(length);
+
         //upload thumbnail
         File thumbnail = new File(fileBasePath + userId + "/" + videoId + "/thumbnail.png");
         FileInputStream input = new FileInputStream(thumbnail);
@@ -267,6 +272,8 @@ public class VideoService {
         dto.setUserId(video.getUser().getId());
         dto.setLike_num(video.getLikeNum());
         dto.setHashtag_list(video.getHashtags());
+        dto.setThumbnailUrl(video.getThumbnailUrl());
+        dto.setLength(video.getLength());
 
         return dto;
     }
