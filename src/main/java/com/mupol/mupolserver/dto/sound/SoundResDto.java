@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +19,7 @@ public class SoundResDto {
     private String title;
 
     @ApiModelProperty(notes ="created at")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     @ApiModelProperty(notes ="file url")
     private String fileUrl;

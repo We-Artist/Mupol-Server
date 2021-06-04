@@ -35,11 +35,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/v1/auth/**",
                         "/v1/instr/**",
                         "/v1/user/validate-name/**",
-                        "/v1/search/**"
+                        "/v1/search/**",
+                        "/v1/user/"
                 ).permitAll()
                 .antMatchers("/v1/video/view/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/exception/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/v1/user/").hasRole("ADMIN")
+//                .antMatchers(HttpMethod.GET, "/v1/user/").hasRole("ADMIN")
                 .anyRequest().hasRole("USER")
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

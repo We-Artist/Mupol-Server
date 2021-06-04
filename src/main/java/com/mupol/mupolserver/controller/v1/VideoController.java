@@ -14,6 +14,7 @@ import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,12 +39,25 @@ public class VideoController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "비디오 업로드")
-    @PostMapping(value = "/new", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/new", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<SingleResult<VideoResDto>> addVideo(
             @RequestHeader("Authorization") String jwt,
-            @ApiParam(value = "metaData") @RequestPart VideoReqDto metaData,
-            @ApiParam(value = "영상파일") @RequestPart(value = "videoFile", required = false) MultipartFile videoFile
+            @ApiParam(value = "title") @RequestParam String title,
+            @ApiParam(value = "origin title") @RequestParam String originTitle,
+            @ApiParam(value = "detail") @RequestParam String detail,
+            @ApiParam(value = "is private (true/false)") @RequestParam boolean isPrivate,
+            @ApiParam(value = "instrument list") @RequestParam(required = false) List<String> instrumentList,
+            @ApiParam(value = "hashtag list") @RequestParam(required = false) List<String> hashtagList,
+            @ApiParam(value = "영상파일") @RequestParam(value = "videoFile") MultipartFile videoFile
     ) throws IOException, InterruptedException {
+        VideoReqDto metaData = VideoReqDto.builder()
+                .title(title)
+                .originTitle(originTitle)
+                .detail(detail)
+                .isPrivate(isPrivate)
+                .instrumentList(instrumentList)
+                .hashtagList(hashtagList)
+                .build();
         User user = userService.getUserByJwt(jwt);
         if(videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");
@@ -57,7 +71,7 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 전체 조회")
+    @ApiOperation(value = "내 비디오 전체 조회")
     @GetMapping("/all")
     public ResponseEntity<ListResult<VideoResDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt

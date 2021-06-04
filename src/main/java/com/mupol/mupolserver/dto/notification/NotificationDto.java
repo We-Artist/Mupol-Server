@@ -15,7 +15,7 @@ public class NotificationDto {
     private String body;
     private String senderName;
     private String senderProfileImageUrl;
-    private LocalDateTime createdAt;
+    private Long createdAt;
     private boolean isRead;
 
     @ApiParam("연결되는 영상 id")
