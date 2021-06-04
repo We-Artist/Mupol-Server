@@ -48,6 +48,7 @@ public class NotificationService {
                 .receiver(receiver)
                 .videoId(videoId)
                 .userId(userId)
+                .targetType(type)
                 .isRead(false)
                 .build();
 
@@ -80,6 +81,7 @@ public class NotificationService {
                     .userId(noti.getUserId())
                     .videoId(noti.getVideoId())
                     .isRead(noti.isRead())
+                    .targetType(noti.getTargetType())
                     .build());
         }
         return dtoList;
