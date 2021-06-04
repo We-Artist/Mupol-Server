@@ -4,7 +4,7 @@ import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
-import com.mupol.mupolserver.domain.followers.FollowersRepository;
+import com.mupol.mupolserver.domain.follower.FollowerRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 public class VideoService {
 
     private final VideoRepository videoRepository;
-    private final FollowersRepository followersRepository;
+    private final FollowerRepository followerRepository;
     private final ViewHistoryRepository viewHistoryRepository;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
@@ -217,7 +217,7 @@ public class VideoService {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         List<Long> followersList = new ArrayList<>();
-        followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
+        followersList = followerRepository.findToIdByFromId(user.getId()).orElseThrow();
 
         List<Video> videoList = new ArrayList<>();
         videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();

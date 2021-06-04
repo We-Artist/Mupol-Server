@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @Builder
 @ToString
-public class FollowersResDto {
+public class FollowingResDto {
     private Long userId;
     private String username;
     private String profileImageUrl;

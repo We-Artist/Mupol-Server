@@ -3,7 +3,7 @@ package com.mupol.mupolserver.domain.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mupol.mupolserver.domain.common.BaseTime;
-import com.mupol.mupolserver.domain.followers.Followers;
+import com.mupol.mupolserver.domain.follower.Follower;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.domain.sound.Sound;
@@ -84,11 +84,11 @@ public class User extends BaseTime implements UserDetails, Serializable {
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "to")
-    private Set<Followers> followings;
+    private Set<Follower> followings;
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "from")
-    private Set<Followers> followers;
+    private Set<Follower> followers;
 
     @JsonIgnore
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
