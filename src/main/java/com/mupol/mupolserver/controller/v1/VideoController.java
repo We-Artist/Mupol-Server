@@ -206,4 +206,14 @@ public class VideoController {
         VideoResDto dto = videoService.getVideoDto(videoService.getRandomVideo());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
+
+    @ApiOperation(value = "특정인의 비디오 전체 조회(20개씩)")
+    @GetMapping("/view/all/{userId}/{page}")
+    public ResponseEntity<ListResult<VideoResDto>> getUserVideoList(
+            @PathVariable String userId,
+            @PathVariable int page
+    ) {
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getUserVideoList(Long.valueOf(userId), page));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+    }
 }

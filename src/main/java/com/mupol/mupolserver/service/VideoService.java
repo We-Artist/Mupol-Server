@@ -202,6 +202,17 @@ public class VideoService {
         videoRepository.deleteById(videoId);
     }
 
+    public List<Video> getUserVideoList(Long userId, int pageNum){
+        System.out.println(userId);
+        PageRequest pageRequest = PageRequest.of(pageNum, 20);
+
+        List<Video> videoList = new ArrayList<>();
+        videoList = videoRepository.findAllByUserId(userId, pageRequest).orElseThrow();
+        System.out.println(videoList.toArray().length);
+
+        return videoList;
+    }
+
     public List<Video> getFollowingVideo(User user, int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
