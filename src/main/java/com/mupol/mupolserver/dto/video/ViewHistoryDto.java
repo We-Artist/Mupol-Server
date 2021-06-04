@@ -16,11 +16,11 @@ public class ViewHistoryDto {
     private Long id;
 
     @ApiModelProperty(notes ="created at")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     @ApiModelProperty(notes = "User Id")
     private Long userId;
 
     @ApiModelProperty(notes = "Video Id")
-    private Long VideoId;
+    private Long videoId;
 }

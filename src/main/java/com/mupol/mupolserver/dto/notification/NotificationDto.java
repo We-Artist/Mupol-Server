@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.dto.notification;
 
+import com.mupol.mupolserver.domain.notification.TargetType;
 import io.swagger.annotations.ApiParam;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +16,9 @@ public class NotificationDto {
     private String body;
     private String senderName;
     private String senderProfileImageUrl;
-    private LocalDateTime createdAt;
+    private Long createdAt;
     private boolean isRead;
+    private TargetType targetType;
 
     @ApiParam("연결되는 영상 id")
     private Long videoId;

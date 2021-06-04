@@ -1,6 +1,5 @@
 package com.mupol.mupolserver.dto.monthlyGoal;
 
-import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import lombok.Builder;
@@ -13,7 +12,7 @@ import java.util.List;
 @Getter
 @ToString
 public class GoalStatusResDto {
-    private MonthlyGoal currentGoal;
+    private MonthlyGoalDto currentGoal;
     private List<VideoResDto> videoList;
     private List<SoundResDto> soundList;
 

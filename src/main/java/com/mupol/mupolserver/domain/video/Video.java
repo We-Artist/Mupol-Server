@@ -35,13 +35,13 @@ public class Video extends BaseTime implements Serializable {
     private String title;
 
     @Setter
-    private String origin_title;
+    private String originTitle;
 
     @Setter
     private String detail;
 
     @Setter
-    private Boolean is_private;
+    private Boolean isPrivate;
 
     @Setter
     private String fileUrl;

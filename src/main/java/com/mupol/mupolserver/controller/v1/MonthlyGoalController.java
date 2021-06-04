@@ -7,6 +7,7 @@ import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.monthlyGoal.CreateGoalReqDto;
 import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusResDto;
+import com.mupol.mupolserver.dto.monthlyGoal.MonthlyGoalDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.*;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -38,7 +40,7 @@ public class MonthlyGoalController {
     })
     @ApiOperation(value = "월 목표 생성")
     @PostMapping("/new")
-    public ResponseEntity<SingleResult<MonthlyGoal>> createGoal(
+    public ResponseEntity<SingleResult<MonthlyGoalDto>> createGoal(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "목표 횟수") @RequestBody CreateGoalReqDto dto
     ) {
@@ -63,7 +65,13 @@ public class MonthlyGoalController {
 
         monthlyGoalService.save(monthlyGoal);
 
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(monthlyGoal));
+        MonthlyGoalDto newDto = MonthlyGoalDto.builder()
+                .startDate(startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .goalNumber(dto.getGoalNum())
+                .achieveNumber(0)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(newDto));
     }
 
     @ApiImplicitParams({
@@ -82,6 +90,10 @@ public class MonthlyGoalController {
 
         // check goal exist
         MonthlyGoal goal = monthlyGoalService.getMonthlyGoal(user, startDate);
+        if (goal == null)
+            return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(null));
+
+        MonthlyGoalDto goalDto = monthlyGoalService.getDto(goal);
 
         // get video
         List<VideoResDto> videoList = videoService.getVideoAtMonth(user, year, month);
@@ -90,7 +102,7 @@ public class MonthlyGoalController {
         List<SoundResDto> soundList = soundService.getSoundAtMonth(user, year, month);
 
         GoalStatusResDto dto = GoalStatusResDto.builder()
-                .currentGoal(goal)
+                .currentGoal(goalDto)
                 .videoList(videoList)
                 .soundList(soundList)
                 .build();
@@ -103,12 +115,13 @@ public class MonthlyGoalController {
     })
     @ApiOperation(value = "전체 목표 불러오기")
     @GetMapping("/all")
-    public ResponseEntity<ListResult<MonthlyGoal>> getAllGoals(
+    public ResponseEntity<ListResult<MonthlyGoalDto>> getAllGoals(
             @RequestHeader("Authorization") String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
         List<MonthlyGoal> goalList = monthlyGoalService.getAllGoals(user);
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(goalList));
+        List<MonthlyGoalDto> dtoList = monthlyGoalService.getDtoList(goalList);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
 }

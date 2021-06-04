@@ -7,10 +7,7 @@ import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.dto.user.FollowersResDto;
-import com.mupol.mupolserver.dto.user.NicknameValidateReqDto;
-import com.mupol.mupolserver.dto.user.NotiSettingReqDto;
-import com.mupol.mupolserver.dto.user.ProfileUpdateReqDto;
+import com.mupol.mupolserver.dto.user.*;
 import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +39,8 @@ public class UserController {
     })
     @ApiOperation(value = "회원 리스트 조회", notes = "모든 회원을 조회한다")
     @GetMapping("/")
-    public ResponseEntity<ListResult<User>> findAllUser() {
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(userService.getAllUser()));
+    public ResponseEntity<ListResult<UserResDto>> findAllUser() {
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(userService.getAllUserDtos()));
     }
 
     @ApiImplicitParams({
@@ -51,9 +48,9 @@ public class UserController {
     })
     @ApiOperation(value = "회원 단건 조회", notes = "userId로 회원을 조회한다")
     @GetMapping("/{userId}")
-    public ResponseEntity<SingleResult<User>> findUserById(@ApiParam(value = "회원 ID", required = true) @PathVariable long userId) {
+    public ResponseEntity<SingleResult<UserResDto>> findUserById(@ApiParam(value = "회원 ID", required = true) @PathVariable long userId) {
         User user = userService.getUserById(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(userService.getDto(user)));
     }
 
     @ApiImplicitParams({
@@ -61,8 +58,10 @@ public class UserController {
     })
     @ApiOperation(value = "본인 계정 조회")
     @GetMapping("/me")
-    public ResponseEntity<SingleResult<User>> getMyProfile(@RequestHeader("Authorization") String jwt) {
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(userService.getUserByJwt(jwt)));
+    public ResponseEntity<SingleResult<UserResDto>> getMyProfile(@RequestHeader("Authorization") String jwt) {
+        User user = userService.getUserByJwt(jwt);
+        UserResDto dto = userService.getDto(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
     @ApiImplicitParams({
@@ -80,7 +79,7 @@ public class UserController {
     })
     @ApiOperation(value = "프로필 이미지 변경", notes = "profileImage를 null로 처리하면 user의 profileImage는 삭제됩니다.")
     @PostMapping("/me/profile-image")
-    public ResponseEntity<SingleResult<User>> updateProfileImage(
+    public ResponseEntity<SingleResult<UserResDto>> updateProfileImage(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "이미지 파일") @RequestParam(required = false) MultipartFile profileImage
     ) throws IOException {
@@ -93,7 +92,8 @@ public class UserController {
             user.setProfileImageUrl(profileImageUrl);
         }
         userService.save(user);
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
+        UserResDto dto = userService.getDto(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
     @ApiImplicitParams({
@@ -101,7 +101,7 @@ public class UserController {
     })
     @ApiOperation(value = "프로필 데이터 수정")
     @PostMapping("/me")
-    public ResponseEntity<SingleResult<User>> updateProfile(
+    public ResponseEntity<SingleResult<UserResDto>> updateProfile(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "프로필 정보") @RequestBody ProfileUpdateReqDto dto
     ) {
@@ -126,8 +126,8 @@ public class UserController {
         user.setFavoriteInstrument(instrumentList);
 
         userService.save(user);
-
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(user));
+        UserResDto userResDto = userService.getDto(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(userResDto));
     }
 
     @ApiImplicitParams({
