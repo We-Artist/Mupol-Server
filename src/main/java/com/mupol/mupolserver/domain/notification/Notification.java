@@ -44,4 +44,7 @@ public class Notification extends BaseTime {
     private Long videoId;
 
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    private TargetType targetType;
 }
