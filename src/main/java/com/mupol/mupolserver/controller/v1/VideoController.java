@@ -71,7 +71,7 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 전체 조회")
+    @ApiOperation(value = "내 비디오 전체 조회")
     @GetMapping("/all")
     public ResponseEntity<ListResult<VideoResDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt
