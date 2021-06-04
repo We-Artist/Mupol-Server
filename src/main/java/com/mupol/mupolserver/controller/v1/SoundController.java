@@ -19,6 +19,7 @@ import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,12 +43,12 @@ public class SoundController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "녹음본 업로드", notes = "")
-    @PostMapping(value = "/new", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/new",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<SingleResult<SoundResDto>> addSound(
             @RequestHeader("Authorization") String jwt,
-            @ApiParam(value = "bpm") @RequestPart Integer bpm,
-            @ApiParam(value = "title") @RequestPart String title,
-            @ApiParam(value = "음성파일") @RequestPart(value = "soundFile") MultipartFile soundFile
+            @ApiParam(value = "bpm") @RequestParam Integer bpm,
+            @ApiParam(value = "title") @RequestParam String title,
+            @ApiParam(value = "음성파일") @RequestParam(value = "soundFile") MultipartFile soundFile
     ) throws IOException, InterruptedException {
         User user = userService.getUserByJwt(jwt);
         if (soundFile == null || soundFile.isEmpty())
