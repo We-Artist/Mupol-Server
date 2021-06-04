@@ -2,6 +2,9 @@ package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.common.MediaType;
 import lombok.extern.slf4j.Slf4j;
+import net.bramp.ffmpeg.FFprobe;
+import net.bramp.ffmpeg.probe.FFmpegFormat;
+import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +19,9 @@ public class FFmpegService {
 
     @Value("${ffmpeg.path.base}")
     private String ffmpegPath;
+
+    @Value("${ffmpeg.path.ffprobe}")
+    private String ffprobePath;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -112,5 +118,25 @@ public class FFmpegService {
             new BufferedReader(new InputStreamReader(inputStream)).lines()
                     .forEach(consumer);
         }
+    }
+
+    public String getVideoLength(
+            MultipartFile mediaFile,
+            Long userId,
+            Long mediaId
+    ) throws IOException {
+
+        String length = "0";
+        String filePath = fileBasePath + userId + "\\" + mediaId + "\\";
+
+        FFprobe ffprobe = new FFprobe(ffprobePath);
+        System.out.println(filePath + mediaFile.getOriginalFilename());
+        FFmpegProbeResult probeResult = ffprobe.probe(filePath + mediaFile.getOriginalFilename());
+        FFmpegFormat format = probeResult.getFormat();
+        double second = format.duration;
+
+        length = second+"";
+
+        return length;
     }
 }

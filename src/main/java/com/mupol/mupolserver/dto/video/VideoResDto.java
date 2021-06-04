@@ -53,4 +53,16 @@ public class VideoResDto {
 
     @ApiModelProperty(notes = "User Id")
     private Long userId;
+
+    @ApiModelProperty(notes = "좋아요 flag")
+    private Boolean likeFlag;
+
+    @ApiModelProperty(notes = "저장 flag")
+    private Boolean saveFlag;
+
+    @ApiModelProperty(notes = "Thumbnail")
+    private String thumbnailUrl;
+
+    @ApiModelProperty(notes = "길이")
+    private String length;
 }

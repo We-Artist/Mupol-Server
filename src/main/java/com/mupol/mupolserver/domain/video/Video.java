@@ -65,4 +65,7 @@ public class Video extends BaseTime implements Serializable {
     @Setter
     private String thumbnailUrl;
 
+    @Setter
+    private String Length;
+
 }
