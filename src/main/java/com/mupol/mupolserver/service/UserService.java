@@ -32,7 +32,7 @@ public class UserService {
         return 0 < username.length() && username.length() < 11 && isValidCharacter;
     }
 
-    @Cacheable(value = CacheKey.USER_ID, key = "#id.toString()", unless = "#result == null")
+//    @Cacheable(value = CacheKey.USER_ID, key = "#id.toString()", unless = "#result == null")
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(CUserNotFoundException::new);
     }
@@ -46,7 +46,7 @@ public class UserService {
         return dtoList;
     }
 
-    @Cacheable(value = CacheKey.USER_JWT, key = "#jwt", unless = "#result == null")
+//    @Cacheable(value = CacheKey.USER_JWT, key = "#jwt", unless = "#result == null")
     public User getUserByJwt(String jwt) {
         String userId = jwtTokenProvider.getUserPk(jwt);
         return userRepository.findById(Long.valueOf(userId)).orElseThrow(CUserNotFoundException::new);
@@ -90,7 +90,7 @@ public class UserService {
                 .build();
     }
 
-    @Cacheable(value = CacheKey.USER_KEYWORD, key = "#keyword", unless = "#result == null")
+//    @Cacheable(value = CacheKey.USER_KEYWORD, key = "#keyword", unless = "#result == null")
     public List<User> getUsersByUsername(String keyword) {
         Optional<List<User>> users = userRepository.findAllByUsernameContains(keyword);
         if (users.isEmpty()) return Collections.emptyList();

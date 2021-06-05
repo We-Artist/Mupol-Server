@@ -8,7 +8,7 @@ import lombok.ToString;
 @Builder
 @ToString
 public class FollowerResDto {
-    private Long userId;
+    private Long id;
     private String username;
     private String profileImageUrl;
     private boolean isFollowing;

@@ -41,7 +41,7 @@ public class FollowerService {
 
         for (Follower f : followerList) {
             dtoList.add(FollowerResDto.builder()
-                    .userId(f.getFrom().getId())
+                    .id(f.getFrom().getId())
                     .username(f.getFrom().getUsername())
                     .profileImageUrl(f.getFrom().getProfileImageUrl())
                     .isFollowing(f.isFollowEachOther())
@@ -57,7 +57,7 @@ public class FollowerService {
 
         for (Follower f : followingList) {
             dtoList.add(FollowingResDto.builder()
-                    .userId(f.getTo().getId())
+                    .id(f.getTo().getId())
                     .username(f.getTo().getUsername())
                     .profileImageUrl(f.getTo().getProfileImageUrl())
                     .build());
