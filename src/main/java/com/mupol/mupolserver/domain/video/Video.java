@@ -50,9 +50,6 @@ public class Video extends BaseTime implements Serializable {
     private int viewNum;
 
     @Setter
-    private int likeNum;
-
-    @Setter
     @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
     private List<Instrument> instruments = new ArrayList<>();

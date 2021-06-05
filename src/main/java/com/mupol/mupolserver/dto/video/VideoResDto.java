@@ -49,7 +49,7 @@ public class VideoResDto {
     private int viewNum;
 
     @ApiModelProperty(notes ="좋아요 수")
-    private int likeNum;
+    private Long likeNum;
 
     @ApiModelProperty(notes = "User Id")
     private Long userId;

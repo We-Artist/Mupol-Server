@@ -119,7 +119,7 @@ public class VideoController {
     ) throws IOException {
         User user = userService.getUserByJwt(jwt);
         Video video = videoService.getVideo(Long.valueOf(videoId));
-        videoService.likeVideo(user.getId(), video.getId());
+        videoService.likeVideo(user, video);
         notificationService.send(
                 user,
                 video.getUser(),

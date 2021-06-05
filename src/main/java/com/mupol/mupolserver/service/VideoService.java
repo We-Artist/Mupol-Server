@@ -7,6 +7,7 @@ import com.mupol.mupolserver.domain.common.MediaType;
 import com.mupol.mupolserver.domain.follower.FollowerRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import com.mupol.mupolserver.domain.like.Like;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
@@ -50,6 +51,7 @@ public class VideoService {
     private final ViewHistoryRepository viewHistoryRepository;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
+    private final LikeService likeService;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -146,20 +148,17 @@ public class VideoService {
         return videoRepository.findVideosByUserId(userId).orElseThrow();
     }
 
-    public Video likeVideo(Long userId, Long videoId) {
-        Video video = getVideo(videoId);
-        video.setLikeNum(video.getLikeNum() + 1);
-        videoRepository.save(video);
-        
-        return video;
+    public void likeVideo(User user, Video video) {
+        likeService.save(Like.builder()
+                .user(user)
+                .video(video)
+                .build());
     }
 
-    public Video viewVideo(Long videoId) {
+    public void viewVideo(Long videoId) {
         Video video = getVideo(videoId);
         video.setViewNum(video.getViewNum() + 1);
         videoRepository.save(video);
-
-        return video;
     }
 
     public ViewHistoryDto createViewHistory(User user, Video video) {
@@ -258,7 +257,7 @@ public class VideoService {
         dto.setInstrumentList(video.getInstruments());
         dto.setViewNum(video.getViewNum());
         dto.setUserId(video.getUser().getId());
-        dto.setLikeNum(video.getLikeNum());
+        dto.setLikeNum(likeService.getVideoLikeNum(video));
         dto.setHashtagList(video.getHashtags());
         dto.setThumbnailUrl(video.getThumbnailUrl());
 
@@ -315,5 +314,4 @@ public class VideoService {
     public Integer getVideoCountAtMonth(User user, int year, int month) {
         return getVideoAtMonth(user, year, month).size();
     }
-
 }
