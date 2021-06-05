@@ -66,15 +66,6 @@ public class FollowerService {
         return dtoList;
     }
 
-    public boolean isFollowing(User from, User to) {
-        List<Follower> followingList = getFollowingList(from);
-        for(Follower following: followingList)
-            if(following.getFrom().getId().equals(from.getId())
-                    && following.getTo().getId().equals(to.getId()))
-                return true;
-        return false;
-    }
-
     // TODO: 캐싱
     public void save(Follower follower) {
         followerRepository.save(follower);

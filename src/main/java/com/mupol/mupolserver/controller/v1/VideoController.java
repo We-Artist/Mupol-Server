@@ -33,6 +33,7 @@ public class VideoController {
     private final VideoService videoService;
     private final MonthlyGoalService monthlyGoalService;
     private final NotificationService notificationService;
+    private final FollowerService followerService;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -122,10 +123,9 @@ public class VideoController {
         notificationService.send(
                 user,
                 video.getUser(),
-                user.getUsername() + "님이 회원님의 영상을 좋아합니다.",
-                null,
-                TargetType.like,
-                video.getId()
+                video,
+                followerService.isAlreadyFollowed(video.getUser(), user),
+                TargetType.like
         );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
@@ -140,7 +140,7 @@ public class VideoController {
     }
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = false, dataType = "String", paramType = "header")
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "비디오 조회 기록 추가")
     @PostMapping("/viewHistory/add/{videoId}")

@@ -147,7 +147,7 @@ public class UserController {
         if (followerService.isAlreadyFollowed(from, to))
             throw new IllegalArgumentException("already followed");
 
-        boolean isFollowEachOther = followerService.isFollowing(to, from);
+        boolean isFollowEachOther = followerService.isAlreadyFollowed(to, from);
         Follower follower = Follower.builder()
                 .from(from)
                 .to(to)
@@ -164,10 +164,9 @@ public class UserController {
         notificationService.send(
                 from,
                 to,
-                from.getUsername() + "님이 회원님을 팔로우했습니다.",
-                null,
-                TargetType.follow,
-                from.getId()
+                from,
+                isFollowEachOther,
+                TargetType.follow
         );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("success follow"));
     }
@@ -186,7 +185,7 @@ public class UserController {
         User from = userService.getUserByJwt(jwt);
         User to = userService.getUserById(followingId);
 
-        if(followerService.isFollowing(to, from)) {
+        if(followerService.isAlreadyFollowed(to, from)) {
             Follower follower = followerService.getFollowerByFromAndTo(to, from);
             follower.setFollowEachOther(false);
             followerService.save(follower);

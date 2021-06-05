@@ -2,7 +2,6 @@ package com.mupol.mupolserver.service.firebase;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.mupol.mupolserver.domain.fcm.FcmMessage;
 import com.mupol.mupolserver.domain.notification.TargetType;
@@ -36,8 +35,8 @@ public class FcmMessageService {
         return googleCredentials.getAccessToken().getTokenValue();
     }
 
-    public void sendMessageTo(String targetToken, String title, String body, TargetType targetType, Long targetId) throws IOException {
-        String message = makeMessage(targetToken, title, body, targetType, targetId);
+    public void sendMessageTo(String targetToken, String title, String body, TargetType targetType, Long targetId, boolean isFollowing) throws IOException {
+        String message = makeMessage(targetToken, title, body, targetType, targetId, isFollowing);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -48,14 +47,17 @@ public class FcmMessageService {
         System.out.println(response.getBody());
     }
 
-    private String makeMessage(String targetToken, String title, String body, TargetType targetType, Long targetId) throws JsonProcessingException {
+    private String makeMessage(String targetToken, String title, String body, TargetType targetType, Long targetId, boolean isFollowing) throws JsonProcessingException {
         FcmMessage fcmMessage = FcmMessage.builder()
                 .message(FcmMessage.Message.builder()
                         .token(targetToken)
                         .notification(FcmMessage.Notification.builder()
                                 .title(title).body(body).image(null).build())
                         .data(FcmMessage.Data.builder()
-                                .target(targetType.getType()).targetId(targetId).build())
+                                .target(targetType.getType())
+                                .targetId(targetId)
+                                .isFollowing(isFollowing)
+                                .build())
                         .build())
                 .validate_only(false)
                 .build();

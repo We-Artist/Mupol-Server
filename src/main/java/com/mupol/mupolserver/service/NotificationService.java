@@ -4,6 +4,7 @@ import com.mupol.mupolserver.domain.notification.Notification;
 import com.mupol.mupolserver.domain.notification.NotificationRepository;
 import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.notification.NotificationDto;
 import com.mupol.mupolserver.dto.notification.UnreadNotificationNumberDto;
 import com.mupol.mupolserver.service.firebase.FcmMessageService;
@@ -28,18 +29,38 @@ public class NotificationService {
     public void send(
             User sender,
             User receiver,
-            String title,
-            String body,
-            TargetType type,
-            Long targetId
+            Object target,
+            boolean isFollowEachOther,
+            TargetType type
     ) throws IOException {
         Long videoId = null;
         Long userId = null;
+        Long targetId = null;
 
-        if(type == TargetType.follow)
-            userId = targetId;
-        else if(type == TargetType.comment || type == TargetType.like)
-            videoId = targetId;
+        if(target.getClass() == Video.class) {
+            videoId = ((Video) target).getId();
+            targetId = videoId;
+        }
+        else if(target.getClass() == User.class) {
+            userId = ((User) target).getId();
+            targetId = userId;
+        }
+
+        String title;
+        String body = null;
+        switch (type) {
+            case comment:
+                title = sender.getUsername() + "님이 게시물에 댓글을 작성하였습니다.";
+                break;
+            case like:
+                title = sender.getUsername() + "님이 회원님의 게시물을 좋아합니다.";
+                break;
+            case follow:
+                title = sender.getUsername() + "님이 회원님을 팔로우하였습니다.";
+                break;
+            default:
+                throw new IllegalArgumentException("invalid notification type");
+        }
 
         Notification notification = Notification.builder()
                 .title(title)
@@ -52,7 +73,8 @@ public class NotificationService {
                 .isRead(false)
                 .build();
 
-        fcmMessageService.sendMessageTo(receiver.getFcmToken(), title, body, type, targetId);
+        // TODO: 데이터에 맞팔로우 여부 넣어두기
+        fcmMessageService.sendMessageTo(receiver.getFcmToken(), title, body, type, targetId, isFollowEachOther);
         notificationRepository.save(notification);
     }
 

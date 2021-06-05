@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.comment.CommentRepository;
+import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.comment.CommentReqDto;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final NotificationService notificationService;
+    private final FollowerService followerService;
 
     public CommentResDto uploadComment(User user, Video video, CommentReqDto metaData) throws IOException, InterruptedException {
 
@@ -29,6 +32,14 @@ public class CommentService {
                 .content(metaData.getContent())
                 .build();
         commentRepository.save(comment);
+
+        notificationService.send(
+                user,
+                video.getUser(),
+                video,
+                followerService.isAlreadyFollowed(video.getUser(), user),
+                TargetType.comment
+        );
 
         return getSndDto(comment);
     }

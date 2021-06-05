@@ -46,14 +46,6 @@ public class CommentController {
         Video video = videoService.getVideo(Long.parseLong(videoId));
 
         CommentResDto dto = commentService.uploadComment(user, video, metaData);
-        notificationService.send(
-                user,
-                video.getUser(),
-                user.getUsername() + "님이 댓글을 달았습니다.",
-                metaData.getContent(),
-                TargetType.comment,
-                video.getId()
-        );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
