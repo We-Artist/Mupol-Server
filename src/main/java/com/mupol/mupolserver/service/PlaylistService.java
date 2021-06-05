@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -69,11 +70,9 @@ public class PlaylistService {
         }
 
         return videoList;
-
     }
 
     public PlaylistVideoDto addPlaylistVideo(Long playlistId, Long videoId){
-
         Playlist playlist = playlistRepository.findById(playlistId).orElseThrow();
         Video video = videoRepository.findById(videoId).orElseThrow();
 
@@ -84,20 +83,16 @@ public class PlaylistService {
         playlistVideoRepository.save(playlistVideo);
 
         return getSndDto(playlistVideo);
-
     }
 
     @Transactional
     public void deletePlaylistVideo(Long playlistId, Long videoId){
-
         Playlist playlist = playlistRepository.findById(playlistId).orElseThrow();
         Video video = videoRepository.findById(videoId).orElseThrow();
-
         playlistVideoRepository.deleteByPlaylistIdAndVideoId(playlistId, videoId);
     }
 
     public PlaylistResDto getSndDto(Playlist snd) {
-
         PlaylistResDto dto = new PlaylistResDto();
 
         dto.setId(snd.getId());
@@ -122,6 +117,24 @@ public class PlaylistService {
         dto.setCreatedAt(snd.getCreatedAt());
 
         return dto;
+    }
+
+    public Integer getSavedVideoCount(Video video){
+        Optional<List<PlaylistVideo>> playlistVideoList = playlistVideoRepository.findAllByVideo(video);
+        if(playlistVideoList.isEmpty())
+            return 0;
+        return playlistVideoList.get().size();
+    }
+
+    public boolean amISavedVideo(User user, Video video) {
+        Optional<List<Playlist>> playlistList = playlistRepository.findPlaylistByUserId(user.getId());
+        if(playlistList.isEmpty())
+            return false;
+        for(Playlist playlist: playlistList.get()) {
+            if(playlistVideoRepository.existsPlaylistVideoByPlaylistAndVideo(playlist, video))
+                return true;
+        }
+        return false;
     }
 
 }
