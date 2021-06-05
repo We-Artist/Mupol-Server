@@ -72,6 +72,7 @@ public class SearchService {
             SearchVideoResultDto dto = SearchVideoResultDto.builder()
                     .title(video.getTitle())
                     .videoId(video.getId())
+                    .userId(video.getUser().getId())
                     .thumbnailUrl(video.getThumbnailUrl())
                     .likeNum(likeService.getVideoLikeNum(video))
                     .saveNum(playlistService.getSavedVideoCount(video))
