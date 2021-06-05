@@ -8,7 +8,6 @@ import com.mupol.mupolserver.domain.follower.FollowerRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistory;
@@ -51,7 +50,6 @@ public class VideoService {
     private final ViewHistoryRepository viewHistoryRepository;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
-    private final UserRepository userRepository;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -118,6 +116,11 @@ public class VideoService {
         String fileUrl = s3Service.uploadMediaFolder(folder, userId, videoId, MediaType.Video);
         video.setFileUrl(fileUrl);
 
+        //get video duration(length)
+        String length = ffmpegService.getVideoLength(videoFile, userId, videoId);
+        video.setLength(length);
+        System.out.println(length);
+
         //upload thumbnail
         File thumbnail = new File(fileBasePath + userId + "/" + videoId + "/thumbnail.png");
         FileInputStream input = new FileInputStream(thumbnail);
@@ -147,6 +150,7 @@ public class VideoService {
         Video video = getVideo(videoId);
         video.setLikeNum(video.getLikeNum() + 1);
         videoRepository.save(video);
+        
         return video;
     }
 
@@ -256,6 +260,7 @@ public class VideoService {
         dto.setUserId(video.getUser().getId());
         dto.setLikeNum(video.getLikeNum());
         dto.setHashtagList(video.getHashtags());
+        dto.setThumbnailUrl(video.getThumbnailUrl());
 
         return dto;
     }
