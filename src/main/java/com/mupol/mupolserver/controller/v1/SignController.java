@@ -1,6 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
-import com.mupol.mupolserver.advice.exception.*;
+import com.mupol.mupolserver.advice.exception.ImageUploadFailException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.SnsType;
@@ -12,9 +12,7 @@ import com.mupol.mupolserver.service.S3Service;
 import com.mupol.mupolserver.service.SignService;
 import com.mupol.mupolserver.service.UserService;
 import com.mupol.mupolserver.service.firebase.FcmMessageService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -72,4 +70,16 @@ public class SignController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseService.getSingleResult(jwt));
     }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "탈퇴")
+    @GetMapping(value = "/quit")
+    public ResponseEntity<SingleResult<String>> quitByProvider( @RequestHeader("Authorization") String jwt ) throws IOException {
+        User user = userService.getUserByJwt(jwt);
+        userService.quitUser(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("quit user"));
+    }
+
 }

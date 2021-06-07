@@ -20,4 +20,5 @@ public class UserResDto {
     private boolean major;
     private String profileImageUrl;
     private Long createdAt;
+    private Long representativeVideoId;
 }
