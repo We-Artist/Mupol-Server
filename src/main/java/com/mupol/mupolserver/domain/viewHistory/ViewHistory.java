@@ -1,7 +1,6 @@
 package com.mupol.mupolserver.domain.viewHistory;
 
 import com.mupol.mupolserver.domain.common.BaseTime;
-import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import lombok.*;
 import org.hibernate.annotations.Proxy;
@@ -22,10 +21,6 @@ public class ViewHistory extends BaseTime {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="user")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name="video")
+    @JoinColumn(name="video_id")
     private Video video;
 }

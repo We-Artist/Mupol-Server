@@ -76,6 +76,26 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void quitUser(User user) {
+        userRepository.deleteById(user.getId());
+    }
+
+    public User setRepresentativeVideoId(Long userId, Long videoId){
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setRepresentativeVideoId(videoId);
+        userRepository.save(user);
+
+        return user;
+    }
+
+    public User deleteRepresentativeVideoId(Long userId){
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setRepresentativeVideoId(null);
+        userRepository.save(user);
+
+        return user;
+    }
+
     public UserResDto getDto(User user) {
         return UserResDto.builder()
                 .userId(user.getId())
@@ -87,6 +107,7 @@ public class UserService {
                 .email(user.getEmail())
                 .favoriteInstrumentList(user.getFavoriteInstrument())
                 .major(user.isMajor())
+                .representativeVideoId(user.getRepresentativeVideoId())
                 .build();
     }
 

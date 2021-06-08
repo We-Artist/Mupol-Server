@@ -7,7 +7,6 @@ import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
-import com.mupol.mupolserver.dto.video.ViewHistoryDto;
 import com.mupol.mupolserver.service.*;
 import com.mupol.mupolserver.util.MonthExtractor;
 import io.swagger.annotations.*;
@@ -132,25 +131,10 @@ public class VideoController {
 
     @ApiOperation(value = "비디오 조회수 추가")
     @PatchMapping("/view/{videoId}")
-    public ResponseEntity<SingleResult<String>> viewNumVideo(
+    public ResponseEntity<SingleResult<VideoResDto>> viewNumVideo(
             @PathVariable String videoId
     ) {
-        videoService.viewVideo(Long.valueOf(videoId));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("view video"));
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = false, dataType = "String", paramType = "header")
-    })
-    @ApiOperation(value = "비디오 조회 기록 추가")
-    @PostMapping("/viewHistory/add/{videoId}")
-    public ResponseEntity<SingleResult<ViewHistoryDto>> createViewHistory(
-            @RequestHeader("Authorization") String jwt,
-            @PathVariable String videoId
-    ) {
-        User user = userService.getUserByJwt(jwt);
-        Video video = videoService.getVideo(Long.valueOf(videoId));
-        ViewHistoryDto dto = videoService.createViewHistory(user, video);
+        VideoResDto dto = videoService.getVideoDto(videoService.addViewNum(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 

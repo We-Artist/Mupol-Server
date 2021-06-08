@@ -232,4 +232,28 @@ public class UserController {
         if (!userService.validateUsername(dto.getUsername())) throw new IllegalArgumentException("올바르지 않은 이름입니다.");
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(true));
     }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "대표 영상 설정 및 수정")
+    @PostMapping("/represent/{videoId}")
+    public ResponseEntity<SingleResult<UserResDto>> setRepresentativeVideoId(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String videoId) {
+        User user = userService.getUserByJwt(jwt);
+        UserResDto dto = userService.getDto(userService.setRepresentativeVideoId(user.getId(), Long.valueOf(videoId)));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "대표 영상 삭제")
+    @DeleteMapping("/represent")
+    public ResponseEntity<SingleResult<UserResDto>> deleteRepresentativeVideoId(@RequestHeader("Authorization") String jwt) {
+        User user = userService.getUserByJwt(jwt);
+        UserResDto dto = userService.getDto(userService.deleteRepresentativeVideoId(user.getId()));
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
+    }
 }
