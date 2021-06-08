@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 public class UserService {
     private final UserRepository userRepository;
     private final SocialServiceFactory socialServiceFactory;
+    private final VideoService videoService;
+    private final FollowerService followerService;
     private final JwtTokenProvider jwtTokenProvider;
 
     public boolean validateUsername(String username) {
@@ -90,6 +92,9 @@ public class UserService {
                 .email(user.getEmail())
                 .favoriteInstrumentList(user.getFavoriteInstrument())
                 .major(user.isMajor())
+                .videoCount(videoService.getVideos(user.getId()).size())
+                .followerCount(followerService.getFollowerList(user).size())
+                .followingCount(followerService.getFollowingList(user).size())
                 .build();
     }
 
