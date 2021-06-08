@@ -9,6 +9,7 @@ import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.user.UserResDto;
 import com.mupol.mupolserver.service.social.SocialServiceFactory;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class UserService {
@@ -42,6 +44,7 @@ public class UserService {
         List<UserResDto> dtoList = new ArrayList<>();
         for(User user: users) {
             dtoList.add(getDto(user));
+            log.info(dtoList.get(dtoList.size()-1).toString());
         }
         return dtoList;
     }
@@ -78,7 +81,7 @@ public class UserService {
 
     public UserResDto getDto(User user) {
         return UserResDto.builder()
-                .userId(user.getId())
+                .id(user.getId())
                 .username(user.getUsername())
                 .profileImageUrl(user.getProfileImageUrl())
                 .bgImageUrl(user.getBgImageUrl())
