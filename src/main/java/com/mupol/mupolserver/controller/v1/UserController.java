@@ -35,7 +35,7 @@ public class UserController {
     private final S3Service s3Service;
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = false, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "회원 리스트 조회", notes = "모든 회원을 조회한다")
     @GetMapping("/all")
