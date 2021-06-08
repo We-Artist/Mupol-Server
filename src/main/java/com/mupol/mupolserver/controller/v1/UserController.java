@@ -38,14 +38,11 @@ public class UserController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "회원 리스트 조회", notes = "모든 회원을 조회한다")
-    @GetMapping("/")
+    @GetMapping("/all")
     public ResponseEntity<ListResult<UserResDto>> findAllUser() {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(userService.getAllUserDtos()));
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value = "회원 단건 조회", notes = "userId로 회원을 조회한다")
     @GetMapping("/{userId}")
     public ResponseEntity<SingleResult<UserResDto>> findUserById(@ApiParam(value = "회원 ID", required = true) @PathVariable long userId) {

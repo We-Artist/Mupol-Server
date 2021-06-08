@@ -36,7 +36,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/v1/instr/**",
                         "/v1/user/validate-name/**",
                         "/v1/search/**",
-                        "/v1/user/"
+                        "/v1/user/all",
+                        "/v1/user/*"
                 ).permitAll()
                 .antMatchers("/v1/video/view/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/exception/**").permitAll()
