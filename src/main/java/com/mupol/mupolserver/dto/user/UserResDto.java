@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @ToString
 public class UserResDto {
-    private Long userId;
+    private Long id;
     private String username;
     private String bgImageUrl;
     private String bio;
