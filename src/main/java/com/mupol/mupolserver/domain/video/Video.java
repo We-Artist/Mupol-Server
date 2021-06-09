@@ -47,7 +47,7 @@ public class Video extends BaseTime implements Serializable {
     private String fileUrl;
 
     @Setter
-    private int viewNum;
+    private int likeNum;
 
     @Setter
     @ElementCollection(fetch = FetchType.LAZY)
@@ -63,6 +63,9 @@ public class Video extends BaseTime implements Serializable {
     private String thumbnailUrl;
 
     @Setter
-    private String Length;
+    private Long Length;
+
+    @Setter
+    private int viewNum;
 
 }

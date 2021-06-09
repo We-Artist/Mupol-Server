@@ -20,6 +20,7 @@ public class UserResDto {
     private boolean major;
     private String profileImageUrl;
     private Long createdAt;
+    private Long representativeVideoId;
     private Integer followingCount;
     private Integer followerCount;
     private Integer videoCount;

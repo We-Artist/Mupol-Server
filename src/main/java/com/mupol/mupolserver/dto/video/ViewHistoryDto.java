@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,9 +15,6 @@ public class ViewHistoryDto {
 
     @ApiModelProperty(notes ="created at")
     private Long createdAt;
-
-    @ApiModelProperty(notes = "User Id")
-    private Long userId;
 
     @ApiModelProperty(notes = "Video Id")
     private Long videoId;

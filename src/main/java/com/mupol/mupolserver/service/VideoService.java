@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,9 +120,8 @@ public class VideoService {
         video.setFileUrl(fileUrl);
 
         //get video duration(length)
-        String length = ffmpegService.getVideoLength(videoFile, userId, videoId);
+        Long length = ffmpegService.getVideoLength(videoFile, userId, videoId);
         video.setLength(length);
-        System.out.println(length);
 
         //upload thumbnail
         File thumbnail = new File(fileBasePath + userId + "/" + videoId + "/thumbnail.png");
@@ -155,24 +155,16 @@ public class VideoService {
                 .build());
     }
 
-    public void viewVideo(Long videoId) {
-        Video video = getVideo(videoId);
-        video.setViewNum(video.getViewNum() + 1);
-        videoRepository.save(video);
-    }
+    public ViewHistoryDto createViewHistory(Long videoId) {
+        Video video = videoRepository.findById(videoId).orElseThrow();
 
-    public ViewHistoryDto createViewHistory(User user, Video video) {
         ViewHistory viewHistory = ViewHistory
                 .builder()
-                .user(user)
                 .video(video)
                 .build();
         viewHistoryRepository.save(viewHistory);
 
-        System.out.println(viewHistory.getCreatedAt());
-
         return getViewHistory(viewHistory);
-
     }
 
     public List<Video> getHotVideo(int pageNum) {
@@ -181,12 +173,20 @@ public class VideoService {
         LocalDate now = LocalDate.now();
         LocalDate monday = now.withDayOfWeek(DateTimeConstants.MONDAY);
         LocalDate sunday = now.withDayOfWeek(DateTimeConstants.SUNDAY);
+        LocalDateTime start = LocalDateTime.of(java.time.LocalDate.of(monday.getYear(), monday.getMonthOfYear(), monday.getDayOfMonth()),
+                LocalTime.of(0, 0, 0));
 
-        List<Long> videoIdList = new ArrayList<>();
-        videoIdList = viewHistoryRepository.getHotVideoList(monday, sunday).orElseThrow();
+        LocalDateTime end = LocalDateTime.of(java.time.LocalDate.of(sunday.getYear(), sunday.getMonthOfYear(), sunday.getDayOfMonth()),
+                LocalTime.of(23, 59, 59));
+
+        List<Long> weekVideoIdList = new ArrayList<>();
+        weekVideoIdList = viewHistoryRepository.findVideoIdByCreatedAtBetween(start, end).orElseThrow();
+
+        List<Long> hotVideoIdList = new ArrayList<>();
+        hotVideoIdList = viewHistoryRepository.getHotVideoList(weekVideoIdList).orElseThrow();
 
         List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findByIdInOrderByCreatedAtDesc(videoIdList, pageRequest).orElseThrow();
+        videoList = videoRepository.findByIdInOrderByViewNumDesc(hotVideoIdList, pageRequest).orElseThrow();
 
         return videoList;
     }
@@ -260,6 +260,7 @@ public class VideoService {
         dto.setLikeNum(likeService.getVideoLikeNum(video));
         dto.setHashtagList(video.getHashtags());
         dto.setThumbnailUrl(video.getThumbnailUrl());
+        dto.setLength(video.getLength());
 
         return dto;
     }
@@ -269,11 +270,19 @@ public class VideoService {
 
         dto.setCreatedAt(viewHistory.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
         dto.setId(viewHistory.getId());
-        dto.setUserId(viewHistory.getUser().getId());
         dto.setVideoId(viewHistory.getVideo().getId());
 
         return dto;
 
+    }
+
+    public Video addViewNum(Long videoId){
+        Video video = getVideo(videoId);
+        createViewHistory(videoId);     //view history table
+        video.setViewNum(video.getViewNum() + 1);       //video table
+        videoRepository.save(video);
+
+        return video;
     }
 
     static void deleteFolder(File file) {

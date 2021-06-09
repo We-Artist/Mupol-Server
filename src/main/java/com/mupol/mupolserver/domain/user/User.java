@@ -16,7 +16,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 @Builder
 @Getter
@@ -65,6 +68,9 @@ public class User extends BaseTime implements UserDetails, Serializable {
     private String profileImageUrl;
     @Setter
     private String bgImageUrl;
+
+    @Setter
+    private Long representativeVideoId;
 
     @Setter
     private boolean isNotificationAllowed;

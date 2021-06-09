@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -64,5 +63,5 @@ public class VideoResDto {
     private String thumbnailUrl;
 
     @ApiModelProperty(notes = "길이")
-    private String length;
+    private Long length;
 }
