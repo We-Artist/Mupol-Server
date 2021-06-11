@@ -64,7 +64,6 @@ public class VideoService {
     )
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
-        System.out.println(metaData);
         log.info(metaData.getTitle());
         log.info(metaData.getOriginTitle());
         log.info(metaData.getDetail());
@@ -87,7 +86,7 @@ public class VideoService {
 
         try {
             if (hashtags != null)
-                for (String inst : hashtags) hashtagList.add(Hashtag.valueOf(inst));
+                for (String hash : hashtags) hashtagList.add(Hashtag.valueOf(hash));
         } catch (Exception e) {
             throw new IllegalArgumentException("not supported hashtag");
         }
@@ -178,11 +177,8 @@ public class VideoService {
         LocalDateTime end = LocalDateTime.of(java.time.LocalDate.of(sunday.getYear(), sunday.getMonthOfYear(), sunday.getDayOfMonth()),
                 LocalTime.of(23, 59, 59));
 
-        List<Long> weekVideoIdList = new ArrayList<>();
-        weekVideoIdList = viewHistoryRepository.findVideoIdByCreatedAtBetween(start, end).orElseThrow();
-
         List<Long> hotVideoIdList = new ArrayList<>();
-        hotVideoIdList = viewHistoryRepository.getHotVideoList(weekVideoIdList).orElseThrow();
+        hotVideoIdList = viewHistoryRepository.getHotVideoList(start, end).orElseThrow();
 
         List<Video> videoList = new ArrayList<>();
         videoList = videoRepository.findByIdInOrderByViewNumDesc(hotVideoIdList, pageRequest).orElseThrow();
