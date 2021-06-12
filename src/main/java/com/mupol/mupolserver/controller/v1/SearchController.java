@@ -33,7 +33,7 @@ public class SearchController {
             @RequestHeader(value = "Authorization", required = false) String jwt,
             @ApiParam(value = "검색 키워드") @PathVariable String keyword
     ) {
-        SearchResultDto dto = searchService.getSearchResult(jwt == null ? null : userService.getUserByJwt(jwt), keyword);
+        SearchResultDto dto = searchService.getSearchResult(userService.getUserByJwt(jwt), keyword);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
