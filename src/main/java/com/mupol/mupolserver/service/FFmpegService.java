@@ -126,7 +126,7 @@ public class FFmpegService {
             Long mediaId
     ) throws IOException {
 
-        String filePath = fileBasePath + userId + "\\" + mediaId + "\\";
+        String filePath = fileBasePath + userId + "/" + mediaId + "/";
 
         FFprobe ffprobe = new FFprobe(ffprobePath);
         System.out.println(filePath + mediaFile.getOriginalFilename());
