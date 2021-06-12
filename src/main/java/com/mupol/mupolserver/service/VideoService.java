@@ -167,7 +167,7 @@ public class VideoService {
         return getViewHistory(viewHistory);
     }
 
-    public List<Video> getHotVideo(int pageNum) {
+    public VideoPageDto getHotVideo(int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
         System.out.println(pageRequest.next());
         System.out.println(pageRequest.previous());
@@ -182,13 +182,20 @@ public class VideoService {
         LocalDateTime end = LocalDateTime.of(java.time.LocalDate.of(sunday.getYear(), sunday.getMonthOfYear(), sunday.getDayOfMonth()),
                 LocalTime.of(23, 59, 59));
 
-        List<Long> hotVideoIdList = new ArrayList<>();
-        hotVideoIdList = viewHistoryRepository.getHotVideoList(start, end).orElseThrow();
+        List<Long> videoIdList = new ArrayList<>();
+        videoIdList = viewHistoryRepository.getHotVideoList(start, end).orElseThrow();
 
-        List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findByIdInOrderByViewNumDesc(hotVideoIdList, pageRequest).orElseThrow();
+        VideoPageDto dto = new VideoPageDto();
+        Page<Video> result = videoRepository.findByIdInOrderByViewNumDesc(videoIdList, pageRequest).orElseThrow();
+        dto.setVideoList(result.getContent());
 
-        return videoList;
+        if (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) dto.setHasPrevPage(false);
+        else dto.setHasPrevPage(true);
+
+        if (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1) dto.setHasNextPage(false);
+        else dto.setHasNextPage(true);
+
+        return dto;
     }
 
     public VideoPageDto getNewVideo(int pageNum) {

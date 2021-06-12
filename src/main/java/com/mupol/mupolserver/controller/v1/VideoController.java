@@ -154,8 +154,9 @@ public class VideoController {
     public ResponseEntity<ListResult<VideoResDto>> viewHotVideo(
             @PathVariable int page
     ) {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getHotVideo(page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getHotVideo(page);
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
     @ApiImplicitParams({
