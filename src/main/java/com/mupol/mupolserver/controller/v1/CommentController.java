@@ -1,7 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.domain.comment.Comment;
-import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
@@ -57,7 +56,7 @@ public class CommentController {
     public ResponseEntity<ListResult<CommentResDto>> getVideoList(
             @PathVariable String videoId
     ) {
-        List<CommentResDto> dtoList = commentService.getSndDtoList(commentService.getComments(Long.valueOf(videoId)));
+        List<CommentResDto> dtoList = commentService.getCommentDtoList(commentService.getComments(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -73,7 +72,7 @@ public class CommentController {
         if (content == null || content.equals(""))
             throw new IllegalArgumentException("content is empty");
         Comment comment = commentService.updateContent(Long.valueOf(commentId), content);
-        CommentResDto dto = commentService.getSndDto(comment);
+        CommentResDto dto = commentService.getCommentDto(comment);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
