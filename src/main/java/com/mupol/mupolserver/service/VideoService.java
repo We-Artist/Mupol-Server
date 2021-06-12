@@ -12,6 +12,7 @@ import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistory;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistoryRepository;
+import com.mupol.mupolserver.dto.video.VideoPageDto;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.dto.video.ViewHistoryDto;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
@@ -167,6 +169,9 @@ public class VideoService {
 
     public List<Video> getHotVideo(int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
+        System.out.println(pageRequest.next());
+        System.out.println(pageRequest.previous());
+        System.out.println(pageNum);
 
         LocalDate now = LocalDate.now();
         LocalDate monday = now.withDayOfWeek(DateTimeConstants.MONDAY);
@@ -186,9 +191,19 @@ public class VideoService {
         return videoList;
     }
 
-    public List<Video> getNewVideo(int pageNum) {
+    public VideoPageDto getNewVideo(int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
-        return videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
+        VideoPageDto dto = new VideoPageDto();
+        Page<Video> result = videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
+        dto.setVideoList(result.getContent());
+
+        if (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) dto.setHasPrevPage(false);
+        else dto.setHasPrevPage(true);
+
+        if (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1) dto.setHasNextPage(false);
+        else dto.setHasNextPage(true);
+
+        return dto;
     }
 
     public Video getRandomVideo() {
@@ -206,7 +221,6 @@ public class VideoService {
 
         List<Video> videoList = new ArrayList<>();
         videoList = videoRepository.findAllByUserId(userId, pageRequest).orElseThrow();
-        System.out.println(videoList.toArray().length);
 
         return videoList;
     }

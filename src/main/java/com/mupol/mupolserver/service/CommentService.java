@@ -55,7 +55,7 @@ public class CommentService {
     }
 
     public List<Comment> getComments(Long videoId) {
-        return commentRepository.findCommentsByVideoId(videoId).orElseThrow(()->new IllegalArgumentException("not exist video"));
+        return commentRepository.findCommentsByVideoId(videoId).orElseThrow(()->new IllegalArgumentException("not exist comment"));
     }
 
     public Comment updateContent(Long commentId, String content) {

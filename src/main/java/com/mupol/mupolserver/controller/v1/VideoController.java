@@ -5,6 +5,7 @@ import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
+import com.mupol.mupolserver.dto.video.VideoPageDto;
 import com.mupol.mupolserver.dto.video.VideoReqDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.*;
@@ -143,8 +144,9 @@ public class VideoController {
     public ResponseEntity<ListResult<VideoResDto>> viewNewVideo(
             @PathVariable int page
     ) {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getNewVideo(page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getNewVideo(page);
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
     @ApiOperation(value = "인기 영상 조회 (20개씩)")

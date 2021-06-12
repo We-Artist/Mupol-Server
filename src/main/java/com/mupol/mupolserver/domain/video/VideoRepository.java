@@ -1,6 +1,7 @@
 package com.mupol.mupolserver.domain.video;
 
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,7 +30,7 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
 
     Optional <List<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList, Pageable pageRequest);
 
-    Optional <List<Video>> findAllByOrderByCreatedAtDesc(Pageable pageRequest);
+    Optional <Page<Video>> findAllByOrderByCreatedAtDesc(Pageable pageRequest);
 
     Optional <List<Video>> findByIdIn(List<Long> videoId, Pageable pageRequest);
 
