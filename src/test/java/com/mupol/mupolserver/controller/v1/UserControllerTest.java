@@ -8,7 +8,7 @@ import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
-import com.mupol.mupolserver.dto.user.FollowersResDto;
+import com.mupol.mupolserver.dto.user.FollowerResDto;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,7 +89,7 @@ public class UserControllerTest {
 
         jwt = getJwt();
         gson = new Gson();
-        typeOfT = new TypeToken<ListResult<FollowersResDto>>(){}.getType();
+        typeOfT = new TypeToken<ListResult<FollowerResDto>>(){}.getType();
     }
 
     @Test
@@ -156,12 +156,12 @@ public class UserControllerTest {
                 .andReturn()
                 .getResponse().getContentAsString();
 
-        ListResult<FollowersResDto> response = gson.fromJson(followerResult, typeOfT);
-        List<FollowersResDto> followerList = response.getData();
+        ListResult<FollowerResDto> response = gson.fromJson(followerResult, typeOfT);
+        List<FollowerResDto> followerList = response.getData();
         boolean followerExist = false;
 
-        for(FollowersResDto f: followerList) {
-            if (testUser[0].getId().equals(f.getUserId())) {
+        for(FollowerResDto f: followerList) {
+            if (testUser[0].getId().equals(f.getId())) {
                 followerExist = true;
                 break;
             }
@@ -181,12 +181,12 @@ public class UserControllerTest {
                 .getResponse().getContentAsString();
 
         // check following list
-        ListResult<FollowersResDto> response = gson.fromJson(followingResult, typeOfT);
-        List<FollowersResDto> followingList = response.getData();
+        ListResult<FollowerResDto> response = gson.fromJson(followingResult, typeOfT);
+        List<FollowerResDto> followingList = response.getData();
         boolean followingExist = false;
 
-        for(FollowersResDto f: followingList) {
-            if (testUser[1].getId().equals(f.getUserId())) {
+        for(FollowerResDto f: followingList) {
+            if (testUser[1].getId().equals(f.getId())) {
                 followingExist = true;
                 break;
             }
