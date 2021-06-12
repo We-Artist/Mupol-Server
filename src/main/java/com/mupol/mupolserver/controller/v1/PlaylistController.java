@@ -3,10 +3,12 @@ package com.mupol.mupolserver.controller.v1;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.playlist.PlaylistReqDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistResDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoDto;
 import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.dto.video.VideoWithCommentDto;
 import com.mupol.mupolserver.service.PlaylistService;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.UserService;
@@ -82,11 +84,18 @@ public class PlaylistController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "개별 재생 목록의 동영상들 조회")
     @GetMapping(value = "/view/video/{playlistId}")
-    public ResponseEntity<ListResult<VideoResDto>> viewPlaylistVideoes(
-            @PathVariable String playlistId) throws IOException, InterruptedException {
-        List<VideoResDto> dto = videoService.getVideoDtoList(playlistService.getPlaylistVideoes(Long.valueOf(playlistId)));
+    public ResponseEntity<ListResult<VideoWithCommentDto>> viewPlaylistVideoes(
+            @RequestHeader String jwt,
+            @PathVariable String playlistId
+    ) throws IOException, InterruptedException {
+        User user = userService.getUserByJwt(jwt);
+        List<Video> videoList = playlistService.getPlaylistVideoes(Long.valueOf(playlistId));
+        List<VideoWithCommentDto> dto = videoService.getVideoWithCommentDtoList(user, videoList);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dto));
     }
 
