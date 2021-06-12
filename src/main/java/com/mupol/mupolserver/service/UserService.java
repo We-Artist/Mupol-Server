@@ -53,6 +53,7 @@ public class UserService {
 
 //    @Cacheable(value = CacheKey.USER_JWT, key = "#jwt", unless = "#result == null")
     public User getUserByJwt(String jwt) {
+        if(jwt == null) return null;
         String userId = jwtTokenProvider.getUserPk(jwt);
         return userRepository.findById(Long.valueOf(userId)).orElseThrow(CUserNotFoundException::new);
     }

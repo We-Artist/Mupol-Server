@@ -61,10 +61,10 @@ public class VideoController {
                 .hashtagList(hashtagList)
                 .build();
         User user = userService.getUserByJwt(jwt);
-        if(videoFile == null || videoFile.isEmpty())
+        if (videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
-        if(monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
+        if (monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
             monthlyGoalService.update(user);
         }
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
@@ -134,12 +134,17 @@ public class VideoController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "비디오 조회수 추가")
     @PatchMapping("/view/{videoId}")
     public ResponseEntity<SingleResult<VideoResDto>> viewNumVideo(
+            @RequestHeader String jwt,
             @PathVariable String videoId
     ) {
-        VideoResDto dto = videoService.getVideoDto(null, videoService.addViewNum(Long.valueOf(videoId)));
+        User user = userService.getUserByJwt(jwt);
+        VideoResDto dto = videoService.getVideoDto(user, videoService.addViewNum(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -152,7 +157,8 @@ public class VideoController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable int page
     ) {
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(null, videoService.getNewVideo(page));
+        User user = userService.getUserByJwt(jwt);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNewVideo(page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -165,7 +171,8 @@ public class VideoController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable int page
     ) {
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(null, videoService.getHotVideo(page));
+        User user = userService.getUserByJwt(jwt);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getHotVideo(page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -179,7 +186,7 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(null, videoService.getFollowingVideo(user, page));
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getFollowingVideo(user, page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -193,7 +200,7 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(null, videoService.getInstVideo(user, page));
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getInstVideo(user, page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -205,7 +212,8 @@ public class VideoController {
     public ResponseEntity<SingleResult<VideoResDto>> viewRecommendationVideo(
             @RequestHeader("Authorization") String jwt
     ) {
-        VideoResDto dto = videoService.getVideoDto( null, videoService.getRandomVideo());
+        User user = userService.getUserByJwt(jwt);
+        VideoResDto dto = videoService.getVideoDto(user, videoService.getRandomVideo());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -219,7 +227,8 @@ public class VideoController {
             @PathVariable String userId,
             @PathVariable int page
     ) {
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(null, videoService.getUserVideoList(Long.valueOf(userId), page));
+        User user = userService.getUserByJwt(jwt);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getUserVideoList(Long.valueOf(userId), page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 }
