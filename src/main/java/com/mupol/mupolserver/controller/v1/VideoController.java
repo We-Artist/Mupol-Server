@@ -5,10 +5,7 @@ import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
-import com.mupol.mupolserver.dto.video.VideoReqDto;
-import com.mupol.mupolserver.dto.video.VideoResDto;
-import com.mupol.mupolserver.dto.video.VideoViewDto;
-import com.mupol.mupolserver.dto.video.VideoWithCommentDto;
+import com.mupol.mupolserver.dto.video.*;
 import com.mupol.mupolserver.service.*;
 import com.mupol.mupolserver.util.MonthExtractor;
 import io.swagger.annotations.*;
@@ -89,7 +86,7 @@ public class VideoController {
     @ApiOperation(value = "비디오 개별 조회")
     @GetMapping("/{videoId}")
     public ResponseEntity<SingleResult<VideoViewDto>> getVideo(
-            @RequestHeader(value = "Authorization") String jwt,
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String videoId
     ) {
         User user = userService.getUserByJwt(jwt);
@@ -139,12 +136,12 @@ public class VideoController {
     })
     @ApiOperation(value = "비디오 조회수 추가")
     @PatchMapping("/view/{videoId}")
-    public ResponseEntity<SingleResult<VideoResDto>> viewNumVideo(
-            @RequestHeader String jwt,
+    public ResponseEntity<SingleResult<VideoWithSaveDto>> viewNumVideo(
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String videoId
     ) {
         User user = userService.getUserByJwt(jwt);
-        VideoResDto dto = videoService.getVideoDto(user, videoService.addViewNum(Long.valueOf(videoId)));
+        VideoWithSaveDto dto = videoService.getVideoWithSaveDto(user, videoService.addViewNum(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -154,7 +151,7 @@ public class VideoController {
     @ApiOperation(value = "최신 영상 조회 (20개씩)")
     @GetMapping("/view/new/{page}")
     public ResponseEntity<ListResult<VideoWithCommentDto>> viewNewVideo(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
@@ -168,7 +165,7 @@ public class VideoController {
     @ApiOperation(value = "인기 영상 조회 (20개씩)")
     @GetMapping("/view/hot/{page}")
     public ResponseEntity<ListResult<VideoWithCommentDto>> viewHotVideo(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
@@ -209,11 +206,11 @@ public class VideoController {
     })
     @ApiOperation(value = "추천 영상 조회")
     @GetMapping("/view/recommendation")
-    public ResponseEntity<SingleResult<VideoResDto>> viewRecommendationVideo(
-            @RequestHeader("Authorization") String jwt
+    public ResponseEntity<SingleResult<VideoWithCommentDto>> viewRecommendationVideo(
+            @RequestHeader(name = "Authorization", required = false) String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
-        VideoResDto dto = videoService.getVideoDto(user, videoService.getRandomVideo());
+        VideoWithCommentDto dto = videoService.getVideoWithCommentDto(user, videoService.getRandomVideo());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -223,7 +220,7 @@ public class VideoController {
     @ApiOperation(value = "특정인의 비디오 전체 조회(20개씩)")
     @GetMapping("/view/all/{userId}/{page}")
     public ResponseEntity<ListResult<VideoWithCommentDto>> getUserVideoList(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String userId,
             @PathVariable int page
     ) {
