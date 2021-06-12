@@ -137,7 +137,7 @@ public class VideoService {
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
 
-        return getVideoDto(null, video);
+        return getVideoWithSaveDto(null, video);
     }
 
     @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
@@ -250,8 +250,9 @@ public class VideoService {
         return videoList.stream().map((video) -> getVideoWithSaveDto(user, video)).collect(Collectors.toList());
     }
 
-    public VideoResDto getVideoDto(User user, Video video) {
-        return VideoResDto.builder()
+    public VideoViewDto getVideoViewDto(User user, Video video) {
+        List<Comment> commentList = commentService.getComments(video.getId());
+        return VideoViewDto.builder()
                 .id(video.getId())
                 .title(video.getTitle())
                 .thumbnailUrl(video.getThumbnailUrl())
@@ -266,37 +267,58 @@ public class VideoService {
                 .userId(video.getUser().getId())
                 .likeNum(likeService.getVideoLikeNum(video))
                 .likeFlag(user != null && likeService.isLiked(user, video))
+                .commentNum(commentList.size())
+                .commentResDtoList(commentService.getCommentDtoList(commentList))
+                .hashtagList(video.getHashtags())
+                .isFollowing(user != null && followerService.isAlreadyFollowed(user, video.getUser()))
+                .saveFlag(user != null && playlistService.amISavedVideo(user,video))
+                .saveNum(playlistService.getSavedVideoCount(video))
+                // TODO: 다음 추천 영상 목록
+                //.nextVideoList()
                 .build();
     }
 
-    public VideoViewDto getVideoViewDto(User user, Video video) {
-        VideoViewDto dto = (VideoViewDto) getVideoDto(user, video);
-        List<Comment> commentList = commentService.getComments(video.getId());
-
-        dto.setCommentNum(commentList.size());
-        dto.setCommentResDtoList(commentService.getCommentDtoList(commentList));
-        dto.setHashtagList(video.getHashtags());
-        dto.setIsFollowing(user != null && followerService.isAlreadyFollowed(user, video.getUser()));
-        dto.setSaveFlag(user != null && playlistService.amISavedVideo(user,video));
-        dto.setSaveNum(playlistService.getSavedVideoCount(video));
-//        dto.setNextVideoList();
-
-        return dto;
-    }
-
     public VideoWithSaveDto getVideoWithSaveDto(User user, Video video) {
-        VideoWithSaveDto dto = (VideoWithSaveDto) getVideoDto(user, video);
-        dto.setHashtagList(video.getHashtags());
-        dto.setSaveFlag(user != null && playlistService.amISavedVideo(user,video));
-        dto.setSaveNum(playlistService.getSavedVideoCount(video));
-        return dto;
+        return VideoWithSaveDto.builder()
+                .id(video.getId())
+                .title(video.getTitle())
+                .thumbnailUrl(video.getThumbnailUrl())
+                .length(video.getLength())
+                .originTitle(video.getOriginTitle())
+                .detail(video.getDetail())
+                .isPrivate(video.getIsPrivate())
+                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .fileUrl(video.getFileUrl())
+                .instrumentList(video.getInstruments())
+                .viewNum(video.getViewNum())
+                .userId(video.getUser().getId())
+                .likeNum(likeService.getVideoLikeNum(video))
+                .likeFlag(user != null && likeService.isLiked(user, video))
+                .hashtagList(video.getHashtags())
+                .saveFlag(user != null && playlistService.amISavedVideo(user,video))
+                .saveNum(playlistService.getSavedVideoCount(video))
+                .build();
     }
 
     public VideoWithCommentDto getVideoWithCommentDto(User user, Video video) {
-        VideoWithCommentDto dto = (VideoWithCommentDto) getVideoDto(user, video);
         List<Comment> commentList = commentService.getComments(video.getId());
-        dto.setCommentNum(commentList.size());
-        return dto;
+        return VideoWithCommentDto.builder()
+                .id(video.getId())
+                .title(video.getTitle())
+                .thumbnailUrl(video.getThumbnailUrl())
+                .length(video.getLength())
+                .originTitle(video.getOriginTitle())
+                .detail(video.getDetail())
+                .isPrivate(video.getIsPrivate())
+                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .fileUrl(video.getFileUrl())
+                .instrumentList(video.getInstruments())
+                .viewNum(video.getViewNum())
+                .userId(video.getUser().getId())
+                .likeNum(likeService.getVideoLikeNum(video))
+                .likeFlag(user != null && likeService.isLiked(user, video))
+                .commentNum(commentList.size())
+                .build();
     }
 
     public ViewHistoryDto getViewHistory(ViewHistory viewHistory) {

@@ -7,7 +7,6 @@ import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.playlist.PlaylistReqDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistResDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoDto;
-import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.dto.video.VideoWithCommentDto;
 import com.mupol.mupolserver.service.PlaylistService;
 import com.mupol.mupolserver.service.ResponseService;

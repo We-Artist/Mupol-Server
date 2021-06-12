@@ -126,6 +126,7 @@ public class PlaylistService {
         return playlistVideoList.get().size();
     }
 
+    // TODO: 최적화 될거 같다
     public boolean amISavedVideo(User user, Video video) {
         Optional<List<Playlist>> playlistList = playlistRepository.findPlaylistByUserId(user.getId());
         if(playlistList.isEmpty())
