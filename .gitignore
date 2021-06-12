@@ -41,3 +41,4 @@ d
 **/firebase-service-key.json
 
 resources/upload/
+deploy.sh
