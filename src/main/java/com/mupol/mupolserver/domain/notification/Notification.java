@@ -45,6 +45,8 @@ public class Notification extends BaseTime {
 
     private Long userId;
 
+    private boolean isFollowingUser;
+
     @Enumerated(EnumType.STRING)
     private TargetType targetType;
 }

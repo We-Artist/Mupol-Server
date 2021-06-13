@@ -9,6 +9,11 @@ import lombok.ToString;
 @ToString
 public class SearchVideoResultDto {
     private Long videoId;
+    private Long userId;
     private String title;
     private String thumbnailUrl;
+    private long likeNum;
+    private long saveNum;
+    private boolean isLiked;
+    private boolean isSaved;
 }

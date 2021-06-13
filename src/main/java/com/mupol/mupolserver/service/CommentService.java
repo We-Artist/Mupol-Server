@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.comment.CommentRepository;
+import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.comment.CommentReqDto;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final NotificationService notificationService;
+    private final FollowerService followerService;
 
     public CommentResDto uploadComment(User user, Video video, CommentReqDto metaData) throws IOException, InterruptedException {
 
@@ -30,24 +33,32 @@ public class CommentService {
                 .build();
         commentRepository.save(comment);
 
-        return getSndDto(comment);
+        notificationService.send(
+                user,
+                video.getUser(),
+                video,
+                followerService.isFollowingUser(video.getUser(), user),
+                TargetType.comment
+        );
+
+        return getCommentDto(comment);
     }
 
-    public CommentResDto getSndDto(Comment snd) {
+    public CommentResDto getCommentDto(Comment comment) {
 
         CommentResDto dto = new CommentResDto();
 
-        dto.setId(snd.getId());
-        dto.setVideoId(snd.getVideo().getId());
-        dto.setContent(snd.getContent());
-        dto.setCreatedAt(snd.getCreatedAt());
-        dto.setUpdatedAt(snd.getModifiedDate());
-        dto.setUserId(snd.getUser().getId());
+        dto.setId(comment.getId());
+        dto.setVideoId(comment.getVideo().getId());
+        dto.setContent(comment.getContent());
+        dto.setCreatedAt(comment.getCreatedAt());
+        dto.setUpdatedAt(comment.getModifiedDate());
+        dto.setUserId(comment.getUser().getId());
         return dto;
     }
 
-    public List<CommentResDto> getSndDtoList(List<Comment> commentList) {
-        return commentList.stream().map(this::getSndDto).collect(Collectors.toList());
+    public List<CommentResDto> getCommentDtoList(List<Comment> commentList) {
+        return commentList.stream().map(this::getCommentDto).collect(Collectors.toList());
     }
 
     public Comment getComment(Long commentId) {

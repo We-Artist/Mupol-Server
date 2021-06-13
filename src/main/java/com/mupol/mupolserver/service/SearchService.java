@@ -24,8 +24,11 @@ public class SearchService {
     private final SearchRepository searchRepository;
     private final UserService userService;
     private final VideoService videoService;
+    private final PlaylistService playlistService;
+    private final FollowerService followerService;
+    private final LikeService likeService;
 
-    public List<SearchUserResultDto> searchUsersByName(String keyword) {
+    public List<SearchUserResultDto> searchUsersByName(User searchUser, String keyword) {
         List<SearchUserResultDto> userList = new ArrayList<>();
         List<User> users = userService.getUsersByUsername(keyword);
         for (User user : users) {
@@ -33,6 +36,9 @@ public class SearchService {
                     .username(user.getUsername())
                     .userId(user.getId())
                     .profileImageUrl(user.getProfileImageUrl())
+                    .favoriteInstruments(user.getFavoriteInstrument())
+                    .followerNumber(user.getFollowers().size())
+                    .isFollowing(searchUser != null && followerService.isFollowingUser(searchUser, user))
                     .build();
             userList.add(dto);
         }
@@ -41,15 +47,15 @@ public class SearchService {
     }
 
     // 제목으로 영상 검색
-    public List<SearchVideoResultDto> searchVideosByTitle(String keyword) {
+    public List<SearchVideoResultDto> searchVideosByTitle(User user, String keyword) {
         List<Video> videos = videoService.getVideoByTitle(keyword);
-        List<SearchVideoResultDto> videoHashMapList = getVideoDtoList(videos);
+        List<SearchVideoResultDto> videoHashMapList = getVideoDtoList(user, videos);
         videoHashMapList.sort(Comparator.comparing(a -> a.getTitle().indexOf(keyword)));
         return videoHashMapList;
     }
 
     // 악기로 영상 검색
-    public List<SearchVideoResultDto> searchVideosByInstrument(String keyword) {
+    public List<SearchVideoResultDto> searchVideosByInstrument(User user, String keyword) {
         Instrument instrument;
         try {
             instrument = Instrument.valueOf(keyword);
@@ -57,16 +63,21 @@ public class SearchService {
             return Collections.emptyList();
         }
         List<Video> videos = videoService.getVideoByInstrument(instrument);
-        return getVideoDtoList(videos);
+        return getVideoDtoList(user, videos);
     }
 
-    private List<SearchVideoResultDto> getVideoDtoList(List<Video> videos) {
+    private List<SearchVideoResultDto> getVideoDtoList(User user, List<Video> videos) {
         List<SearchVideoResultDto> videoList = new ArrayList<>();
         for (Video video : videos) {
             SearchVideoResultDto dto = SearchVideoResultDto.builder()
                     .title(video.getTitle())
                     .videoId(video.getId())
+                    .userId(video.getUser().getId())
                     .thumbnailUrl(video.getThumbnailUrl())
+                    .likeNum(likeService.getVideoLikeNum(video))
+                    .saveNum(playlistService.getSavedVideoCount(video))
+                    .isLiked(user != null && likeService.isLiked(user, video))
+                    .isSaved(user != null && playlistService.amISavedVideo(user, video))
                     .build();
             videoList.add(dto);
         }
@@ -76,23 +87,23 @@ public class SearchService {
     // 자동완성: 왼쪽에서부터 일치하는 순서대로 3개 계정만 노출
     public SuggestionResultDto getSuggestion(String keyword) {
         // result.put("instrument", searchVideosByInstrument(keyword));
-        List<SearchUserResultDto> users = searchUsersByName(keyword);
+        List<SearchUserResultDto> users = searchUsersByName(null, keyword);
         if (users.size() <= 3)
             return SuggestionResultDto.builder()
                     .userList(users)
-                    .videoListByTitle(searchVideosByTitle(keyword))
+                    .videoListByTitle(searchVideosByTitle(null, keyword))
                     .build();
         return SuggestionResultDto.builder()
                 .userList(users.subList(0, 3))
-                .videoListByTitle(searchVideosByTitle(keyword))
+                .videoListByTitle(searchVideosByTitle(null, keyword))
                 .build();
     }
 
     // 검색 결과
     public SearchResultDto getSearchResult(User user, String keyword) {
         SearchResultDto result = SearchResultDto.builder()
-                .userList(searchUsersByName(keyword))
-                .videoListByTitle(searchVideosByTitle(keyword))
+                .userList(searchUsersByName(user, keyword))
+                .videoListByTitle(searchVideosByTitle(user, keyword))
                 .build();
         searchRepository.save(Search.builder()
                 .user(user)
@@ -127,7 +138,7 @@ public class SearchService {
         });
 
         resultHashmap.sort((a, b) -> Integer.compare(Integer.parseInt(b.get("count")), Integer.parseInt(a.get("count"))));
-        for(int i=0; i<Math.min(3, resultHashmap.size()); i++) {
+        for (int i = 0; i < Math.min(3, resultHashmap.size()); i++) {
             result.add(resultHashmap.get(i).get("keyword"));
         }
         return result;
