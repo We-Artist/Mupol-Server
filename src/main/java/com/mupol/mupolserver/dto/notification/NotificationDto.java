@@ -19,6 +19,7 @@ public class NotificationDto {
     private Long createdAt;
     private boolean isRead;
     private TargetType targetType;
+    private boolean isFollowingUser;
 
     @ApiParam("연결되는 영상 id")
     private Long videoId;

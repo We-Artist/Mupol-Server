@@ -125,7 +125,7 @@ public class VideoController {
                 user,
                 video.getUser(),
                 video,
-                followerService.isAlreadyFollowed(video.getUser(), user),
+                followerService.isFollowingUser(video.getUser(), user),
                 TargetType.like
         );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));

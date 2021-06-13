@@ -37,7 +37,7 @@ public class CommentService {
                 user,
                 video.getUser(),
                 video,
-                followerService.isAlreadyFollowed(video.getUser(), user),
+                followerService.isFollowingUser(video.getUser(), user),
                 TargetType.comment
         );
 

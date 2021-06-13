@@ -270,7 +270,7 @@ public class VideoService {
                 .commentNum(commentList.size())
                 .commentResDtoList(commentService.getCommentDtoList(commentList))
                 .hashtagList(video.getHashtags())
-                .isFollowing(user != null && followerService.isAlreadyFollowed(user, video.getUser()))
+                .isFollowing(user != null && followerService.isFollowingUser(user, video.getUser()))
                 .saveFlag(user != null && playlistService.amISavedVideo(user,video))
                 .saveNum(playlistService.getSavedVideoCount(video))
                 // TODO: 다음 추천 영상 목록

@@ -141,10 +141,10 @@ public class UserController {
         User from = userService.getUserByJwt(jwt);
         User to = userService.getUserById(followingId);
 
-        if (followerService.isAlreadyFollowed(from, to))
+        if (followerService.isFollowingUser(from, to))
             throw new IllegalArgumentException("already followed");
 
-        boolean isFollowEachOther = followerService.isAlreadyFollowed(to, from);
+        boolean isFollowEachOther = followerService.isFollowingUser(to, from);
         Follower follower = Follower.builder()
                 .from(from)
                 .to(to)
@@ -182,7 +182,7 @@ public class UserController {
         User from = userService.getUserByJwt(jwt);
         User to = userService.getUserById(followingId);
 
-        if(followerService.isAlreadyFollowed(to, from)) {
+        if(followerService.isFollowingUser(to, from)) {
             Follower follower = followerService.getFollowerByFromAndTo(to, from);
             follower.setFollowEachOther(false);
             followerService.save(follower);

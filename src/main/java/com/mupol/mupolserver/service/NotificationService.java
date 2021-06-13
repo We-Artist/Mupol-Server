@@ -30,7 +30,7 @@ public class NotificationService {
             User sender,
             User receiver,
             Object target,
-            boolean isFollowEachOther,
+            boolean isFollowingUser,
             TargetType type
     ) throws IOException {
         Long videoId = null;
@@ -71,10 +71,11 @@ public class NotificationService {
                 .userId(userId)
                 .targetType(type)
                 .isRead(false)
+                .isFollowingUser(isFollowingUser)
                 .build();
 
         // TODO: 데이터에 맞팔로우 여부 넣어두기
-        fcmMessageService.sendMessageTo(receiver.getFcmToken(), title, body, type, targetId, isFollowEachOther);
+        fcmMessageService.sendMessageTo(receiver.getFcmToken(), title, body, type, targetId, isFollowingUser);
         notificationRepository.save(notification);
     }
 
@@ -103,6 +104,7 @@ public class NotificationService {
                     .userId(noti.getUserId())
                     .videoId(noti.getVideoId())
                     .isRead(noti.isRead())
+                    .isFollowingUser(noti.isFollowingUser())
                     .targetType(noti.getTargetType())
                     .build());
         }

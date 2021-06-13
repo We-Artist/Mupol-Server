@@ -21,7 +21,7 @@ public class FollowerService {
                 .orElseThrow(() -> new IllegalArgumentException("you does not follow this user"));
     }
 
-    public boolean isAlreadyFollowed(User follower, User following) {
+    public boolean isFollowingUser(User follower, User following) {
         return followerRepository.findFollowersByFromAndTo(follower, following).isPresent();
     }
 

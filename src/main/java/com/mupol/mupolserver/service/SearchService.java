@@ -38,7 +38,7 @@ public class SearchService {
                     .profileImageUrl(user.getProfileImageUrl())
                     .favoriteInstruments(user.getFavoriteInstrument())
                     .followerNumber(user.getFollowers().size())
-                    .isFollowing(searchUser != null && followerService.isAlreadyFollowed(searchUser, user))
+                    .isFollowing(searchUser != null && followerService.isFollowingUser(searchUser, user))
                     .build();
             userList.add(dto);
         }
