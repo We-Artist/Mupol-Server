@@ -404,6 +404,14 @@ public class VideoService {
         return videos.get();
     }
 
+    public List<Video> getNextVideo(Long videoId){
+        Video video = videoRepository.findById(videoId).orElseThrow();
+
+        Optional<List<Video>> videos = videoRepository.findByUserIdAndCreatedAtGreaterThan(video.getUser().getId(), video.getCreatedAt());
+
+        return videos.get();
+    }
+
     //    @Cacheable(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()", unless = "#result == null")
     public List<VideoWithSaveDto> getVideoAtMonth(User user, int year, int month) {
         LocalDateTime start = MonthExtractor.getStartDate(year, month);
