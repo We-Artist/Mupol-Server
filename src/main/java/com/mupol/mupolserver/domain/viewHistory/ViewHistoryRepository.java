@@ -16,15 +16,11 @@ public interface ViewHistoryRepository extends JpaRepository<ViewHistory, Long> 
 
     @Query(value = "select v.id " +
             "from mupol.video v " +
-            "left join mupol.view_history vh on (vh.video_id = v.id) " +
-            "where vh.video_id in (:history) " +
+            "left join (select * from view_history where created_at between :startTime and :endTime) vh on (v.id = vh.video_id)" +
             "group by v.id " +
             "order by count(vh.video_id) desc;"
             , nativeQuery=true)
-    Optional<List<Long>> getHotVideoList(@Param("history") List<Long> history);
+    Optional<List<Long>> getHotVideoList(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
     Optional<Long> countAllByVideoId(Long VideoId);
-
-    @Query(value = "select video_id from view_history where created_at between :startTime and :endTime", nativeQuery=true)
-    Optional <List<Long>> findVideoIdByCreatedAtBetween(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 }

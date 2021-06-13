@@ -23,6 +23,7 @@ import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
@@ -67,7 +68,6 @@ public class VideoService {
     )
     public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
-        System.out.println(metaData);
         log.info(metaData.getTitle());
         log.info(metaData.getOriginTitle());
         log.info(metaData.getDetail());
@@ -88,7 +88,7 @@ public class VideoService {
         List<Hashtag> hashtagList = new ArrayList<>();
         try {
             if (hashtags != null)
-                for (String inst : hashtags) hashtagList.add(Hashtag.valueOf(inst));
+                for (String hash : hashtags) hashtagList.add(Hashtag.valueOf(hash));
         } catch (Exception e) {
             throw new IllegalArgumentException("not supported hashtag");
         }
@@ -171,7 +171,7 @@ public class VideoService {
         return getViewHistory(viewHistory);
     }
 
-    public List<Video> getHotVideo(int pageNum) {
+    public VideoPageDto getHotVideo(int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         LocalDate now = LocalDate.now();
@@ -183,21 +183,35 @@ public class VideoService {
         LocalDateTime end = LocalDateTime.of(java.time.LocalDate.of(sunday.getYear(), sunday.getMonthOfYear(), sunday.getDayOfMonth()),
                 LocalTime.of(23, 59, 59));
 
-        List<Long> weekVideoIdList = new ArrayList<>();
-        weekVideoIdList = viewHistoryRepository.findVideoIdByCreatedAtBetween(start, end).orElseThrow();
+        List<Long> videoIdList = new ArrayList<>();
+        videoIdList = viewHistoryRepository.getHotVideoList(start, end).orElseThrow();
 
-        List<Long> hotVideoIdList = new ArrayList<>();
-        hotVideoIdList = viewHistoryRepository.getHotVideoList(weekVideoIdList).orElseThrow();
+        VideoPageDto dto = new VideoPageDto();
+        Page<Video> result = videoRepository.findByIdInOrderByViewNumDesc(videoIdList, pageRequest).orElseThrow();
+        dto.setVideoList(result.getContent());
 
-        List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findByIdInOrderByViewNumDesc(hotVideoIdList, pageRequest).orElseThrow();
+        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
+        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
 
-        return videoList;
+        dto.setHasPrevPage(prev);
+        dto.setHasNextPage(next);
+
+        return dto;
     }
 
-    public List<Video> getNewVideo(int pageNum) {
+    public VideoPageDto getNewVideo(int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
-        return videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
+        VideoPageDto dto = new VideoPageDto();
+        Page<Video> result = videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
+        dto.setVideoList(result.getContent());
+
+        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
+        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+
+        dto.setHasPrevPage(prev);
+        dto.setHasNextPage(next);
+
+        return dto;
     }
 
     public Video getRandomVideo() {
@@ -211,39 +225,58 @@ public class VideoService {
         videoRepository.deleteById(videoId);
     }
 
-    public List<Video> getUserVideoList(Long userId, int pageNum) {
-        System.out.println(userId);
+    public VideoPageDto getUserVideoList(Long userId, int pageNum){
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
-        List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findAllByUserId(userId, pageRequest).orElseThrow();
-        System.out.println(videoList.toArray().length);
+        VideoPageDto dto = new VideoPageDto();
+        Page<Video> result = videoRepository.findAllByUserId(userId, pageRequest).orElseThrow();
+        dto.setVideoList(result.getContent());
 
-        return videoList;
+        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
+        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+
+        dto.setHasPrevPage(prev);
+        dto.setHasNextPage(next);
+
+        return dto;
     }
 
-    public List<Video> getFollowingVideo(User user, int pageNum) {
+    public VideoPageDto getFollowingVideo(User user, int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         List<Long> followersList = new ArrayList<>();
         followersList = followerRepository.findToIdByFromId(user.getId()).orElseThrow();
 
-        List<Video> videoList = new ArrayList<>();
-        videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
+        VideoPageDto dto = new VideoPageDto();
+        Page<Video> result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
+        dto.setVideoList(result.getContent());
 
-        return videoList;
+        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
+        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+
+        dto.setHasPrevPage(prev);
+        dto.setHasNextPage(next);
+
+        return dto;
     }
 
-    public List<Video> getInstVideo(User user, int pageNum) {
+    public VideoPageDto getInstVideo(User user, int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         List<Instrument> instrumentList = new ArrayList<>();
         instrumentList = user.getFavoriteInstrument();
 
-        Optional<List<Video>> videos = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList, pageRequest);
+        VideoPageDto dto = new VideoPageDto();
+        Page<Video> result = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList, pageRequest).orElseThrow();
+        dto.setVideoList(result.getContent());
 
-        if (videos.isEmpty()) return Collections.emptyList();
-        return videos.get();
+        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
+        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+
+        dto.setHasPrevPage(prev);
+        dto.setHasNextPage(next);
+
+        return dto;
     }
 
     public List<VideoWithCommentDto> getVideoWithCommentDtoList(User user, List<Video> videoList) {
@@ -368,6 +401,14 @@ public class VideoService {
     public List<Video> getVideoByInstrument(Instrument instrument) {
         Optional<List<Video>> videos = videoRepository.findAllByInstrumentsContains(instrument);
         if (videos.isEmpty()) return Collections.emptyList();
+        return videos.get();
+    }
+
+    public List<Video> getNextVideo(Long videoId){
+        Video video = videoRepository.findById(videoId).orElseThrow();
+
+        Optional<List<Video>> videos = videoRepository.findTop10ByUserIdAndCreatedAtGreaterThan(video.getUser().getId(), video.getCreatedAt());
+
         return videos.get();
     }
 
