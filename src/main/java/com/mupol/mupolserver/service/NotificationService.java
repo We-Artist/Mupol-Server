@@ -74,27 +74,28 @@ public class NotificationService {
                 .isFollowingUser(isFollowingUser)
                 .build();
 
-        // TODO: 데이터에 맞팔로우 여부 넣어두기
         fcmMessageService.sendMessageTo(receiver.getFcmToken(), title, body, type, targetId, isFollowingUser);
         notificationRepository.save(notification);
     }
 
     public List<NotificationDto> getReceivedNotification(User user) {
         Optional<List<Notification>> res = notificationRepository.findAllByReceiverOrderByCreatedAtDesc(user);
-        return getNotificationDtos(res);
+        if (res.isEmpty())
+            return Collections.emptyList();
+        return getNotificationDtos(res.get());
     }
 
     public List<NotificationDto> getReceivedNotification(User user, int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
         Optional<List<Notification>> res = notificationRepository.findAllByReceiverOrderByCreatedAtDesc(user, pageRequest);
-        return getNotificationDtos(res);
-    }
-
-    private List<NotificationDto> getNotificationDtos(Optional<List<Notification>> res) {
-        List<NotificationDto> dtoList = new ArrayList<>();
         if (res.isEmpty())
             return Collections.emptyList();
-        for (Notification noti : res.get()) {
+        return getNotificationDtos(res.get());
+    }
+
+    private List<NotificationDto> getNotificationDtos(List<Notification> res) {
+        List<NotificationDto> dtoList = new ArrayList<>();
+        for (Notification noti : res) {
             dtoList.add(NotificationDto.builder()
                     .title(noti.getTitle())
                     .body(noti.getBody())
@@ -112,7 +113,7 @@ public class NotificationService {
     }
 
     public UnreadNotificationNumberDto getUnreadNotificationNumber(User user) {
-        Optional<List<Notification>> res = notificationRepository.findAllByReceiverAndIsReadIsFalse(user);
+        Optional<List<Notification>> res = notificationRepository.findAllByReceiverAndReadIsFalse(user);
         if (res.isEmpty())
             return UnreadNotificationNumberDto.builder().number(0).build();
         return UnreadNotificationNumberDto.builder().number(res.get().size()).build();
