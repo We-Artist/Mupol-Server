@@ -203,6 +203,8 @@ public class VideoService {
     }
 
     public void deleteVideo(Long userId, Long videoId) {
+        if(videoRepository.findByIdAndUserId(videoId, userId).isEmpty())
+            throw new IllegalArgumentException("invalid videoId or invalid user");
         s3Service.deleteMedia(userId, videoId, MediaType.Video);
         videoRepository.deleteById(videoId);
     }
