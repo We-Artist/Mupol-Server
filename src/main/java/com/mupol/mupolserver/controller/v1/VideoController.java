@@ -169,8 +169,9 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getFollowingVideo(user, page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getFollowingVideo(user, page);
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
     @ApiImplicitParams({
@@ -183,8 +184,9 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getInstVideo(user, page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getInstVideo(user, page);
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
     @ApiOperation(value = "추천 영상 조회")
@@ -200,7 +202,8 @@ public class VideoController {
             @PathVariable String userId,
             @PathVariable int page
     ) {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getUserVideoList(Long.valueOf(userId), page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getUserVideoList(Long.valueOf(userId), page);
+        List<VideoResDto> dtoList = videoService.getVideoDtoList(dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 }

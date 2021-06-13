@@ -26,13 +26,13 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     @Query(value = "select * from video order by rand() limit 1", nativeQuery=true)
     Optional<Video> getRandomVideo();
 
-    Optional<List<Video>> findByUserIdInOrderByCreatedAtDesc(List<Long> userId, Pageable pageRequest);
+    Optional<Page<Video>> findByUserIdInOrderByCreatedAtDesc(List<Long> userId, Pageable pageRequest);
 
-    Optional<List<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList, Pageable pageRequest);
+    Optional<Page<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList, Pageable pageRequest);
 
     Optional<Page<Video>> findAllByOrderByCreatedAtDesc(Pageable pageRequest);
 
-    Optional<List<Video>> findAllByUserId(Long userId, Pageable pageRequest);
+    Optional<Page<Video>> findAllByUserId(Long userId, Pageable pageRequest);
 
     Optional<Page<Video>> findByIdInOrderByViewNumDesc(List<Long> videoId, Pageable pageRequest);
 }
