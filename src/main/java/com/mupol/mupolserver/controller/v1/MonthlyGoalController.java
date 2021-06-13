@@ -66,7 +66,8 @@ public class MonthlyGoalController {
         monthlyGoalService.save(monthlyGoal);
 
         MonthlyGoalDto newDto = MonthlyGoalDto.builder()
-                .startDate(startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .year(startDate.getYear())
+                .month(startDate.getMonthValue())
                 .goalNumber(dto.getGoalNum())
                 .achieveNumber(0)
                 .build();
@@ -115,12 +116,11 @@ public class MonthlyGoalController {
     })
     @ApiOperation(value = "전체 목표 불러오기")
     @GetMapping("/all")
-    public ResponseEntity<ListResult<MonthlyGoalDto>> getAllGoals(
+    public ResponseEntity<ListResult<GoalStatusResDto>> getAllGoals(
             @RequestHeader("Authorization") String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<MonthlyGoal> goalList = monthlyGoalService.getAllGoals(user);
-        List<MonthlyGoalDto> dtoList = monthlyGoalService.getDtoList(goalList);
+        List<GoalStatusResDto> dtoList = monthlyGoalService.getAllGoals(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
