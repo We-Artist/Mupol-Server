@@ -38,5 +38,5 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
 
     Optional<Video> findByIdAndUserId(Long id, Long userId);
 
-    Optional<List<Video>> findByUserIdAndCreatedAtGreaterThan(Long userId, LocalDateTime localDateTime);
+    Optional<List<Video>> findTop10ByUserIdAndCreatedAtGreaterThan(Long userId, LocalDateTime localDateTime);
 }

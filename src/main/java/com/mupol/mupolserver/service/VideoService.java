@@ -407,7 +407,7 @@ public class VideoService {
     public List<Video> getNextVideo(Long videoId){
         Video video = videoRepository.findById(videoId).orElseThrow();
 
-        Optional<List<Video>> videos = videoRepository.findByUserIdAndCreatedAtGreaterThan(video.getUser().getId(), video.getCreatedAt());
+        Optional<List<Video>> videos = videoRepository.findTop10ByUserIdAndCreatedAtGreaterThan(video.getUser().getId(), video.getCreatedAt());
 
         return videos.get();
     }
