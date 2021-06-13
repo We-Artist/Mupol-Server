@@ -22,7 +22,6 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
@@ -115,8 +114,9 @@ public class VideoService {
         ffmpegService.createThumbnail(videoFile, userId, videoId);
 
         //get ratio
-        Double ratio = ffmpegService.getVideoRatio(videoFile, userId, videoId);
-        video.setRatio(ratio);
+        VideoWidthHeightDto widthHeightDto = ffmpegService.getVideoWidthAndHeight(videoFile, userId, videoId);
+        video.setWidth(widthHeightDto.getWidth());
+        video.setHeight(widthHeightDto.getHeight());
 
         // upload split video
         File folder = new File(fileBasePath + userId + "/" + videoId);
@@ -142,7 +142,7 @@ public class VideoService {
         return getVideoWithSaveDto(null, video);
     }
 
-    @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
+//    @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
     public Video getVideo(Long videoId) {
         return videoRepository.findById(videoId).orElseThrow(() -> new IllegalArgumentException("not exist video"));
     }
@@ -277,7 +277,8 @@ public class VideoService {
                 .isFollowing(user != null && followerService.isFollowingUser(user, video.getUser()))
                 .saveFlag(user != null && playlistService.amISavedVideo(user,video))
                 .saveNum(playlistService.getSavedVideoCount(video))
-                .ratio(video.getRatio())
+                .width(video.getWidth())
+                .height(video.getHeight())
                 // TODO: 다음 추천 영상 목록
                 //.nextVideoList()
                 .build();
@@ -357,7 +358,7 @@ public class VideoService {
         file.delete();
     }
 
-    @Cacheable(value = CacheKey.VIDEOS_KEYWORD, key = "#keyword", unless = "#result == null")
+//    @Cacheable(value = CacheKey.VIDEOS_KEYWORD, key = "#keyword", unless = "#result == null")
     public List<Video> getVideoByTitle(String keyword) {
         Optional<List<Video>> videos = videoRepository.findAllByTitleContains(keyword);
         if (videos.isEmpty()) return Collections.emptyList();

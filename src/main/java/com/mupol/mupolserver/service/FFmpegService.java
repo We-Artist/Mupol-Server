@@ -1,6 +1,7 @@
 package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.common.MediaType;
+import com.mupol.mupolserver.dto.video.VideoWidthHeightDto;
 import lombok.extern.slf4j.Slf4j;
 import net.bramp.ffmpeg.FFprobe;
 import net.bramp.ffmpeg.probe.FFmpegFormat;
@@ -105,7 +106,7 @@ public class FFmpegService {
         assert exitCode == 0;
     }
 
-    public double getVideoRatio(MultipartFile videoFile, Long userId, Long videoId) throws IOException, InterruptedException {
+    public VideoWidthHeightDto getVideoWidthAndHeight(MultipartFile videoFile, Long userId, Long videoId) throws IOException, InterruptedException {
         log.info("get video ratio");
         String filePath = fileBasePath + userId + "/" + videoId + "/";
 
@@ -124,13 +125,15 @@ public class FFmpegService {
         builder.directory(new File(filePath));
         Process process = builder.start();
         BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        Double width = Double.valueOf(in.readLine());
-        Double height = Double.valueOf(in.readLine());
+        VideoWidthHeightDto dto = VideoWidthHeightDto.builder()
+                .width(Long.valueOf(in.readLine()))
+                .height(Long.valueOf(in.readLine()))
+                .build();
 
         int exitCode = process.waitFor();
         assert exitCode == 0;
 
-        return width/height;
+        return dto;
     }
 
     private static class StreamGobbler implements Runnable {
