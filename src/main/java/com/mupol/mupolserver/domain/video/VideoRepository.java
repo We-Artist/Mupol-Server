@@ -36,4 +36,6 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     Optional<List<Video>> findAllByUserId(Long userId, Pageable pageRequest);
 
     Optional<List<Video>> findByIdInOrderByViewNumDesc(List<Long> videoid, Pageable pageRequest);
+
+    Optional<Video> findByIdAndUserId(Long id, Long userId);
 }

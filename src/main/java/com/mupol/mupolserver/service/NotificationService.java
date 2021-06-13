@@ -113,7 +113,7 @@ public class NotificationService {
     }
 
     public UnreadNotificationNumberDto getUnreadNotificationNumber(User user) {
-        Optional<List<Notification>> res = notificationRepository.findAllByReceiverAndReadIsFalse(user);
+        Optional<List<Notification>> res = notificationRepository.findAllByReceiverAndIsReadIsFalse(user);
         if (res.isEmpty())
             return UnreadNotificationNumberDto.builder().number(0).build();
         return UnreadNotificationNumberDto.builder().number(res.get().size()).build();

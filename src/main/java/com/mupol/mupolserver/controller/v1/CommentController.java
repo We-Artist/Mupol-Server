@@ -27,7 +27,6 @@ public class CommentController {
 
     private final UserService userService;
     private final CommentService commentService;
-    private final NotificationService notificationService;
     private final ResponseService responseService;
     private final VideoService videoService;
 
