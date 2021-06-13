@@ -36,5 +36,6 @@ public class FcmMessage extends BaseTime {
     public static class Data {
         private String target;
         private Long targetId;
+        private boolean isFollowing;
     }
 }

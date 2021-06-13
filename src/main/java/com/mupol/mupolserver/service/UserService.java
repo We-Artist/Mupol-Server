@@ -9,6 +9,7 @@ import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.user.UserResDto;
 import com.mupol.mupolserver.service.social.SocialServiceFactory;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -20,11 +21,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final SocialServiceFactory socialServiceFactory;
+    private final VideoService videoService;
+    private final FollowerService followerService;
     private final JwtTokenProvider jwtTokenProvider;
 
     public boolean validateUsername(String username) {
@@ -32,7 +36,7 @@ public class UserService {
         return 0 < username.length() && username.length() < 11 && isValidCharacter;
     }
 
-    @Cacheable(value = CacheKey.USER_ID, key = "#id.toString()", unless = "#result == null")
+//    @Cacheable(value = CacheKey.USER_ID, key = "#id.toString()", unless = "#result == null")
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(CUserNotFoundException::new);
     }
@@ -42,12 +46,14 @@ public class UserService {
         List<UserResDto> dtoList = new ArrayList<>();
         for(User user: users) {
             dtoList.add(getDto(user));
+            log.info(dtoList.get(dtoList.size()-1).toString());
         }
         return dtoList;
     }
 
-    @Cacheable(value = CacheKey.USER_JWT, key = "#jwt", unless = "#result == null")
+//    @Cacheable(value = CacheKey.USER_JWT, key = "#jwt", unless = "#result == null")
     public User getUserByJwt(String jwt) {
+        if(jwt == null) return null;
         String userId = jwtTokenProvider.getUserPk(jwt);
         return userRepository.findById(Long.valueOf(userId)).orElseThrow(CUserNotFoundException::new);
     }
@@ -98,7 +104,7 @@ public class UserService {
 
     public UserResDto getDto(User user) {
         return UserResDto.builder()
-                .userId(user.getId())
+                .id(user.getId())
                 .username(user.getUsername())
                 .profileImageUrl(user.getProfileImageUrl())
                 .bgImageUrl(user.getBgImageUrl())
@@ -108,10 +114,13 @@ public class UserService {
                 .favoriteInstrumentList(user.getFavoriteInstrument())
                 .major(user.isMajor())
                 .representativeVideoId(user.getRepresentativeVideoId())
+                .videoCount(videoService.getVideos(user.getId()).size())
+                .followerCount(followerService.getFollowerList(user).size())
+                .followingCount(followerService.getFollowingList(user).size())
                 .build();
     }
 
-    @Cacheable(value = CacheKey.USER_KEYWORD, key = "#keyword", unless = "#result == null")
+//    @Cacheable(value = CacheKey.USER_KEYWORD, key = "#keyword", unless = "#result == null")
     public List<User> getUsersByUsername(String keyword) {
         Optional<List<User>> users = userRepository.findAllByUsernameContains(keyword);
         if (users.isEmpty()) return Collections.emptyList();

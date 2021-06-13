@@ -9,7 +9,7 @@ import com.mupol.mupolserver.dto.monthlyGoal.CreateGoalReqDto;
 import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusResDto;
 import com.mupol.mupolserver.dto.monthlyGoal.MonthlyGoalDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
-import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.dto.video.VideoWithSaveDto;
 import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -96,7 +96,7 @@ public class MonthlyGoalController {
         MonthlyGoalDto goalDto = monthlyGoalService.getDto(goal);
 
         // get video
-        List<VideoResDto> videoList = videoService.getVideoAtMonth(user, year, month);
+        List<VideoWithSaveDto> videoList = videoService.getVideoAtMonth(user, year, month);
 
         // get sound
         List<SoundResDto> soundList = soundService.getSoundAtMonth(user, year, month);

@@ -2,19 +2,19 @@ package com.mupol.mupolserver.service;
 
 import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
+import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
-import com.mupol.mupolserver.domain.followers.FollowersRepository;
+import com.mupol.mupolserver.domain.follower.FollowerRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import com.mupol.mupolserver.domain.like.Like;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistory;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistoryRepository;
-import com.mupol.mupolserver.dto.video.VideoReqDto;
-import com.mupol.mupolserver.dto.video.VideoResDto;
-import com.mupol.mupolserver.dto.video.ViewHistoryDto;
+import com.mupol.mupolserver.dto.video.*;
 import com.mupol.mupolserver.util.MonthExtractor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +47,14 @@ import java.util.stream.Collectors;
 public class VideoService {
 
     private final VideoRepository videoRepository;
-    private final FollowersRepository followersRepository;
+    private final FollowerRepository followerRepository;
     private final ViewHistoryRepository viewHistoryRepository;
     private final S3Service s3Service;
     private final FFmpegService ffmpegService;
+    private final LikeService likeService;
+    private final PlaylistService playlistService;
+    private final CommentService commentService;
+    private final FollowerService followerService;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -133,7 +137,7 @@ public class VideoService {
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
 
-        return getVideoDto(video);
+        return getVideoWithSaveDto(null, video);
     }
 
     @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
@@ -141,17 +145,16 @@ public class VideoService {
         return videoRepository.findById(videoId).orElseThrow(() -> new IllegalArgumentException("not exist video"));
     }
 
-//    @Cacheable(value = CacheKey.VIDEOS_USER_ID, key = "#userId", unless = "#result == null")
+    //    @Cacheable(value = CacheKey.VIDEOS_USER_ID, key = "#userId", unless = "#result == null")
     public List<Video> getVideos(Long userId) {
         return videoRepository.findVideosByUserId(userId).orElseThrow();
     }
 
-    public Video likeVideo(Long userId, Long videoId) {
-        Video video = getVideo(videoId);
-        video.setLikeNum(video.getLikeNum() + 1);
-        videoRepository.save(video);
-        
-        return video;
+    public void likeVideo(User user, Video video) {
+        likeService.save(Like.builder()
+                .user(user)
+                .video(video)
+                .build());
     }
 
     public ViewHistoryDto createViewHistory(Long videoId) {
@@ -204,7 +207,7 @@ public class VideoService {
         videoRepository.deleteById(videoId);
     }
 
-    public List<Video> getUserVideoList(Long userId, int pageNum){
+    public List<Video> getUserVideoList(Long userId, int pageNum) {
         System.out.println(userId);
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
@@ -219,7 +222,7 @@ public class VideoService {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         List<Long> followersList = new ArrayList<>();
-        followersList = followersRepository.findToIdByFromId(user.getId()).orElseThrow();
+        followersList = followerRepository.findToIdByFromId(user.getId()).orElseThrow();
 
         List<Video> videoList = new ArrayList<>();
         videoList = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
@@ -239,29 +242,83 @@ public class VideoService {
         return videos.get();
     }
 
-    public List<VideoResDto> getVideoDtoList(List<Video> videoList) {
-        return videoList.stream().map(this::getVideoDto).collect(Collectors.toList());
+    public List<VideoWithCommentDto> getVideoWithCommentDtoList(User user, List<Video> videoList) {
+        return videoList.stream().map((video) -> getVideoWithCommentDto(user, video)).collect(Collectors.toList());
     }
 
-    public VideoResDto getVideoDto(Video video) {
-        VideoResDto dto = new VideoResDto();
-        dto.setId(video.getId());
-        dto.setTitle(video.getTitle());
-        dto.setOriginTitle(video.getOriginTitle());
-        dto.setDetail(video.getDetail());
-        dto.setIsPrivate(video.getIsPrivate());
-        dto.setCreatedAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-        dto.setUpdatedAt(video.getModifiedDate().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-        dto.setFileUrl(video.getFileUrl());
-        dto.setInstrumentList(video.getInstruments());
-        dto.setViewNum(video.getViewNum());
-        dto.setUserId(video.getUser().getId());
-        dto.setLikeNum(video.getLikeNum());
-        dto.setHashtagList(video.getHashtags());
-        dto.setThumbnailUrl(video.getThumbnailUrl());
-        dto.setLength(video.getLength());
+    public List<VideoWithSaveDto> getVideoWitheSaveDtoList(User user, List<Video> videoList) {
+        return videoList.stream().map((video) -> getVideoWithSaveDto(user, video)).collect(Collectors.toList());
+    }
 
-        return dto;
+    public VideoViewDto getVideoViewDto(User user, Video video) {
+        List<Comment> commentList = commentService.getComments(video.getId());
+        return VideoViewDto.builder()
+                .id(video.getId())
+                .title(video.getTitle())
+                .thumbnailUrl(video.getThumbnailUrl())
+                .length(video.getLength())
+                .originTitle(video.getOriginTitle())
+                .detail(video.getDetail())
+                .isPrivate(video.getIsPrivate())
+                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .fileUrl(video.getFileUrl())
+                .instrumentList(video.getInstruments())
+                .viewNum(video.getViewNum())
+                .userId(video.getUser().getId())
+                .likeNum(likeService.getVideoLikeNum(video))
+                .likeFlag(user != null && likeService.isLiked(user, video))
+                .commentNum(commentList.size())
+                .commentResDtoList(commentService.getCommentDtoList(commentList))
+                .hashtagList(video.getHashtags())
+                .isFollowing(user != null && followerService.isFollowingUser(user, video.getUser()))
+                .saveFlag(user != null && playlistService.amISavedVideo(user,video))
+                .saveNum(playlistService.getSavedVideoCount(video))
+                // TODO: 다음 추천 영상 목록
+                //.nextVideoList()
+                .build();
+    }
+
+    public VideoWithSaveDto getVideoWithSaveDto(User user, Video video) {
+        return VideoWithSaveDto.builder()
+                .id(video.getId())
+                .title(video.getTitle())
+                .thumbnailUrl(video.getThumbnailUrl())
+                .length(video.getLength())
+                .originTitle(video.getOriginTitle())
+                .detail(video.getDetail())
+                .isPrivate(video.getIsPrivate())
+                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .fileUrl(video.getFileUrl())
+                .instrumentList(video.getInstruments())
+                .viewNum(video.getViewNum())
+                .userId(video.getUser().getId())
+                .likeNum(likeService.getVideoLikeNum(video))
+                .likeFlag(user != null && likeService.isLiked(user, video))
+                .hashtagList(video.getHashtags())
+                .saveFlag(user != null && playlistService.amISavedVideo(user,video))
+                .saveNum(playlistService.getSavedVideoCount(video))
+                .build();
+    }
+
+    public VideoWithCommentDto getVideoWithCommentDto(User user, Video video) {
+        List<Comment> commentList = commentService.getComments(video.getId());
+        return VideoWithCommentDto.builder()
+                .id(video.getId())
+                .title(video.getTitle())
+                .thumbnailUrl(video.getThumbnailUrl())
+                .length(video.getLength())
+                .originTitle(video.getOriginTitle())
+                .detail(video.getDetail())
+                .isPrivate(video.getIsPrivate())
+                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .fileUrl(video.getFileUrl())
+                .instrumentList(video.getInstruments())
+                .viewNum(video.getViewNum())
+                .userId(video.getUser().getId())
+                .likeNum(likeService.getVideoLikeNum(video))
+                .likeFlag(user != null && likeService.isLiked(user, video))
+                .commentNum(commentList.size())
+                .build();
     }
 
     public ViewHistoryDto getViewHistory(ViewHistory viewHistory) {
@@ -275,7 +332,7 @@ public class VideoService {
 
     }
 
-    public Video addViewNum(Long videoId){
+    public Video addViewNum(Long videoId) {
         Video video = getVideo(videoId);
         createViewHistory(videoId);     //view history table
         video.setViewNum(video.getViewNum() + 1);       //video table
@@ -308,19 +365,18 @@ public class VideoService {
         return videos.get();
     }
 
-    @Cacheable(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()", unless = "#result == null")
-    public List<VideoResDto> getVideoAtMonth(User user, int year, int month) {
+    //    @Cacheable(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()", unless = "#result == null")
+    public List<VideoWithSaveDto> getVideoAtMonth(User user, int year, int month) {
         LocalDateTime start = MonthExtractor.getStartDate(year, month);
         LocalDateTime end = MonthExtractor.getEndDate(year, month);
 
         List<Video> videoList = videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("video list error"));
 
-        return getVideoDtoList(videoList);
+        return getVideoWitheSaveDtoList(user, videoList);
     }
 
     public Integer getVideoCountAtMonth(User user, int year, int month) {
         return getVideoAtMonth(user, year, month).size();
     }
-
 }

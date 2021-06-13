@@ -1,7 +1,7 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
-import com.mupol.mupolserver.domain.followers.Followers;
+import com.mupol.mupolserver.domain.follower.Follower;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.response.ListResult;
@@ -29,23 +29,20 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final FollowersService followersService;
+    private final FollowerService followerService;
     private final ResponseService responseService;
     private final NotificationService notificationService;
     private final S3Service s3Service;
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = false, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "회원 리스트 조회", notes = "모든 회원을 조회한다")
-    @GetMapping("/")
+    @GetMapping("/all")
     public ResponseEntity<ListResult<UserResDto>> findAllUser() {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(userService.getAllUserDtos()));
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value = "회원 단건 조회", notes = "userId로 회원을 조회한다")
     @GetMapping("/{userId}")
     public ResponseEntity<SingleResult<UserResDto>> findUserById(@ApiParam(value = "회원 ID", required = true) @PathVariable long userId) {
@@ -141,24 +138,32 @@ public class UserController {
     ) throws IOException {
         long followingId = Long.parseLong(userId);
 
-        User follower = userService.getUserByJwt(jwt);
-        User following = userService.getUserById(followingId);
+        User from = userService.getUserByJwt(jwt);
+        User to = userService.getUserById(followingId);
 
-        if (followersService.isAlreadyFollowed(follower, following))
+        if (followerService.isFollowingUser(from, to))
             throw new IllegalArgumentException("already followed");
 
-        Followers followers = Followers.builder()
-                .from(follower)
-                .to(following)
+        boolean isFollowEachOther = followerService.isFollowingUser(to, from);
+        Follower follower = Follower.builder()
+                .from(from)
+                .to(to)
+                .isFollowEachOther(isFollowEachOther)
                 .build();
-        followersService.save(followers);
+
+        if(isFollowEachOther) {
+            Follower following = followerService.getFollowerByFromAndTo(to, from);
+            following.setFollowEachOther(true);
+            followerService.save(following);
+        }
+        followerService.save(follower);
+
         notificationService.send(
-                follower,
-                following,
-                follower.getUsername() + "님이 회원님을 팔로우했습니다.",
-                null,
-                TargetType.follow,
-                follower.getId()
+                from,
+                to,
+                from,
+                isFollowEachOther,
+                TargetType.follow
         );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("success follow"));
     }
@@ -174,9 +179,15 @@ public class UserController {
     ) {
         long followingId = Long.parseLong(userId);
 
-        User follower = userService.getUserByJwt(jwt);
-        User following = userService.getUserById(followingId);
-        followersService.delete(followersService.getFollowersByFromAndTo(follower, following));
+        User from = userService.getUserByJwt(jwt);
+        User to = userService.getUserById(followingId);
+
+        if(followerService.isFollowingUser(to, from)) {
+            Follower follower = followerService.getFollowerByFromAndTo(to, from);
+            follower.setFollowEachOther(false);
+            followerService.save(follower);
+        }
+        followerService.delete(followerService.getFollowerByFromAndTo(from, to));
 
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("success unfollow"));
     }
@@ -186,12 +197,11 @@ public class UserController {
     })
     @ApiOperation(value = "팔로워 목록 불러오기")
     @GetMapping("/{userId}/followers")
-    public ResponseEntity<ListResult<FollowersResDto>> getFollowers(
+    public ResponseEntity<ListResult<FollowerResDto>> getFollowers(
             @ApiParam(value = "user id") @PathVariable Long userId
     ) {
         User user = userService.getUserById(userId);
-        List<Followers> followersList = followersService.getFollowersList(user);
-        List<FollowersResDto> dtoList = followersService.getFollowersDtoList(followersList);
+        List<FollowerResDto> dtoList = followerService.getFollowerDtoList(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -200,12 +210,11 @@ public class UserController {
     })
     @ApiOperation(value = "팔로잉 목록 불러오기")
     @GetMapping("/{userId}/followings")
-    public ResponseEntity<ListResult<FollowersResDto>> getFollowings(
+    public ResponseEntity<ListResult<FollowingResDto>> getFollowings(
             @ApiParam(value = "user id") @PathVariable Long userId
     ) {
         User user = userService.getUserById(userId);
-        List<Followers> followingList = followersService.getFollowingList(user);
-        List<FollowersResDto> dtoList = followersService.getFollowingDtoList(followingList);
+        List<FollowingResDto> dtoList = followerService.getFollowingDtoList(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 

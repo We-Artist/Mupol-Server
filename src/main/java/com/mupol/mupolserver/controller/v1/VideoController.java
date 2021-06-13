@@ -5,8 +5,7 @@ import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
-import com.mupol.mupolserver.dto.video.VideoReqDto;
-import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.dto.video.*;
 import com.mupol.mupolserver.service.*;
 import com.mupol.mupolserver.util.MonthExtractor;
 import io.swagger.annotations.*;
@@ -32,6 +31,7 @@ public class VideoController {
     private final VideoService videoService;
     private final MonthlyGoalService monthlyGoalService;
     private final NotificationService notificationService;
+    private final FollowerService followerService;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -58,10 +58,10 @@ public class VideoController {
                 .hashtagList(hashtagList)
                 .build();
         User user = userService.getUserByJwt(jwt);
-        if(videoFile == null || videoFile.isEmpty())
+        if (videoFile == null || videoFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
-        if(monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
+        if (monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
             monthlyGoalService.update(user);
         }
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
@@ -72,23 +72,26 @@ public class VideoController {
     })
     @ApiOperation(value = "내 비디오 전체 조회")
     @GetMapping("/all")
-    public ResponseEntity<ListResult<VideoResDto>> getVideoList(
+    public ResponseEntity<ListResult<VideoWithCommentDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getVideos(user.getId()));
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getVideos(user.getId()));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "비디오 개별 조회")
     @GetMapping("/{videoId}")
-    public ResponseEntity<SingleResult<VideoResDto>> getVideo(
+    public ResponseEntity<SingleResult<VideoViewDto>> getVideo(
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String videoId
     ) {
-        VideoResDto dto = videoService.getVideoDto(videoService.getVideo(Long.valueOf(videoId)));
+        User user = userService.getUserByJwt(jwt);
+        Video video = videoService.getVideo(Long.valueOf(videoId));
+        VideoViewDto dto = videoService.getVideoViewDto(user, video);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -117,42 +120,56 @@ public class VideoController {
     ) throws IOException {
         User user = userService.getUserByJwt(jwt);
         Video video = videoService.getVideo(Long.valueOf(videoId));
-        videoService.likeVideo(user.getId(), video.getId());
+        videoService.likeVideo(user, video);
         notificationService.send(
                 user,
                 video.getUser(),
-                user.getUsername() + "님이 회원님의 영상을 좋아합니다.",
-                null,
-                TargetType.like,
-                video.getId()
+                video,
+                followerService.isFollowingUser(video.getUser(), user),
+                TargetType.like
         );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "비디오 조회수 추가")
     @PatchMapping("/view/{videoId}")
-    public ResponseEntity<SingleResult<VideoResDto>> viewNumVideo(
+    public ResponseEntity<SingleResult<VideoWithSaveDto>> viewNumVideo(
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String videoId
     ) {
-        VideoResDto dto = videoService.getVideoDto(videoService.addViewNum(Long.valueOf(videoId)));
+        User user = userService.getUserByJwt(jwt);
+        VideoWithSaveDto dto = videoService.getVideoWithSaveDto(user, videoService.addViewNum(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "최신 영상 조회 (20개씩)")
     @GetMapping("/view/new/{page}")
-    public ResponseEntity<ListResult<VideoResDto>> viewNewVideo(
+    public ResponseEntity<ListResult<VideoWithCommentDto>> viewNewVideo(
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getNewVideo(page));
+        User user = userService.getUserByJwt(jwt);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNewVideo(page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "인기 영상 조회 (20개씩)")
     @GetMapping("/view/hot/{page}")
-    public ResponseEntity<ListResult<VideoResDto>> viewHotVideo(
+    public ResponseEntity<ListResult<VideoWithCommentDto>> viewHotVideo(
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getHotVideo(page));
+        User user = userService.getUserByJwt(jwt);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getHotVideo(page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -161,12 +178,12 @@ public class VideoController {
     })
     @ApiOperation(value = "팔로우 계정 영상 조회 (20개씩)")
     @GetMapping("/view/follow/user/{page}")
-    public ResponseEntity<ListResult<VideoResDto>> viewFollowUserVideo(
+    public ResponseEntity<ListResult<VideoWithCommentDto>> viewFollowUserVideo(
             @RequestHeader("Authorization") String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getFollowingVideo(user, page));
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getFollowingVideo(user, page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -175,29 +192,40 @@ public class VideoController {
     })
     @ApiOperation(value = "팔로우 악기 영상 조회 (20개씩)")
     @GetMapping("/view/follow/inst/{page}")
-    public ResponseEntity<ListResult<VideoResDto>> viewFollowInstVideo(
+    public ResponseEntity<ListResult<VideoWithCommentDto>> viewFollowInstVideo(
             @RequestHeader("Authorization") String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getInstVideo(user, page));
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getInstVideo(user, page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "추천 영상 조회")
     @GetMapping("/view/recommendation")
-    public ResponseEntity<SingleResult<VideoResDto>> viewRecommendationVideo() {
-        VideoResDto dto = videoService.getVideoDto(videoService.getRandomVideo());
+    public ResponseEntity<SingleResult<VideoWithCommentDto>> viewRecommendationVideo(
+            @RequestHeader(name = "Authorization", required = false) String jwt
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        VideoWithCommentDto dto = videoService.getVideoWithCommentDto(user, videoService.getRandomVideo());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "특정인의 비디오 전체 조회(20개씩)")
     @GetMapping("/view/all/{userId}/{page}")
-    public ResponseEntity<ListResult<VideoResDto>> getUserVideoList(
+    public ResponseEntity<ListResult<VideoWithCommentDto>> getUserVideoList(
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String userId,
             @PathVariable int page
     ) {
-        List<VideoResDto> dtoList = videoService.getVideoDtoList(videoService.getUserVideoList(Long.valueOf(userId), page));
+        User user = userService.getUserByJwt(jwt);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getUserVideoList(Long.valueOf(userId), page));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 }
