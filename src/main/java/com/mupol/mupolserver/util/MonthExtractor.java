@@ -3,7 +3,7 @@ package com.mupol.mupolserver.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Calendar;
+import java.time.YearMonth;
 
 public class MonthExtractor {
     public static LocalDate getCurrentMonthFirstDate() {
@@ -23,8 +23,7 @@ public class MonthExtractor {
     }
 
     public static LocalDateTime getEndDate(int year, int month) {
-        Calendar cal = Calendar.getInstance();
-        int lastDate = cal.getActualMaximum(Calendar.DATE);
+        int lastDate = YearMonth.of(year,month).atEndOfMonth().getDayOfMonth();
         return LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
     }
 }

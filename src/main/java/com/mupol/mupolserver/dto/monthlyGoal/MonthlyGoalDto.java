@@ -8,7 +8,8 @@ import lombok.ToString;
 @Builder
 @ToString
 public class MonthlyGoalDto {
-    private Long startDate;
-    private int goalNumber;
-    private int achieveNumber;
+    private Integer year;
+    private Integer month;
+    private Integer goalNumber;
+    private Integer achieveNumber;
 }
