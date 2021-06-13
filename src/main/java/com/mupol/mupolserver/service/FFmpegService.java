@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -93,7 +94,7 @@ public class FFmpegService {
                 ffmpegPath, "-i", mediaFile.getOriginalFilename(),
                 "-ss", "00:00:01",
                 "-vcodec", "png",
-                "-vframes", "1","thumbnail.png"
+                "-vframes", "1", "thumbnail.png"
         );
 
         builder.directory(new File(filePath));
@@ -102,6 +103,34 @@ public class FFmpegService {
         Executors.newSingleThreadExecutor().submit(streamGobbler);
         int exitCode = process.waitFor();
         assert exitCode == 0;
+    }
+
+    public double getVideoRatio(MultipartFile videoFile, Long userId, Long videoId) throws IOException, InterruptedException {
+        log.info("get video ratio");
+        String filePath = fileBasePath + userId + "/" + videoId + "/";
+
+        // 비율 추출
+        ProcessBuilder builder = new ProcessBuilder();
+        builder.command(
+                ffprobePath,
+                "-v", "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=width,height",
+                "-of", "default=nw=1:nk=1 ",
+                videoFile.getOriginalFilename()
+        );
+        builder.directory(new File(filePath));
+        Process process = builder.start();
+        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        Double width = Double.valueOf(in.readLine());
+        Double height = Double.valueOf(in.readLine());
+
+        int exitCode = process.waitFor();
+        assert exitCode == 0;
+
+        return width/height;
     }
 
     private static class StreamGobbler implements Runnable {

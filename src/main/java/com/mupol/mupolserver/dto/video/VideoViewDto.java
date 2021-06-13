@@ -33,4 +33,7 @@ public class VideoViewDto extends VideoResDto {
 
     @ApiModelProperty(notes = "다음 비디오 영상들")
     private List<VideoWithSaveDto> nextVideoList;
+
+    @ApiModelProperty(notes = "영상 가로 세로 비율")
+    private Double ratio;
 }

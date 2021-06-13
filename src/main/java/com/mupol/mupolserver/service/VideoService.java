@@ -74,7 +74,6 @@ public class VideoService {
         log.info(metaData.getDetail());
         List<String> instruments = metaData.getInstrumentList();
         List<Instrument> instrumentList = new ArrayList<>();
-
         try {
             if (instruments != null)
                 for (String inst : instruments) {
@@ -88,7 +87,6 @@ public class VideoService {
 
         List<String> hashtags = metaData.getHashtagList();
         List<Hashtag> hashtagList = new ArrayList<>();
-
         try {
             if (hashtags != null)
                 for (String inst : hashtags) hashtagList.add(Hashtag.valueOf(inst));
@@ -115,6 +113,10 @@ public class VideoService {
 
         //get thumbnail
         ffmpegService.createThumbnail(videoFile, userId, videoId);
+
+        //get ratio
+        Double ratio = ffmpegService.getVideoRatio(videoFile, userId, videoId);
+        video.setRatio(ratio);
 
         // upload split video
         File folder = new File(fileBasePath + userId + "/" + videoId);
@@ -275,6 +277,7 @@ public class VideoService {
                 .isFollowing(user != null && followerService.isFollowingUser(user, video.getUser()))
                 .saveFlag(user != null && playlistService.amISavedVideo(user,video))
                 .saveNum(playlistService.getSavedVideoCount(video))
+                .ratio(video.getRatio())
                 // TODO: 다음 추천 영상 목록
                 //.nextVideoList()
                 .build();

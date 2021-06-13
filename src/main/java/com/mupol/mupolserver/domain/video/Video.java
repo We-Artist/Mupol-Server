@@ -66,6 +66,9 @@ public class Video extends BaseTime implements Serializable {
     private Long Length;
 
     @Setter
+    private Double ratio;
+
+    @Setter
     private int viewNum;
 
 }
