@@ -165,8 +165,9 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNewVideo(page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getNewVideo(page);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
     @ApiImplicitParams({
@@ -179,8 +180,10 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getHotVideo(page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getHotVideo(page);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
+
     }
 
     @ApiImplicitParams({
@@ -193,8 +196,9 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getFollowingVideo(user, page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getFollowingVideo(user, page);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
     @ApiImplicitParams({
@@ -207,8 +211,9 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getInstVideo(user, page));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+        VideoPageDto dto = videoService.getInstVideo(user, page);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
     @ApiImplicitParams({
@@ -235,7 +240,22 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getUserVideoList(Long.valueOf(userId), page));
+        VideoPageDto dto = videoService.getUserVideoList(Long.valueOf(userId), page);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "다음 영상 목록(최대 10개)")
+    @GetMapping("/view/next/{videoId}")
+    public ResponseEntity<ListResult<VideoWithCommentDto>> getNextVideoList(
+            @RequestHeader(name = "Authorization", required = false) String jwt,
+            @PathVariable String videoId
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNextVideo(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 }

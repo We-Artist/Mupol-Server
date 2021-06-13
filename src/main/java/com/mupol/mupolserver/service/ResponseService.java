@@ -3,6 +3,7 @@ package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.response.CommonResult;
 import com.mupol.mupolserver.domain.response.ListResult;
+import com.mupol.mupolserver.domain.response.PageResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -52,5 +53,15 @@ public class ResponseService {
     private void setSuccessResult(CommonResult result) {
         result.setSuccess(true);
         result.setMsg(CommonResponse.SUCCESS.getMsg());
+    }
+
+    public <T> PageResult<T> getPageListResult(List<T> list, boolean hasPrev, boolean hasNext) {
+        PageResult<T> result = new PageResult();
+        result.setData(list);
+        setSuccessResult(result);
+        result.setHasPrev(hasPrev);
+        result.setHasNext(hasNext);
+
+        return result;
     }
 }

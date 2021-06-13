@@ -1,6 +1,7 @@
 package com.mupol.mupolserver.domain.video;
 
 import com.mupol.mupolserver.domain.instrument.Instrument;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,17 +26,17 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     @Query(value = "select * from video order by rand() limit 1", nativeQuery=true)
     Optional<Video> getRandomVideo();
 
-    Optional <List<Video>> findByUserIdInOrderByCreatedAtDesc(List<Long> userId, Pageable pageRequest);
+    Optional<Page<Video>> findByUserIdInOrderByCreatedAtDesc(List<Long> userId, Pageable pageRequest);
 
-    Optional <List<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList, Pageable pageRequest);
+    Optional<Page<Video>> findAllByInstrumentsInOrderByCreatedAtDesc(List<Instrument> instrumentList, Pageable pageRequest);
 
-    Optional <List<Video>> findAllByOrderByCreatedAtDesc(Pageable pageRequest);
+    Optional<Page<Video>> findAllByOrderByCreatedAtDesc(Pageable pageRequest);
 
-    Optional <List<Video>> findByIdIn(List<Long> videoId, Pageable pageRequest);
+    Optional<Page<Video>> findAllByUserId(Long userId, Pageable pageRequest);
 
-    Optional<List<Video>> findAllByUserId(Long userId, Pageable pageRequest);
-
-    Optional<List<Video>> findByIdInOrderByViewNumDesc(List<Long> videoid, Pageable pageRequest);
+    Optional<Page<Video>> findByIdInOrderByViewNumDesc(List<Long> videoId, Pageable pageRequest);
 
     Optional<Video> findByIdAndUserId(Long id, Long userId);
+
+    Optional<List<Video>> findTop10ByUserIdAndCreatedAtGreaterThan(Long userId, LocalDateTime localDateTime);
 }
