@@ -38,7 +38,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/v1/search/**",
                         "/v1/user/all",
                         "/v1/user/*",
-                        "/v1/video/**"
+                        "/v1/video/**",
+                        "/v1/comment/view/**"
                 ).permitAll()
                 .antMatchers(HttpMethod.GET, "/exception/**").permitAll()
 //                .antMatchers(HttpMethod.GET, "/v1/user/").hasRole("ADMIN")

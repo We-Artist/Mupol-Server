@@ -47,11 +47,8 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value = "비디오 댓글 전체 조회", notes = "")
-    @GetMapping("/{videoId}")
+    @GetMapping("/view/{videoId}")
     public ResponseEntity<ListResult<CommentResDto>> getVideoList(
             @PathVariable String videoId
     ) {
