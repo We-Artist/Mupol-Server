@@ -5,7 +5,6 @@ import com.mupol.mupolserver.domain.comment.CommentRepository;
 import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
-import com.mupol.mupolserver.dto.comment.CommentReqDto;
 import com.mupol.mupolserver.dto.comment.CommentResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +23,12 @@ public class CommentService {
     private final NotificationService notificationService;
     private final FollowerService followerService;
 
-    public CommentResDto uploadComment(User user, Video video, CommentReqDto metaData) throws IOException, InterruptedException {
+    public CommentResDto uploadComment(User user, Video video, String content) throws IOException, InterruptedException {
 
         Comment comment = Comment.builder()
                 .user(user)
                 .video(video)
-                .content(metaData.getContent())
+                .content(content)
                 .build();
         commentRepository.save(comment);
 

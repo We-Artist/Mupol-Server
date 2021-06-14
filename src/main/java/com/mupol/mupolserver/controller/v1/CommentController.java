@@ -5,9 +5,11 @@ import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
-import com.mupol.mupolserver.dto.comment.CommentReqDto;
 import com.mupol.mupolserver.dto.comment.CommentResDto;
-import com.mupol.mupolserver.service.*;
+import com.mupol.mupolserver.service.CommentService;
+import com.mupol.mupolserver.service.ResponseService;
+import com.mupol.mupolserver.service.UserService;
+import com.mupol.mupolserver.service.VideoService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,21 +39,18 @@ public class CommentController {
     @PostMapping(value = "/{videoId}/new")
     public ResponseEntity<SingleResult<CommentResDto>> addVideo(
             @RequestHeader("Authorization") String jwt,
-            @ApiParam(value = "metaData") @RequestPart CommentReqDto metaData,
+            @ApiParam(value = "content") @RequestParam String content,
             @PathVariable String videoId
     ) throws IOException, InterruptedException {
         User user = userService.getUserByJwt(jwt);
         Video video = videoService.getVideo(Long.parseLong(videoId));
 
-        CommentResDto dto = commentService.uploadComment(user, video, metaData);
+        CommentResDto dto = commentService.uploadComment(user, video, content);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
-    })
     @ApiOperation(value = "비디오 댓글 전체 조회", notes = "")
-    @GetMapping("/{videoId}")
+    @GetMapping("/view/{videoId}")
     public ResponseEntity<ListResult<CommentResDto>> getVideoList(
             @PathVariable String videoId
     ) {
