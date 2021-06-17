@@ -30,10 +30,10 @@ public class PlaylistService {
     private final PlaylistVideoRepository playlistVideoRepository;
     private final VideoRepository videoRepository;
 
-    public PlaylistResDto createPlaylist(User user, PlaylistReqDto metaData) throws IOException, InterruptedException {
+    public PlaylistResDto createPlaylist(User user, String name) {
         Playlist playlist = Playlist.builder()
                 .user(user)
-                .name(metaData.getName())
+                .name(name)
                 .build();
         playlistRepository.save(playlist);
 
@@ -45,7 +45,7 @@ public class PlaylistService {
     }
 
     public List<Playlist> getPlaylists(Long userId) {
-        return playlistRepository.findPlaylistByUserId(userId).orElseThrow(()->new IllegalArgumentException("not exist user"));
+        return playlistRepository.findPlaylistByUserId(userId).orElseThrow(() -> new IllegalArgumentException("not exist user"));
     }
 
     public Playlist updateName(Long playlistId, String name) {
@@ -62,17 +62,17 @@ public class PlaylistService {
 
     public List<Video> getPlaylistVideoes(Long playlistId) {
         List<PlaylistVideo> playlistVideoList = new ArrayList<>();
-        playlistVideoList = playlistVideoRepository.findByPlaylistId(playlistId).orElseThrow(()->new IllegalArgumentException("not exist playlist"));
+        playlistVideoList = playlistVideoRepository.findByPlaylistId(playlistId).orElseThrow(() -> new IllegalArgumentException("not exist playlist"));
 
         List<Video> videoList = new ArrayList<>();
-        for (int i = 0; i < playlistVideoList.size(); i++){
+        for (int i = 0; i < playlistVideoList.size(); i++) {
             videoList.add(playlistVideoList.get(i).getVideo());
         }
 
         return videoList;
     }
 
-    public PlaylistVideoDto addPlaylistVideo(Long playlistId, Long videoId){
+    public PlaylistVideoDto addPlaylistVideo(Long playlistId, Long videoId) {
         Playlist playlist = playlistRepository.findById(playlistId).orElseThrow();
         Video video = videoRepository.findById(videoId).orElseThrow();
 
@@ -86,7 +86,7 @@ public class PlaylistService {
     }
 
     @Transactional
-    public void deletePlaylistVideo(Long playlistId, Long videoId){
+    public void deletePlaylistVideo(Long playlistId, Long videoId) {
         Playlist playlist = playlistRepository.findById(playlistId).orElseThrow();
         Video video = videoRepository.findById(videoId).orElseThrow();
         playlistVideoRepository.deleteByPlaylistIdAndVideoId(playlistId, videoId);
@@ -119,9 +119,9 @@ public class PlaylistService {
         return dto;
     }
 
-    public Integer getSavedVideoCount(Video video){
+    public Integer getSavedVideoCount(Video video) {
         Optional<List<PlaylistVideo>> playlistVideoList = playlistVideoRepository.findAllByVideo(video);
-        if(playlistVideoList.isEmpty())
+        if (playlistVideoList.isEmpty())
             return 0;
         return playlistVideoList.get().size();
     }
@@ -129,10 +129,10 @@ public class PlaylistService {
     // TODO: 최적화 될거 같다
     public boolean amISavedVideo(User user, Video video) {
         Optional<List<Playlist>> playlistList = playlistRepository.findPlaylistByUserId(user.getId());
-        if(playlistList.isEmpty())
+        if (playlistList.isEmpty())
             return false;
-        for(Playlist playlist: playlistList.get()) {
-            if(playlistVideoRepository.existsPlaylistVideoByPlaylistAndVideo(playlist, video))
+        for (Playlist playlist : playlistList.get()) {
+            if (playlistVideoRepository.existsPlaylistVideoByPlaylistAndVideo(playlist, video))
                 return true;
         }
         return false;

@@ -38,10 +38,11 @@ public class PlaylistController {
     @PostMapping(value = "/new")
     public ResponseEntity<SingleResult<PlaylistResDto>> createPlaylist(
             @RequestHeader("Authorization") String jwt,
-            @ApiParam(value = "metaData") @RequestPart PlaylistReqDto metaData) throws IOException, InterruptedException {
+            @ApiParam(value = "playlist name") @RequestParam String name
+    ) {
         User user = userService.getUserByJwt(jwt);
-        System.out.println(metaData.getName());
-        PlaylistResDto dto = playlistService.createPlaylist(user, metaData);
+        System.out.println(name);
+        PlaylistResDto dto = playlistService.createPlaylist(user, name);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
