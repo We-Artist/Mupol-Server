@@ -58,10 +58,8 @@ public class VideoController {
                 .hashtagList(hashtagList)
                 .build();
         User user = userService.getUserByJwt(jwt);
-        if(user == null)
-            throw new IllegalArgumentException("invalid user");
-        if (videoFile == null || videoFile.isEmpty())
-            throw new IllegalArgumentException("File is null");
+        if (user == null) throw new IllegalArgumentException("invalid user");
+        if (videoFile == null || videoFile.isEmpty()) throw new IllegalArgumentException("File is null");
         VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
         if (monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
             monthlyGoalService.update(user);
@@ -78,8 +76,7 @@ public class VideoController {
             @RequestHeader(value = "Authorization") String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
-        if(user == null)
-            throw new IllegalArgumentException("user not exist");
+        if (user == null) throw new IllegalArgumentException("user not exist");
         List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getVideos(user.getId()));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
@@ -109,9 +106,7 @@ public class VideoController {
             @PathVariable String videoId
     ) {
         User user = userService.getUserByJwt(jwt);
-        if(user == null) {
-            throw new IllegalArgumentException("unauthorized");
-        }
+        if (user == null) throw new IllegalArgumentException("unauthorized");
         videoService.deleteVideo(user.getId(), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
@@ -126,9 +121,7 @@ public class VideoController {
             @PathVariable String videoId
     ) throws IOException {
         User user = userService.getUserByJwt(jwt);
-        if(user == null) {
-            throw new IllegalArgumentException("unauthorized");
-        }
+        if (user == null) throw new IllegalArgumentException("unauthorized");
         Video video = videoService.getVideo(Long.valueOf(videoId));
         videoService.likeVideo(user, video);
         notificationService.send(
@@ -192,9 +185,10 @@ public class VideoController {
     @ApiOperation(value = "팔로우 계정 영상 조회 (20개씩)")
     @GetMapping("/view/follow/user/{page}")
     public ResponseEntity<ListResult<VideoWithCommentDto>> viewFollowUserVideo(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(value = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
+        if (jwt == null) throw new IllegalArgumentException("invalid jwt token");
         User user = userService.getUserByJwt(jwt);
         VideoPageDto dto = videoService.getFollowingVideo(user, page);
         List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
@@ -207,9 +201,10 @@ public class VideoController {
     @ApiOperation(value = "팔로우 악기 영상 조회 (20개씩)")
     @GetMapping("/view/follow/inst/{page}")
     public ResponseEntity<ListResult<VideoWithCommentDto>> viewFollowInstVideo(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(value = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
+        if (jwt == null) throw new IllegalArgumentException("invalid jwt token");
         User user = userService.getUserByJwt(jwt);
         VideoPageDto dto = videoService.getInstVideo(user, page);
         List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
