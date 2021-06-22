@@ -72,7 +72,7 @@ public class ExceptionAdvice {
     }
 
     @ExceptionHandler(UserDoesNotAgreeException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     protected CommonResult userDoesNotAgreeException(HttpServletRequest request, UserDoesNotAgreeException e) {
         return responseService.getFailResult(getMessage("userDoesNotAgree.msg"));
     }
