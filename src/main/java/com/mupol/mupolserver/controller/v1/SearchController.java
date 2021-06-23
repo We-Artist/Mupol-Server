@@ -54,7 +54,7 @@ public class SearchController {
     }
 
     @ApiOperation(value = "최근 검색어 5개", notes = "")
-    @GetMapping(value = "/history/keyword")
+    @GetMapping(value = "/history")
     public ResponseEntity<ListResult<String>> getSearchHistory(
             @RequestHeader(value = "Authorization", required = false) String jwt
     ) {
