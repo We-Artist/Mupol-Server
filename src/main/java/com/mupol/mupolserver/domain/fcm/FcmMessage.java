@@ -4,17 +4,20 @@ import com.mupol.mupolserver.domain.common.BaseTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 @Builder
 @AllArgsConstructor
 @Getter
-public class FcmMessage extends BaseTime {
+@ToString
+public class FcmMessage {
     private boolean validate_only;
     private Message message;
 
     @Builder
     @AllArgsConstructor
     @Getter
+    @ToString
     public static class Message {
         private Notification notification;
         private Data data;
@@ -24,6 +27,7 @@ public class FcmMessage extends BaseTime {
     @Builder
     @AllArgsConstructor
     @Getter
+    @ToString
     public static class Notification {
         private String title;
         private String body;
@@ -33,9 +37,10 @@ public class FcmMessage extends BaseTime {
     @Builder
     @AllArgsConstructor
     @Getter
+    @ToString
     public static class Data {
         private String target;
-        private Long targetId;
-        private boolean isFollowing;
+        private String targetId;
+        private String isFollowing;
     }
 }
