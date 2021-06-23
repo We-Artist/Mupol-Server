@@ -22,8 +22,13 @@ public class LikeService {
         likeRepository.save(like);
     }
 
+    public void delete(User user, Video video) {
+        Optional<Like> like = likeRepository.findByUserAndVideo(user, video);
+        like.ifPresent(likeRepository::delete);
+    }
+
     public boolean isLiked(User user, Video video) {
-        return likeRepository.existsLikeByUserAndVideo(user, video);
+        return likeRepository.findByUserAndVideo(user, video).isPresent();
     }
 
     public long getVideoLikeNum (Video video) {

@@ -1,7 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
-import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
@@ -31,7 +30,6 @@ public class VideoController {
     private final UserService userService;
     private final VideoService videoService;
     private final MonthlyGoalService monthlyGoalService;
-    private final NotificationService notificationService;
     private final FollowerService followerService;
     private final ResponseService responseService;
 
@@ -125,13 +123,6 @@ public class VideoController {
         if (user == null) throw new UserDoesNotAgreeException("invalid jwt");
         Video video = videoService.getVideo(Long.valueOf(videoId));
         videoService.likeVideo(user, video);
-        notificationService.send(
-                user,
-                video.getUser(),
-                video,
-                followerService.isFollowingUser(video.getUser(), user),
-                TargetType.like
-        );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
 
@@ -251,7 +242,7 @@ public class VideoController {
             @PathVariable String videoId
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNextVideo(Long.valueOf(videoId)));
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNextVideoList(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 }
