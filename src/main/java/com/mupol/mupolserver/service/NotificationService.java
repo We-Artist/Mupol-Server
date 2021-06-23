@@ -97,6 +97,7 @@ public class NotificationService {
         List<NotificationDto> dtoList = new ArrayList<>();
         for (Notification noti : res) {
             dtoList.add(NotificationDto.builder()
+                    .id(noti.getId())
                     .title(noti.getTitle())
                     .body(noti.getBody())
                     .senderName(noti.getSender().getUsername())
