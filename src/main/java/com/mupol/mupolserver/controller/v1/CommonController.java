@@ -1,5 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
+import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.service.ResponseService;
@@ -18,16 +19,16 @@ import java.util.HashMap;
 import java.util.List;
 
 @Slf4j
-@Api(tags = {"Instrument"})
+@Api(tags = {"Common"})
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/v1/instr")
-public class InstrumentController {
+@RequestMapping("/v1/common")
+public class CommonController {
 
     private final ResponseService responseService;
 
     @ApiOperation(value = "악기 리스트 조회")
-    @GetMapping("/")
+    @GetMapping("/instr")
     public ResponseEntity<ListResult<HashMap<String, String>>> getInstruments() {
         Instrument[] instrEn = Instrument.values();
         List<HashMap<String, String>> instrumentsList = new ArrayList<>();
@@ -40,5 +41,21 @@ public class InstrumentController {
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(instrumentsList));
+    }
+
+    @ApiOperation(value = "해시태그 조회")
+    @GetMapping("/feedback")
+    public ResponseEntity<ListResult<HashMap<String, String>>> getHashtags() {
+        Hashtag[] hashtags = Hashtag.values();
+        List<HashMap<String, String>> keywords = new ArrayList<>();
+
+        for (Hashtag h : hashtags) {
+            HashMap<String, String> instr = new HashMap<>();
+            instr.put("id", h.getEn());
+            instr.put("valueKr", h.getKo());
+            keywords.add(instr);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(keywords));
     }
 }
