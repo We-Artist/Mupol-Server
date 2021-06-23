@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service;
 
 import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
+import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
@@ -434,5 +435,11 @@ public class VideoService {
 
     public Integer getVideoCountAtMonth(User user, int year, int month) {
         return getVideoAtMonth(user, year, month).size();
+    }
+
+    public void setViewOption(User user, Video video, Boolean option) {
+        if(user != video.getUser()) throw new UserDoesNotAgreeException("invalid user");
+        video.setIsPrivate(!option);
+        videoRepository.save(video);
     }
 }
