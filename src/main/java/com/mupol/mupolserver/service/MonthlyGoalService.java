@@ -81,8 +81,11 @@ public class MonthlyGoalService {
         LocalDate startDate;
         for (int i = 0; i < 24; ++i) {
             startDate = LocalDate.of(year, month, 1);
+            MonthlyGoal goal = getMonthlyGoal(user, startDate);
+            if(goal.getGoalNumber() == 0) continue;
+
             result.add(GoalStatusResDto.builder()
-                    .currentGoal(getDto(getMonthlyGoal(user, startDate)))
+                    .currentGoal(getDto(goal))
                     .soundList(soundService.getSoundAtMonth(user, year, month))
                     .videoList(videoService.getVideoAtMonth(user, year, month))
                     .build());
