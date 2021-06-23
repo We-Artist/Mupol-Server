@@ -2,6 +2,7 @@ package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
+import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.search.SearchResultDto;
 import com.mupol.mupolserver.dto.search.SuggestionResultDto;
 import com.mupol.mupolserver.service.ResponseService;
@@ -39,7 +40,7 @@ public class SearchController {
 
     @ApiOperation(value = "자동완성", notes = "")
     @GetMapping(value = "/autocomplete/{keyword}")
-    public ResponseEntity<SingleResult<SuggestionResultDto>> search(
+    public ResponseEntity<SingleResult<SuggestionResultDto>> autocomplete(
             @ApiParam(value = "검색 키워드") @PathVariable String keyword
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(searchService.getSuggestion(keyword)));
@@ -47,8 +48,17 @@ public class SearchController {
 
     @ApiOperation(value = "인기 검색어 3개", notes = "")
     @GetMapping(value = "/hot/keyword")
-    public ResponseEntity<ListResult<String>> search(
+    public ResponseEntity<ListResult<String>> getHotKeyword(
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(searchService.getHotKeyword()));
+    }
+
+    @ApiOperation(value = "최근 검색어 5개", notes = "")
+    @GetMapping(value = "/history/keyword")
+    public ResponseEntity<ListResult<String>> getSearchHistory(
+            @RequestHeader(value = "Authorization", required = false) String jwt
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(searchService.getHistory(user)));
     }
 }

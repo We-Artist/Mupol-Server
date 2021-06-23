@@ -143,29 +143,18 @@ public class SearchService {
         }
         return result;
     }
+
+    public List<String> getHistory(User user) {
+        if(user == null) return Collections.emptyList();
+
+        Optional<List<Search>> searchList = searchRepository.findAllByUserOrderByCreatedAt(user);
+        if(searchList.isEmpty()) return Collections.emptyList();
+
+        List<String> keywords = new ArrayList<>();
+        for (Search s: searchList.get()) {
+           keywords.add(s.getKeyword());
+           if(keywords.size() == 5) break;
+        }
+        return keywords;
+    }
 }
-
-/*
-
-{
-  "success": true,
-  "msg": "성공했습니다",
-  "data": {
-    "userList": [
-      {
-        "profile_image": "https://mupol-test.s3.ap-northeast-2.amazonaws.com/img/65/profile.jpg",
-        "user_id": "65",
-        "username": "새로운-name1"
-      }
-    ],
-    "videoListByTitle": [
-      {
-        "thumbnail_url": "https://mupol-test.s3.ap-northeast-2.amazonaws.com/img/65/profile.jpg",
-        "video_id": "65",
-        "title": "새로운-title"
-      }
-    ]
-  }
-}
-
- */
