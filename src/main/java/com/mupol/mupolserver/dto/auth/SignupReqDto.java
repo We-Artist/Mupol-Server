@@ -16,4 +16,5 @@ public class SignupReqDto {
     private boolean isMajor;
     private List<String> instruments;
     private LocalDate birth;
+    private String fcmToken;
 }

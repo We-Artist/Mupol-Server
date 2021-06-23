@@ -58,7 +58,7 @@ public class SignService {
                 .terms(true)
                 .birth(birth)
                 .email(userService.getEmailFromSocialProfile(snsType, accessToken))
-                .fcmToken(FcmMessageService.getAccessToken())
+                .fcmToken(dto.getFcmToken())
                 .isNotificationAllowed(true)
                 .role(User.Role.USER)
                 .build());
