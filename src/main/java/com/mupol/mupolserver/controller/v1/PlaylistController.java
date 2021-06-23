@@ -4,6 +4,7 @@ import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
+import com.mupol.mupolserver.dto.playlist.PlaylistMoveVideoDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistResDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoDto;
 import com.mupol.mupolserver.dto.video.VideoWithCommentDto;
@@ -90,7 +91,8 @@ public class PlaylistController {
 
     @GetMapping(value = "/view/{playlistId}")
     public ResponseEntity<SingleResult<PlaylistResDto>> viewSinglePlaylist(
-            @PathVariable String playlistId) throws IOException, InterruptedException {
+            @PathVariable String playlistId
+    ) {
         PlaylistResDto dto = playlistService.getSndDto(playlistService.getPlaylist(Long.valueOf(playlistId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
@@ -103,7 +105,7 @@ public class PlaylistController {
     public ResponseEntity<ListResult<VideoWithCommentDto>> viewPlaylistVideoes(
             @RequestHeader String jwt,
             @PathVariable String playlistId
-    ) throws IOException, InterruptedException {
+    ) {
         User user = userService.getUserByJwt(jwt);
         List<Video> videoList = playlistService.getPlaylistVideoes(Long.valueOf(playlistId));
         List<VideoWithCommentDto> dto = videoService.getVideoWithCommentDtoList(user, videoList);
@@ -126,6 +128,16 @@ public class PlaylistController {
             @RequestBody String videoId) throws IOException, InterruptedException {
         playlistService.deletePlaylistVideo(Long.valueOf(playlistId), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
+    }
+
+    @ApiOperation(value = "재생 목록 간 동영상 이동")
+    @PostMapping(value = "/move/video")
+    public ResponseEntity<SingleResult<PlaylistVideoDto>> moveVideoToAnotherPlaylist(
+            @RequestBody PlaylistMoveVideoDto dto
+    ) {
+        playlistService.deletePlaylistVideo(dto.getCurrentPlaylistId(), dto.getVideoId());
+        PlaylistVideoDto playlistVideoDto = playlistService.addPlaylistVideo(dto.getTargetPlaylistId(), dto.getVideoId());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(playlistVideoDto));
     }
 
 }
