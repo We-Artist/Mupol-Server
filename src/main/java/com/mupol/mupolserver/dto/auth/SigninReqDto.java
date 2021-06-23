@@ -11,4 +11,7 @@ public class SigninReqDto {
 
     @ApiModelProperty(notes = "각 sns에서 제공받은 token")
     private String accessToken;
+
+    @ApiModelProperty(notes = "새로 생성한 fcm 토큰")
+    private String fcmToken;
 }

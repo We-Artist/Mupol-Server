@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @ToString
 public class NotificationDto {
+    private Long id;
     private String title;
     private String body;
     private String senderName;

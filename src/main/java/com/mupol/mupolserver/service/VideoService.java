@@ -2,6 +2,7 @@ package com.mupol.mupolserver.service;
 
 import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
+import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
@@ -9,6 +10,7 @@ import com.mupol.mupolserver.domain.follower.FollowerRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
 import com.mupol.mupolserver.domain.like.Like;
+import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
@@ -55,6 +57,7 @@ public class VideoService {
     private final PlaylistService playlistService;
     private final CommentService commentService;
     private final FollowerService followerService;
+    private final NotificationService notificationService;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -152,11 +155,19 @@ public class VideoService {
         return videoRepository.findVideosByUserId(userId).orElseThrow();
     }
 
-    public void likeVideo(User user, Video video) {
-        likeService.save(Like.builder()
-                .user(user)
-                .video(video)
-                .build());
+    public void likeVideo(User user, Video video) throws IOException {
+        if(!likeService.isLiked(user, video)){
+            likeService.save(Like.builder().user(user).video(video).build());
+            notificationService.send(
+                    user,
+                    video.getUser(),
+                    video,
+                    followerService.isFollowingUser(video.getUser(), user),
+                    TargetType.like
+            );
+        } else {
+            likeService.delete(user, video);
+        }
     }
 
     public ViewHistoryDto createViewHistory(Long videoId) {
@@ -190,8 +201,8 @@ public class VideoService {
         Page<Video> result = videoRepository.findByIdInOrderByViewNumDesc(videoIdList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
-        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
-        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+        boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
+        boolean next = result.getNumber() + 1 >= 0 && result.getNumber() + 1 <= result.getTotalPages() - 1;
 
         dto.setHasPrevPage(prev);
         dto.setHasNextPage(next);
@@ -205,8 +216,8 @@ public class VideoService {
         Page<Video> result = videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
-        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
-        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+        boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
+        boolean next = result.getNumber() + 1 >= 0 && result.getNumber() + 1 <= result.getTotalPages() - 1;
 
         dto.setHasPrevPage(prev);
         dto.setHasNextPage(next);
@@ -232,8 +243,8 @@ public class VideoService {
         Page<Video> result = videoRepository.findAllByUserId(userId, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
-        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
-        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+        boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
+        boolean next = result.getNumber() + 1 >= 0 && result.getNumber() + 1 <= result.getTotalPages() - 1;
 
         dto.setHasPrevPage(prev);
         dto.setHasNextPage(next);
@@ -251,8 +262,8 @@ public class VideoService {
         Page<Video> result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
-        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
-        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+        boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
+        boolean next = result.getNumber() + 1 >= 0 && result.getNumber() + 1 <= result.getTotalPages() - 1;
 
         dto.setHasPrevPage(prev);
         dto.setHasNextPage(next);
@@ -270,8 +281,8 @@ public class VideoService {
         Page<Video> result = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
-        boolean prev = (result.getNumber()-1 < 0 || result.getNumber()-1 > result.getTotalPages()-1) ? false : true;
-        boolean next = (result.getNumber()+1 < 0 || result.getNumber()+1 > result.getTotalPages()-1)? false : true;
+        boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
+        boolean next = result.getNumber() + 1 >= 0 && result.getNumber() + 1 <= result.getTotalPages() - 1;
 
         dto.setHasPrevPage(prev);
         dto.setHasNextPage(next);
@@ -404,12 +415,11 @@ public class VideoService {
         return videos.get();
     }
 
-    public List<Video> getNextVideo(Long videoId){
+    public List<Video> getNextVideoList(Long videoId){
         Video video = videoRepository.findById(videoId).orElseThrow();
 
         Optional<List<Video>> videos = videoRepository.findTop10ByUserIdAndCreatedAtGreaterThan(video.getUser().getId(), video.getCreatedAt());
-
-        return videos.get();
+        return videos.orElse(Collections.emptyList());
     }
 
     //    @Cacheable(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()", unless = "#result == null")
@@ -425,5 +435,11 @@ public class VideoService {
 
     public Integer getVideoCountAtMonth(User user, int year, int month) {
         return getVideoAtMonth(user, year, month).size();
+    }
+
+    public void setViewOption(User user, Video video, Boolean option) {
+        if(user != video.getUser()) throw new UserDoesNotAgreeException("invalid user");
+        video.setIsPrivate(!option);
+        videoRepository.save(video);
     }
 }

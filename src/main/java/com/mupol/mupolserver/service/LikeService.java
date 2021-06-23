@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +24,13 @@ public class LikeService {
         likeRepository.save(like);
     }
 
+    public void delete(User user, Video video) {
+        Optional<Like> like = likeRepository.findByUserAndVideo(user, video);
+        like.ifPresent(likeRepository::delete);
+    }
+
     public boolean isLiked(User user, Video video) {
-        return likeRepository.existsLikeByUserAndVideo(user, video);
+        return likeRepository.findByUserAndVideo(user, video).isPresent();
     }
 
     public long getVideoLikeNum (Video video) {
@@ -31,5 +38,16 @@ public class LikeService {
         if(likeList.isEmpty())
             return 0;
         return likeList.get().size();
+    }
+
+    public List<Video> getLikedVideos(User user) {
+        Optional<List<Like>> likeList = likeRepository.findAllByUserOrderByCreatedAt(user);
+        if(likeList.isEmpty()) return Collections.emptyList();
+
+        List<Video> videoList = new ArrayList<>();
+        for(Like l: likeList.get()) {
+            videoList.add(l.getVideo());
+        }
+        return videoList;
     }
 }

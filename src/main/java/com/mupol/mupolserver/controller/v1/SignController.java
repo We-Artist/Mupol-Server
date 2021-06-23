@@ -39,9 +39,9 @@ public class SignController {
     @PostMapping(value = "/signin")
     public ResponseEntity<SingleResult<String>> signinByProvider(
             @ApiParam(value = "json") @RequestBody SigninReqDto signinReqDto
-    ) throws IOException {
+    ) {
         User user = userService.getUserByProviderAndToken(SnsType.valueOf(signinReqDto.getProvider()), signinReqDto.getAccessToken());
-        userService.registerAccessToken(user, FcmMessageService.getAccessToken());
+        userService.registerAccessToken(user, signinReqDto.getFcmToken());
         String jwt = jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(jwt));
     }

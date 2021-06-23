@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.mupol.mupolserver.domain.fcm.FcmMessage;
 import com.mupol.mupolserver.domain.notification.TargetType;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
@@ -16,15 +16,15 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class FcmMessageService {
 
     @Value("${fcm.apiUrl}")
     private String API_URL;
-    private RestTemplate restTemplate;
-    private ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     public static String getAccessToken() throws IOException {
         String firebaseConfigPath = "firebase/firebase-service-key.json";
@@ -35,12 +35,21 @@ public class FcmMessageService {
         return googleCredentials.getAccessToken().getTokenValue();
     }
 
-    public void sendMessageTo(String targetToken, String title, String body, TargetType targetType, Long targetId, boolean isFollowing) throws IOException {
+    public void sendMessageTo(
+            String targetToken,
+            String title,
+            String body,
+            TargetType targetType,
+            Long targetId,
+            boolean isFollowing
+    ) throws IOException {
         String message = makeMessage(targetToken, title, body, targetType, targetId, isFollowing);
+        log.info("===========FCM LOG===========");
+        log.info(message);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", "Bearer " + getAccessToken());
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8");
         HttpEntity<String> request = new HttpEntity<String>(message, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(API_URL, request, String.class);
@@ -52,11 +61,14 @@ public class FcmMessageService {
                 .message(FcmMessage.Message.builder()
                         .token(targetToken)
                         .notification(FcmMessage.Notification.builder()
-                                .title(title).body(body).image(null).build())
+                                .title(title)
+                                .body(body)
+                                .image(null)
+                                .build())
                         .data(FcmMessage.Data.builder()
                                 .target(targetType.getType())
-                                .targetId(targetId)
-                                .isFollowing(isFollowing)
+                                .targetId(targetId.toString())
+                                .isFollowing(String.valueOf(isFollowing))
                                 .build())
                         .build())
                 .validate_only(false)

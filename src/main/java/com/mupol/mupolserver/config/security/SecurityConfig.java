@@ -33,7 +33,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(
                         "/v1/auth/**",
-                        "/v1/instr/**",
+                        "/v1/common/**",
                         "/v1/user/validate-name/**",
                         "/v1/search/**",
                         "/v1/user/all",

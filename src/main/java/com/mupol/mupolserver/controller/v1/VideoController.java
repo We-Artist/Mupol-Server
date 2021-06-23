@@ -1,6 +1,6 @@
 package com.mupol.mupolserver.controller.v1;
 
-import com.mupol.mupolserver.domain.notification.TargetType;
+import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
@@ -30,7 +30,6 @@ public class VideoController {
     private final UserService userService;
     private final VideoService videoService;
     private final MonthlyGoalService monthlyGoalService;
-    private final NotificationService notificationService;
     private final FollowerService followerService;
     private final ResponseService responseService;
 
@@ -117,20 +116,13 @@ public class VideoController {
     @ApiOperation(value = "비디오 좋아요")
     @PatchMapping("/like/{videoId}")
     public ResponseEntity<SingleResult<String>> likeVideo(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(value = "Authorization", required = false) String jwt,
             @PathVariable String videoId
     ) throws IOException {
         User user = userService.getUserByJwt(jwt);
-        if (user == null) throw new IllegalArgumentException("unauthorized");
+        if (user == null) throw new UserDoesNotAgreeException("invalid jwt");
         Video video = videoService.getVideo(Long.valueOf(videoId));
         videoService.likeVideo(user, video);
-        notificationService.send(
-                user,
-                video.getUser(),
-                video,
-                followerService.isFollowingUser(video.getUser(), user),
-                TargetType.like
-        );
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("video like"));
     }
 
@@ -188,8 +180,8 @@ public class VideoController {
             @RequestHeader(value = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
-        if (jwt == null) throw new IllegalArgumentException("invalid jwt token");
         User user = userService.getUserByJwt(jwt);
+        if (user == null) throw new UserDoesNotAgreeException("invalid user");
         VideoPageDto dto = videoService.getFollowingVideo(user, page);
         List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
@@ -204,8 +196,8 @@ public class VideoController {
             @RequestHeader(value = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
-        if (jwt == null) throw new IllegalArgumentException("invalid jwt token");
         User user = userService.getUserByJwt(jwt);
+        if (user == null) throw new UserDoesNotAgreeException("invalid user");
         VideoPageDto dto = videoService.getInstVideo(user, page);
         List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
@@ -250,7 +242,22 @@ public class VideoController {
             @PathVariable String videoId
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNextVideo(Long.valueOf(videoId)));
+        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNextVideoList(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "영상 조회 옵션 설정")
+    @PostMapping("/view-option")
+    public ResponseEntity<SingleResult<String>> setVideoViewOption(
+            @RequestHeader(name = "Authorization") String jwt,
+            @ApiParam(value = "option: true(공개)/false(비공개)") @RequestBody ViewOptionReqDto dto
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        Video video = videoService.getVideo(dto.getVideoId());
+        videoService.setViewOption(user, video, dto.getOption());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("view option: " + dto.getOption()));
     }
 }

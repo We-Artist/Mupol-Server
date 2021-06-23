@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
-    boolean existsLikeByUserAndVideo(User user, Video video);
+    Optional<Like> findByUserAndVideo(User user, Video video);
     Optional<List<Like>> findAllByVideo(Video video);
+    Optional<List<Like>> findAllByUserOrderByCreatedAt(User user);
 }
