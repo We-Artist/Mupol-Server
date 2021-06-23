@@ -8,7 +8,6 @@ import com.mupol.mupolserver.domain.playlist.PlaylistVideoRepository;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
-import com.mupol.mupolserver.dto.playlist.PlaylistReqDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistResDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoDto;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -100,6 +98,7 @@ public class PlaylistService {
         dto.setUpdatedAt(snd.getModifiedDate());
         dto.setUserId(snd.getUser().getId());
         dto.setName(snd.getName());
+        dto.setThumbnail(playlistVideoRepository.findTop1ByPlaylistId(snd.getId()).orElseThrow().getVideo().getThumbnailUrl());
         dto.setVideoNum(playlistVideoRepository.countByPlaylistId(snd.getId()).orElseThrow());
         return dto;
     }

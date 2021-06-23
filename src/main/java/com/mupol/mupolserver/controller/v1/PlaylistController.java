@@ -39,7 +39,6 @@ public class PlaylistController {
             @ApiParam(value = "playlist name") @RequestParam String name
     ) {
         User user = userService.getUserByJwt(jwt);
-        System.out.println(name);
         PlaylistResDto dto = playlistService.createPlaylist(user, name);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }

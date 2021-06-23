@@ -9,21 +9,24 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class PlaylistResDto {
-    @ApiModelProperty(notes ="재생 목록 Id")
+    @ApiModelProperty(notes ="보관함 Id")
     private Long id;
 
-    @ApiModelProperty(notes ="댓글 작성자 Id")
+    @ApiModelProperty(notes ="보관함 작성자 Id")
     private Long userId;
 
-    @ApiModelProperty(notes ="재생 목록 이름")
+    @ApiModelProperty(notes ="보관함 이름")
     private String name;
 
-    @ApiModelProperty(notes ="재생 목록 작성 시간")
+    @ApiModelProperty(notes ="보관함 작성 시간")
     private LocalDateTime createdAt;
 
-    @ApiModelProperty(notes ="재생 목록 수정 시간")
+    @ApiModelProperty(notes ="보관함 수정 시간")
     private LocalDateTime updatedAt;
 
     @ApiModelProperty(notes ="비디오 개수")
     private Long videoNum;
+
+    @ApiModelProperty(notes ="보관함 썸네일")
+    private String thumbnail;
 }

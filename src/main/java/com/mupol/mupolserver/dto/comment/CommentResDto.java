@@ -15,6 +15,9 @@ public class CommentResDto {
     @ApiModelProperty(notes ="댓글 작성자 Id")
     private Long userId;
 
+    @ApiModelProperty(notes ="댓글 작성자 이름")
+    private String userName;
+
     @ApiModelProperty(notes ="Video Id")
     private Long videoId;
 
