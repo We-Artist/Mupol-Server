@@ -98,8 +98,11 @@ public class PlaylistService {
         dto.setUpdatedAt(snd.getModifiedDate());
         dto.setUserId(snd.getUser().getId());
         dto.setName(snd.getName());
-        dto.setThumbnail(playlistVideoRepository.findTop1ByPlaylistId(snd.getId()).orElseThrow().getVideo().getThumbnailUrl());
         dto.setVideoNum(playlistVideoRepository.countByPlaylistId(snd.getId()).orElseThrow());
+
+        PlaylistVideo video = playlistVideoRepository.findTop1ByPlaylistId(snd.getId()).orElse(null);
+        if (video != null) dto.setThumbnail(video.getVideo().getThumbnailUrl());
+
         return dto;
     }
 
