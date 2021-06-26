@@ -19,10 +19,10 @@ public class PlaylistResDto {
     private String name;
 
     @ApiModelProperty(notes ="재생 목록 작성 시간")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     @ApiModelProperty(notes ="재생 목록 수정 시간")
-    private LocalDateTime updatedAt;
+    private Long updatedAt;
 
     @ApiModelProperty(notes ="비디오 개수")
     private Long videoNum;

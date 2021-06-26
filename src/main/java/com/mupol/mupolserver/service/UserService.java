@@ -8,13 +8,12 @@ import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.user.UserResDto;
 import com.mupol.mupolserver.service.social.SocialServiceFactory;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -109,7 +108,7 @@ public class UserService {
                 .profileImageUrl(target.getProfileImageUrl())
                 .bgImageUrl(target.getBgImageUrl())
                 .bio(target.getBio())
-                .createdAt(target.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .createdAt(TimeUtils.getUnixTimestamp(target.getCreatedAt()))
                 .email(target.getEmail())
                 .favoriteInstrumentList(target.getFavoriteInstrument())
                 .major(target.isMajor())

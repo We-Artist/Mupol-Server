@@ -5,9 +5,8 @@ import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.sound.SoundRepository;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.sound.SoundOptionDto;
-import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
-import com.mupol.mupolserver.util.MonthExtractor;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,8 +106,8 @@ public class SoundService {
     }
 
     public List<SoundResDto> getSoundAtMonth(User user, int year, int month) {
-        LocalDateTime start = MonthExtractor.getStartDate(year, month);
-        LocalDateTime end = MonthExtractor.getEndDate(year, month);
+        LocalDateTime start = TimeUtils.getStartDate(year, month);
+        LocalDateTime end = TimeUtils.getEndDate(year, month);
 
         List<Sound> soundList = soundRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("sound list error"));
@@ -117,8 +116,8 @@ public class SoundService {
     }
 
     public Integer getSoundCountAtMonth(User user, int year, int month) {
-        LocalDateTime start = MonthExtractor.getStartDate(year, month);
-        LocalDateTime end = MonthExtractor.getEndDate(year, month);
+        LocalDateTime start = TimeUtils.getStartDate(year, month);
+        LocalDateTime end = TimeUtils.getEndDate(year, month);
 
         Optional<Integer> cnt = soundRepository.countAllByUserIdAndCreatedAtBetween(user.getId(), start, end);
         if (cnt.isEmpty())

@@ -6,6 +6,7 @@ import com.mupol.mupolserver.domain.notification.TargetType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.comment.CommentResDto;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,8 +51,8 @@ public class CommentService {
         dto.setId(comment.getId());
         dto.setVideoId(comment.getVideo().getId());
         dto.setContent(comment.getContent());
-        dto.setCreatedAt(comment.getCreatedAt());
-        dto.setUpdatedAt(comment.getModifiedDate());
+        dto.setCreatedAt(TimeUtils.getUnixTimestamp(comment.getCreatedAt()));
+        dto.setUpdatedAt(TimeUtils.getUnixTimestamp(comment.getModifiedDate()));
         dto.setUserId(comment.getUser().getId());
         return dto;
     }

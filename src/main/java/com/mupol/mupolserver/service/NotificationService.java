@@ -8,13 +8,13 @@ import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.notification.NotificationDto;
 import com.mupol.mupolserver.dto.notification.UnreadNotificationNumberDto;
 import com.mupol.mupolserver.service.firebase.FcmMessageService;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -110,7 +110,7 @@ public class NotificationService {
                     .body(noti.getBody())
                     .senderName(noti.getSender().getUsername())
                     .senderProfileImageUrl(noti.getSenderProfileImageUrl())
-                    .createdAt(noti.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                    .createdAt(TimeUtils.getUnixTimestamp(noti.getCreatedAt()))
                     .userId(noti.getUserId())
                     .videoId(noti.getVideoId())
                     .isRead(noti.isRead())
