@@ -1,11 +1,8 @@
 package com.mupol.mupolserver.util;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.YearMonth;
+import java.time.*;
 
-public class MonthExtractor {
+public class TimeUtils {
     public static LocalDate getCurrentMonthFirstDate() {
         int y = LocalDate.now().getYear();
         int m = LocalDate.now().getMonthValue();
@@ -25,5 +22,9 @@ public class MonthExtractor {
     public static LocalDateTime getEndDate(int year, int month) {
         int lastDate = YearMonth.of(year,month).atEndOfMonth().getDayOfMonth();
         return LocalDateTime.of(LocalDate.of(year, month, lastDate), LocalTime.of(23,59,59));
+    }
+
+    public static Long getUnixTimestamp(LocalDateTime time) {
+        return time.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli();
     }
 }

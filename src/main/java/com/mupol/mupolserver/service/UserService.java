@@ -8,13 +8,12 @@ import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.user.UserResDto;
 import com.mupol.mupolserver.service.social.SocialServiceFactory;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +44,7 @@ public class UserService {
         List<User> users = userRepository.findAll();
         List<UserResDto> dtoList = new ArrayList<>();
         for(User user: users) {
-            dtoList.add(getDto(user));
+            dtoList.add(getDto(null, user));
             log.info(dtoList.get(dtoList.size()-1).toString());
         }
         return dtoList;
@@ -102,21 +101,22 @@ public class UserService {
         return user;
     }
 
-    public UserResDto getDto(User user) {
+    public UserResDto getDto(User user, User target) {
         return UserResDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .profileImageUrl(user.getProfileImageUrl())
-                .bgImageUrl(user.getBgImageUrl())
-                .bio(user.getBio())
-                .createdAt(user.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
-                .email(user.getEmail())
-                .favoriteInstrumentList(user.getFavoriteInstrument())
-                .major(user.isMajor())
-                .representativeVideoId(user.getRepresentativeVideoId())
-                .videoCount(videoService.getVideos(user.getId()).size())
-                .followerCount(followerService.getFollowerList(user).size())
-                .followingCount(followerService.getFollowingList(user).size())
+                .id(target.getId())
+                .username(target.getUsername())
+                .profileImageUrl(target.getProfileImageUrl())
+                .bgImageUrl(target.getBgImageUrl())
+                .bio(target.getBio())
+                .createdAt(TimeUtils.getUnixTimestamp(target.getCreatedAt()))
+                .email(target.getEmail())
+                .favoriteInstrumentList(target.getFavoriteInstrument())
+                .major(target.isMajor())
+                .representativeVideoId(target.getRepresentativeVideoId())
+                .videoCount(videoService.getVideos(target.getId()).size())
+                .followerCount(followerService.getFollowerList(target).size())
+                .followingCount(followerService.getFollowingList(target).size())
+                .isFollowing(user != null && followerService.isFollowingUser(user, target))
                 .build();
     }
 

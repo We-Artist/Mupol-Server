@@ -22,9 +22,9 @@ public class CommentResDto {
     private String content;
 
     @ApiModelProperty(notes ="댓글 작성 시간")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     @ApiModelProperty(notes ="댓글 수정 시간")
-    private LocalDateTime updatedAt;
+    private Long updatedAt;
     
 }

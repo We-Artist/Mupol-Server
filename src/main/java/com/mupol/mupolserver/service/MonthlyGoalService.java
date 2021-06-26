@@ -5,7 +5,7 @@ import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoalRepository;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusResDto;
 import com.mupol.mupolserver.dto.monthlyGoal.MonthlyGoalDto;
-import com.mupol.mupolserver.util.MonthExtractor;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ public class MonthlyGoalService {
     }
 
     public void update(User user) {
-        LocalDate startDate = MonthExtractor.getCurrentMonthFirstDate();
+        LocalDate startDate = TimeUtils.getCurrentMonthFirstDate();
         MonthlyGoal monthlyGoal = getMonthlyGoal(user, startDate);
         int year = monthlyGoal.getStartDate().getYear();
         int month = monthlyGoal.getStartDate().getMonthValue();
@@ -76,8 +76,8 @@ public class MonthlyGoalService {
     public List<GoalStatusResDto> getAllGoals(User user) {
         List<GoalStatusResDto> result = new ArrayList<>();
 
-        int year = MonthExtractor.getCurrentMonthFirstDate().getYear();
-        int month = MonthExtractor.getCurrentMonthFirstDate().getMonthValue();
+        int year = TimeUtils.getCurrentMonthFirstDate().getYear();
+        int month = TimeUtils.getCurrentMonthFirstDate().getMonthValue();
         LocalDate startDate;
         for (int i = 0; i < 24; ++i) {
             startDate = LocalDate.of(year, month, 1);

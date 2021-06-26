@@ -17,11 +17,12 @@ public class UserResDto {
     private String bio;
     private String email;
     private List<Instrument> favoriteInstrumentList;
-    private boolean major;
+    private Boolean major;
     private String profileImageUrl;
     private Long createdAt;
     private Long representativeVideoId;
     private Integer followingCount;
     private Integer followerCount;
     private Integer videoCount;
+    private Boolean isFollowing;
 }
