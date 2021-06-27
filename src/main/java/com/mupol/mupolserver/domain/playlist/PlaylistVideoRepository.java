@@ -17,4 +17,6 @@ public interface PlaylistVideoRepository extends JpaRepository<PlaylistVideo, Lo
     boolean existsPlaylistVideoByPlaylistAndVideo(Playlist playlist, Video video);
 
     Optional <PlaylistVideo> deleteByPlaylistIdAndVideoId(Long playlistId, Long videoId);
+
+    Optional <PlaylistVideo> findTop1ByPlaylistId(Long playlistId);
 }

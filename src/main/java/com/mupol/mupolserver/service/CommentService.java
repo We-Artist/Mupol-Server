@@ -49,6 +49,7 @@ public class CommentService {
         CommentResDto dto = new CommentResDto();
 
         dto.setId(comment.getId());
+        dto.setUserName(comment.getUser().getUsername());
         dto.setVideoId(comment.getVideo().getId());
         dto.setContent(comment.getContent());
         dto.setCreatedAt(TimeUtils.getUnixTimestamp(comment.getCreatedAt()));

@@ -106,6 +106,7 @@ public class VideoController {
     ) {
         User user = userService.getUserByJwt(jwt);
         if (user == null) throw new IllegalArgumentException("unauthorized");
+        if (user != videoService.getVideo(Long.valueOf(videoId)).getUser()) throw new IllegalArgumentException("unauthorized");
         videoService.deleteVideo(user.getId(), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }

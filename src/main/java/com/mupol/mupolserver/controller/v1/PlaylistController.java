@@ -32,6 +32,9 @@ public class PlaylistController {
     private final VideoService videoService;
     private final LikeService likeService;
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "재생 목록 생성")
     @PostMapping(value = "/new")
     public ResponseEntity<SingleResult<PlaylistResDto>> createPlaylist(
@@ -39,23 +42,30 @@ public class PlaylistController {
             @ApiParam(value = "playlist name") @RequestParam String name
     ) {
         User user = userService.getUserByJwt(jwt);
-        System.out.println(name);
         PlaylistResDto dto = playlistService.createPlaylist(user, name);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "재생 목록 삭제")
     @DeleteMapping("/delete/{playlistId}")
     public ResponseEntity<SingleResult<String>> deletePlaylist(
+            @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId
     ) {
         playlistService.deletePlaylist(Long.valueOf(playlistId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "재생 목록 제목 수정", notes = "")
     @PatchMapping("/update/{playlistId}")
     public ResponseEntity<SingleResult<PlaylistResDto>> updatePlaylist(
+            @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId,
             @RequestBody String name
     ) {
@@ -89,8 +99,13 @@ public class PlaylistController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dto));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "개별 재생 목록 조회")
     @GetMapping(value = "/view/{playlistId}")
     public ResponseEntity<SingleResult<PlaylistResDto>> viewSinglePlaylist(
+            @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId
     ) {
         PlaylistResDto dto = playlistService.getSndDto(playlistService.getPlaylist(Long.valueOf(playlistId)));
@@ -103,7 +118,7 @@ public class PlaylistController {
     @ApiOperation(value = "개별 재생 목록의 동영상들 조회")
     @GetMapping(value = "/view/video/{playlistId}")
     public ResponseEntity<ListResult<VideoWithCommentDto>> viewPlaylistVideoes(
-            @RequestHeader String jwt,
+            @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId
     ) {
         User user = userService.getUserByJwt(jwt);
@@ -112,27 +127,39 @@ public class PlaylistController {
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dto));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "재생 목록에 동영상 추가")
     @PostMapping(value = "/add/video/{playlistId}")
     public ResponseEntity<SingleResult<PlaylistVideoDto>> addPlaylistVideoes(
+            @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId,
             @RequestBody String videoId) throws IOException, InterruptedException {
         PlaylistVideoDto dto = playlistService.addPlaylistVideo(Long.valueOf(playlistId), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "재생 목록에 동영상 삭제")
     @DeleteMapping(value = "/delete/video/{playlistId}")
     public ResponseEntity<SingleResult<String>> deletePlaylistVideoes(
+            @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId,
             @RequestBody String videoId) throws IOException, InterruptedException {
         playlistService.deletePlaylistVideo(Long.valueOf(playlistId), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "재생 목록 간 동영상 이동")
     @PostMapping(value = "/move/video")
     public ResponseEntity<SingleResult<PlaylistVideoDto>> moveVideoToAnotherPlaylist(
+            @RequestHeader("Authorization") String jwt,
             @RequestBody PlaylistMoveVideoDto dto
     ) {
         playlistService.deletePlaylistVideo(dto.getCurrentPlaylistId(), dto.getVideoId());
