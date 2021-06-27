@@ -10,6 +10,7 @@ import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.dto.playlist.PlaylistResDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoDto;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -94,8 +95,8 @@ public class PlaylistService {
         PlaylistResDto dto = new PlaylistResDto();
 
         dto.setId(snd.getId());
-        dto.setCreatedAt(snd.getCreatedAt());
-        dto.setUpdatedAt(snd.getModifiedDate());
+        dto.setCreatedAt(TimeUtils.getUnixTimestamp(snd.getCreatedAt()));
+        dto.setUpdatedAt(TimeUtils.getUnixTimestamp(snd.getModifiedDate()));
         dto.setUserId(snd.getUser().getId());
         dto.setName(snd.getName());
         dto.setVideoNum(playlistVideoRepository.countByPlaylistId(snd.getId()).orElseThrow());
@@ -116,7 +117,7 @@ public class PlaylistService {
         dto.setId(snd.getId());
         dto.setPlaylistId(snd.getPlaylist().getId());
         dto.setVideoId(snd.getVideo().getId());
-        dto.setCreatedAt(snd.getCreatedAt());
+        dto.setCreatedAt(TimeUtils.getUnixTimestamp(snd.getCreatedAt()));
 
         return dto;
     }

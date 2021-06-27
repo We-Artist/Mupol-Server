@@ -19,5 +19,5 @@ public class PlaylistVideoDto {
     private Long videoId;
 
     @ApiModelProperty(notes ="재생 목록에 비디오 추가 시간")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 }

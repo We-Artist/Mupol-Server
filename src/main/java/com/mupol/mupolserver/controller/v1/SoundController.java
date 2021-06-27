@@ -1,20 +1,16 @@
 package com.mupol.mupolserver.controller.v1;
 
-import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
-import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.domain.user.UserRepository;
 import com.mupol.mupolserver.dto.sound.SoundOptionDto;
-import com.mupol.mupolserver.dto.sound.SoundReqDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
 import com.mupol.mupolserver.service.MonthlyGoalService;
 import com.mupol.mupolserver.service.ResponseService;
 import com.mupol.mupolserver.service.SoundService;
 import com.mupol.mupolserver.service.UserService;
-import com.mupol.mupolserver.util.MonthExtractor;
+import com.mupol.mupolserver.util.TimeUtils;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +50,7 @@ public class SoundController {
         if (soundFile == null || soundFile.isEmpty())
             throw new IllegalArgumentException("File is null");
         SoundResDto dto = soundService.uploadSound(soundFile, user, title, bpm);
-        if(monthlyGoalService.isGoalExist(user, MonthExtractor.getCurrentMonthFirstDate())) {
+        if(monthlyGoalService.isGoalExist(user, TimeUtils.getCurrentMonthFirstDate())) {
             monthlyGoalService.update(user);
         }
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));

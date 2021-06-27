@@ -17,7 +17,7 @@ import com.mupol.mupolserver.domain.video.VideoRepository;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistory;
 import com.mupol.mupolserver.domain.viewHistory.ViewHistoryRepository;
 import com.mupol.mupolserver.dto.video.*;
-import com.mupol.mupolserver.util.MonthExtractor;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTimeConstants;
@@ -36,7 +36,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -145,7 +144,7 @@ public class VideoService {
         return getVideoWithSaveDto(null, video);
     }
 
-//    @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
+    //    @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
     public Video getVideo(Long videoId) {
         return videoRepository.findById(videoId).orElseThrow(() -> new IllegalArgumentException("not exist video"));
     }
@@ -156,7 +155,7 @@ public class VideoService {
     }
 
     public void likeVideo(User user, Video video) throws IOException {
-        if(!likeService.isLiked(user, video)){
+        if (!likeService.isLiked(user, video)) {
             likeService.save(Like.builder().user(user).video(video).build());
             notificationService.send(
                     user,
@@ -230,13 +229,13 @@ public class VideoService {
     }
 
     public void deleteVideo(Long userId, Long videoId) {
-        if(videoRepository.findByIdAndUserId(videoId, userId).isEmpty())
+        if (videoRepository.findByIdAndUserId(videoId, userId).isEmpty())
             throw new IllegalArgumentException("invalid videoId or invalid user");
         s3Service.deleteMedia(userId, videoId, MediaType.Video);
         videoRepository.deleteById(videoId);
     }
 
-    public VideoPageDto getUserVideoList(Long userId, int pageNum){
+    public VideoPageDto getUserVideoList(Long userId, int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         VideoPageDto dto = new VideoPageDto();
@@ -308,7 +307,7 @@ public class VideoService {
                 .originTitle(video.getOriginTitle())
                 .detail(video.getDetail())
                 .isPrivate(video.getIsPrivate())
-                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .createdAt(TimeUtils.getUnixTimestamp(video.getCreatedAt()))
                 .fileUrl(video.getFileUrl())
                 .instrumentList(video.getInstruments())
                 .viewNum(video.getViewNum())
@@ -319,7 +318,7 @@ public class VideoService {
                 .commentResDtoList(commentService.getCommentDtoList(commentList))
                 .hashtagList(video.getHashtags())
                 .isFollowing(user != null && followerService.isFollowingUser(user, video.getUser()))
-                .saveFlag(user != null && playlistService.amISavedVideo(user,video))
+                .saveFlag(user != null && playlistService.amISavedVideo(user, video))
                 .saveNum(playlistService.getSavedVideoCount(video))
                 .width(video.getWidth())
                 .height(video.getHeight())
@@ -337,7 +336,7 @@ public class VideoService {
                 .originTitle(video.getOriginTitle())
                 .detail(video.getDetail())
                 .isPrivate(video.getIsPrivate())
-                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .createdAt(TimeUtils.getUnixTimestamp(video.getCreatedAt()))
                 .fileUrl(video.getFileUrl())
                 .instrumentList(video.getInstruments())
                 .viewNum(video.getViewNum())
@@ -345,7 +344,7 @@ public class VideoService {
                 .likeNum(likeService.getVideoLikeNum(video))
                 .likeFlag(user != null && likeService.isLiked(user, video))
                 .hashtagList(video.getHashtags())
-                .saveFlag(user != null && playlistService.amISavedVideo(user,video))
+                .saveFlag(user != null && playlistService.amISavedVideo(user, video))
                 .saveNum(playlistService.getSavedVideoCount(video))
                 .build();
     }
@@ -360,7 +359,7 @@ public class VideoService {
                 .originTitle(video.getOriginTitle())
                 .detail(video.getDetail())
                 .isPrivate(video.getIsPrivate())
-                .createdAt(video.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                .createdAt(TimeUtils.getUnixTimestamp(video.getCreatedAt()))
                 .fileUrl(video.getFileUrl())
                 .instrumentList(video.getInstruments())
                 .viewNum(video.getViewNum())
@@ -374,7 +373,7 @@ public class VideoService {
     public ViewHistoryDto getViewHistory(ViewHistory viewHistory) {
         ViewHistoryDto dto = new ViewHistoryDto();
 
-        dto.setCreatedAt(viewHistory.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        dto.setCreatedAt(TimeUtils.getUnixTimestamp(viewHistory.getCreatedAt()));
         dto.setId(viewHistory.getId());
         dto.setVideoId(viewHistory.getVideo().getId());
 
@@ -402,7 +401,7 @@ public class VideoService {
         file.delete();
     }
 
-//    @Cacheable(value = CacheKey.VIDEOS_KEYWORD, key = "#keyword", unless = "#result == null")
+    //    @Cacheable(value = CacheKey.VIDEOS_KEYWORD, key = "#keyword", unless = "#result == null")
     public List<Video> getVideoByTitle(String keyword) {
         Optional<List<Video>> videos = videoRepository.findAllByTitleContains(keyword);
         if (videos.isEmpty()) return Collections.emptyList();
@@ -415,7 +414,7 @@ public class VideoService {
         return videos.get();
     }
 
-    public List<Video> getNextVideoList(Long videoId){
+    public List<Video> getNextVideoList(Long videoId) {
         Video video = videoRepository.findById(videoId).orElseThrow();
 
         Optional<List<Video>> videos = videoRepository.findTop10ByUserIdAndCreatedAtGreaterThan(video.getUser().getId(), video.getCreatedAt());
@@ -424,8 +423,8 @@ public class VideoService {
 
     //    @Cacheable(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()", unless = "#result == null")
     public List<VideoWithSaveDto> getVideoAtMonth(User user, int year, int month) {
-        LocalDateTime start = MonthExtractor.getStartDate(year, month);
-        LocalDateTime end = MonthExtractor.getEndDate(year, month);
+        LocalDateTime start = TimeUtils.getStartDate(year, month);
+        LocalDateTime end = TimeUtils.getEndDate(year, month);
 
         List<Video> videoList = videoRepository.findAllByUserIdAndCreatedAtBetween(user.getId(), start, end)
                 .orElseThrow(() -> new IllegalArgumentException("video list error"));
@@ -438,7 +437,7 @@ public class VideoService {
     }
 
     public void setViewOption(User user, Video video, Boolean option) {
-        if(user != video.getUser()) throw new UserDoesNotAgreeException("invalid user");
+        if (user != video.getUser()) throw new UserDoesNotAgreeException("invalid user");
         video.setIsPrivate(!option);
         videoRepository.save(video);
     }

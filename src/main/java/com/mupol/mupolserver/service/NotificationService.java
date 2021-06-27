@@ -8,17 +8,19 @@ import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.notification.NotificationDto;
 import com.mupol.mupolserver.dto.notification.UnreadNotificationNumberDto;
 import com.mupol.mupolserver.service.firebase.FcmMessageService;
+import com.mupol.mupolserver.util.TimeUtils;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class NotificationService {
@@ -33,6 +35,12 @@ public class NotificationService {
             boolean isFollowingUser,
             TargetType type
     ) throws IOException {
+        String receiverToken = receiver.getFcmToken();
+        if(receiverToken == null || receiverToken.isEmpty()){
+            log.info("invalid receiver fcm token");
+            return;
+        }
+
         Long videoId = null;
         Long userId = null;
         Long targetId = null;
@@ -74,7 +82,7 @@ public class NotificationService {
                 .isFollowingUser(isFollowingUser)
                 .build();
 
-        fcmMessageService.sendMessageTo(receiver.getFcmToken(), title, body, type, targetId, isFollowingUser);
+        fcmMessageService.sendMessageTo(receiverToken, title, body, type, targetId, isFollowingUser);
         notificationRepository.save(notification);
     }
 
@@ -102,7 +110,7 @@ public class NotificationService {
                     .body(noti.getBody())
                     .senderName(noti.getSender().getUsername())
                     .senderProfileImageUrl(noti.getSenderProfileImageUrl())
-                    .createdAt(noti.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli())
+                    .createdAt(TimeUtils.getUnixTimestamp(noti.getCreatedAt()))
                     .userId(noti.getUserId())
                     .videoId(noti.getVideoId())
                     .isRead(noti.isRead())

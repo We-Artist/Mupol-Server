@@ -45,9 +45,13 @@ public class UserController {
 
     @ApiOperation(value = "회원 단건 조회", notes = "userId로 회원을 조회한다")
     @GetMapping("/{userId}")
-    public ResponseEntity<SingleResult<UserResDto>> findUserById(@ApiParam(value = "회원 ID", required = true) @PathVariable long userId) {
-        User user = userService.getUserById(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(userService.getDto(user)));
+    public ResponseEntity<SingleResult<UserResDto>> findUserById(
+            @RequestHeader(value = "Authorization", required = false) String jwt,
+            @ApiParam(value = "회원 ID", required = true) @PathVariable long userId
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        User target = userService.getUserById(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(userService.getDto(user, target)));
     }
 
     @ApiImplicitParams({
@@ -57,7 +61,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<SingleResult<UserResDto>> getMyProfile(@RequestHeader("Authorization") String jwt) {
         User user = userService.getUserByJwt(jwt);
-        UserResDto dto = userService.getDto(user);
+        UserResDto dto = userService.getDto(null, user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -89,7 +93,7 @@ public class UserController {
             user.setProfileImageUrl(profileImageUrl);
         }
         userService.save(user);
-        UserResDto dto = userService.getDto(user);
+        UserResDto dto = userService.getDto(null, user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -123,7 +127,7 @@ public class UserController {
         user.setFavoriteInstrument(instrumentList);
 
         userService.save(user);
-        UserResDto userResDto = userService.getDto(user);
+        UserResDto userResDto = userService.getDto(null, user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(userResDto));
     }
 
@@ -251,7 +255,7 @@ public class UserController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable String videoId) {
         User user = userService.getUserByJwt(jwt);
-        UserResDto dto = userService.getDto(userService.setRepresentativeVideoId(user.getId(), Long.valueOf(videoId)));
+        UserResDto dto = userService.getDto(null, userService.setRepresentativeVideoId(user.getId(), Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -262,7 +266,7 @@ public class UserController {
     @DeleteMapping("/represent")
     public ResponseEntity<SingleResult<UserResDto>> deleteRepresentativeVideoId(@RequestHeader("Authorization") String jwt) {
         User user = userService.getUserByJwt(jwt);
-        UserResDto dto = userService.getDto(userService.deleteRepresentativeVideoId(user.getId()));
+        UserResDto dto = userService.getDto(null, userService.deleteRepresentativeVideoId(user.getId()));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 }
