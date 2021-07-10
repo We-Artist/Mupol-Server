@@ -41,7 +41,6 @@ public class SignController {
             @ApiParam(value = "json") @RequestBody SigninReqDto signinReqDto
     ) {
         User user = userService.getUserByProviderAndToken(SnsType.valueOf(signinReqDto.getProvider()), signinReqDto.getAccessToken());
-        userService.registerAccessToken(user, signinReqDto.getFcmToken());
         String jwt = jwtTokenProvider.createToken(String.valueOf(user.getId()), user.getRole());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(jwt));
     }
@@ -53,7 +52,6 @@ public class SignController {
     ) throws IOException {
         User newUser = signService.getUserFromDto(dto);
         userService.save(newUser);
-
         try {
             MultipartFile profileImage = signService.getProfileImage(dto.getProvider(), dto.getAccessToken());
             if (profileImage != null) {
@@ -65,10 +63,19 @@ public class SignController {
             e.printStackTrace();
             throw new ImageUploadFailException();
         }
-
         String jwt = jwtTokenProvider.createToken(String.valueOf(newUser.getId()), newUser.getRole());
-
         return ResponseEntity.status(HttpStatus.CREATED).body(responseService.getSingleResult(jwt));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "로그아웃")
+    @PostMapping(value = "/signout")
+    public ResponseEntity<SingleResult<String>> signOut(@RequestHeader("Authorization") String jwt) {
+        User user = userService.getUserByJwt(jwt);
+        userService.signout(user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("sign out success"));
     }
 
     @ApiImplicitParams({
@@ -76,7 +83,7 @@ public class SignController {
     })
     @ApiOperation(value = "탈퇴")
     @GetMapping(value = "/quit")
-    public ResponseEntity<SingleResult<String>> quitByProvider( @RequestHeader("Authorization") String jwt ) throws IOException {
+    public ResponseEntity<SingleResult<String>> quitByProvider(@RequestHeader("Authorization") String jwt) throws IOException {
         User user = userService.getUserByJwt(jwt);
         userService.quitUser(user);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("quit user"));
