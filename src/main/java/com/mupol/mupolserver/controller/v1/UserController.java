@@ -291,4 +291,18 @@ public class UserController {
         UserResDto dto = userService.getDto(null, userService.deleteRepresentativeVideoId(user.getId()));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
+    @ApiOperation(value = "fcm token 등록")
+    @PatchMapping("/fcm-token")
+    public ResponseEntity<SingleResult<String>> registerFcmToken(
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody FcmTokenReqDto dto
+    ) {
+        User user = userService.getUserByJwt(jwt);
+        userService.registerFcmToken(user, dto.getToken());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("fcm token is registered"));
+    }
 }
