@@ -100,6 +100,28 @@ public class UserController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
+    @ApiOperation(value = "프로필 배경 이미지 변경", notes = "빈 파일을 업로드하면 등록된 이미지가 삭제됩니다.")
+    @PostMapping("/me/profile-bg-image")
+    public ResponseEntity<SingleResult<UserResDto>> updateProfileBgImage(
+            @RequestHeader("Authorization") String jwt,
+            @ApiParam(value = "이미지 파일") @RequestParam(required = false) MultipartFile profileBgImage
+    ) throws IOException {
+        User user = userService.getUserByJwt(jwt);
+
+        if (profileBgImage == null || profileBgImage.isEmpty()) {
+            user.setProfileImageUrl(null);
+        } else {
+            String profileBgImageUrl = s3Service.uploadProfileBgImage(profileBgImage, user.getId());
+            user.setProfileBgImageUrl(profileBgImageUrl);
+        }
+        userService.save(user);
+        UserResDto dto = userService.getDto(null, user);
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+    })
     @ApiOperation(value = "프로필 데이터 수정")
     @PostMapping("/me")
     public ResponseEntity<SingleResult<UserResDto>> updateProfile(
