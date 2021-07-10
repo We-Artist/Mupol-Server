@@ -2,9 +2,13 @@ package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoalRepository;
+import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.monthlyGoal.GoalStatusResDto;
 import com.mupol.mupolserver.dto.monthlyGoal.MonthlyGoalDto;
+import com.mupol.mupolserver.dto.sound.SoundResDto;
+import com.mupol.mupolserver.dto.video.VideoResDto;
+import com.mupol.mupolserver.dto.video.VideoWithSaveDto;
 import com.mupol.mupolserver.util.TimeUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -82,12 +86,14 @@ public class MonthlyGoalService {
         for (int i = 0; i < 24; ++i) {
             startDate = LocalDate.of(year, month, 1);
             MonthlyGoal goal = getMonthlyGoal(user, startDate);
-            if(goal.getGoalNumber() == 0) continue;
+            List<SoundResDto> sndList = soundService.getSoundAtMonth(user, year, month);
+            List<VideoWithSaveDto> vidList = videoService.getVideoAtMonth(user, year, month);
+            if(goal.getGoalNumber() == 0 && sndList.size() == 0 && vidList.size() == 0) continue;
 
             result.add(GoalStatusResDto.builder()
                     .currentGoal(getDto(goal))
-                    .soundList(soundService.getSoundAtMonth(user, year, month))
-                    .videoList(videoService.getVideoAtMonth(user, year, month))
+                    .soundList(sndList)
+                    .videoList(vidList)
                     .build());
             month -= 1;
             if(month == 0) {

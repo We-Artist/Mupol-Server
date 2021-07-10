@@ -4,8 +4,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 public class PlaylistResDto {
@@ -19,10 +17,10 @@ public class PlaylistResDto {
     private String name;
 
     @ApiModelProperty(notes ="보관함 작성 시간")
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     @ApiModelProperty(notes ="보관함 수정 시간")
-    private LocalDateTime updatedAt;
+    private Long updatedAt;
 
     @ApiModelProperty(notes ="비디오 개수")
     private Long videoNum;
