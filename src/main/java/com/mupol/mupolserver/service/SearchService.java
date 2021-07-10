@@ -34,7 +34,7 @@ public class SearchService {
         for (User user : users) {
             SearchUserResultDto dto = SearchUserResultDto.builder()
                     .username(user.getUsername())
-                    .userId(user.getId())
+                    .id(user.getId())
                     .profileImageUrl(user.getProfileImageUrl())
                     .favoriteInstruments(user.getFavoriteInstrument())
                     .followerNumber(user.getFollowers().size())
