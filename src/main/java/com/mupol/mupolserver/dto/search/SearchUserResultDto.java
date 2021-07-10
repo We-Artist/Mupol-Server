@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @ToString
 public class SearchUserResultDto {
-    private Long userId;
+    private Long id;
     private String username;
     private String profileImageUrl;
     private List<Instrument> favoriteInstruments;
