@@ -76,7 +76,7 @@ public class UserService {
         return socialServiceFactory.getService(provider).getEmail(accessToken);
     }
 
-    public void registerAccessToken(User user, String accessToken) {
+    public void registerFcmToken(User user, String accessToken) {
         user.setFcmToken(accessToken);
         userRepository.save(user);
     }
@@ -135,5 +135,9 @@ public class UserService {
     @CacheEvict(value = CacheKey.USER_ID, key = "#user.getId().toString()")
     public void delete(User user) {
         userRepository.delete(user);
+    }
+
+    public void signout(User user) {
+        user.setFcmToken(null);
     }
 }
