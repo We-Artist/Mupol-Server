@@ -53,24 +53,24 @@ public class S3Service {
     }
 
     public String uploadProfileImage(MultipartFile file, Long userId) throws IOException {
-        String fileName = file.getOriginalFilename();
-        String extension = StringUtils.getFilenameExtension(fileName);
-        String filePath = "img/" + userId + "/profile." + extension;
-        log.info(filePath + " uploaded");
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        return uploadImage(file, "img/" + userId + "/profile." + extension);
+    }
 
-        s3Client.putObject(new PutObjectRequest(bucket, filePath, file.getInputStream(), null)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
-        return s3Client.getUrl(bucket, filePath).toString();
+    public String uploadProfileBgImage(MultipartFile file, Long userId) throws IOException {
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        return uploadImage(file, "img/" + userId + "/bg." + extension);
     }
 
     public String uploadThumbnail(MultipartFile file, Long userId, Long videoId) throws IOException {
-        String fileName = file.getOriginalFilename();
-        String extension = StringUtils.getFilenameExtension(fileName);
-        String filePath = "video/" + userId + "/" + videoId + "/thumbnail." + extension;
-        log.info(filePath + " uploaded");
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        return uploadImage(file, "video/" + userId + "/" + videoId + "/thumbnail." + extension);
+    }
 
+    public String uploadImage(MultipartFile file ,String filePath) throws IOException {
         s3Client.putObject(new PutObjectRequest(bucket, filePath, file.getInputStream(), null)
                 .withCannedAcl(CannedAccessControlList.PublicRead));
+        log.info(filePath + " uploaded");
         return s3Client.getUrl(bucket, filePath).toString();
     }
 
