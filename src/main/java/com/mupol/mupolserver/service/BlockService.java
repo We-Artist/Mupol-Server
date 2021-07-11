@@ -2,11 +2,16 @@ package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.block.BlockRepository;
 import com.mupol.mupolserver.domain.block.Block;
+import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.block.BlockResDto;
+import com.mupol.mupolserver.dto.comment.CommentResDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,6 +33,9 @@ public class BlockService {
 
     public void unblock(User blocker, User blocked){ blockRepository.deleteByBlockerAndBlocked(blocker, blocked); }
 
+    //block 여부
+    public Boolean getIsBlocked(User blocker, User blocked){ return blockRepository.existsByBlockerAndBlocked(blocker, blocked).orElseThrow(); }
+
     public BlockResDto getBlockDto(Block block) {
 
         BlockResDto dto = new BlockResDto();
@@ -37,5 +45,4 @@ public class BlockService {
         dto.setBlockedId(block.getBlocked().getId());
         return dto;
     }
-
 }
