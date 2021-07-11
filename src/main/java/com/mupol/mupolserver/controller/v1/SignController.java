@@ -7,10 +7,7 @@ import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.auth.SigninReqDto;
 import com.mupol.mupolserver.dto.auth.SignupReqDto;
-import com.mupol.mupolserver.service.ResponseService;
-import com.mupol.mupolserver.service.S3Service;
-import com.mupol.mupolserver.service.SignService;
-import com.mupol.mupolserver.service.UserService;
+import com.mupol.mupolserver.service.*;
 import com.mupol.mupolserver.service.firebase.FcmMessageService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +31,7 @@ public class SignController {
     private final ResponseService responseService;
     private final S3Service s3Service;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PlaylistService playlistService;
 
     @ApiOperation(value = "소셜 로그인")
     @PostMapping(value = "/signin")
@@ -50,9 +48,11 @@ public class SignController {
     public ResponseEntity<SingleResult<String>> signupProvider(
             @ApiParam(value = "json") @RequestBody SignupReqDto dto
     ) throws IOException {
+        System.out.println("");
         User newUser = signService.getUserFromDto(dto);
         userService.save(newUser);
         try {
+            System.out.println("사진가져오기");
             MultipartFile profileImage = signService.getProfileImage(dto.getProvider(), dto.getAccessToken());
             if (profileImage != null) {
                 String profileImageUrl = s3Service.uploadProfileImage(profileImage, newUser.getId());
@@ -63,6 +63,10 @@ public class SignController {
             e.printStackTrace();
             throw new ImageUploadFailException();
         }
+
+        //회원가입 시 기본 보관함 생성
+        playlistService.createPlaylist(newUser, "default", true);
+
         String jwt = jwtTokenProvider.createToken(String.valueOf(newUser.getId()), newUser.getRole());
         return ResponseEntity.status(HttpStatus.CREATED).body(responseService.getSingleResult(jwt));
     }

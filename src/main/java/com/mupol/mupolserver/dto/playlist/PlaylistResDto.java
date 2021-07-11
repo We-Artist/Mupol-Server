@@ -27,4 +27,7 @@ public class PlaylistResDto {
 
     @ApiModelProperty(notes ="보관함 썸네일")
     private String thumbnail;
+
+    @ApiModelProperty(notes = "기본보관함 여부")
+    private Boolean isDefault;
 }

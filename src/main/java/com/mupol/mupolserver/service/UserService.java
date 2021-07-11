@@ -82,6 +82,7 @@ public class UserService {
     }
 
     public void quitUser(User user) {
+        System.out.println(user.getId());
         userRepository.deleteById(user.getId());
     }
 

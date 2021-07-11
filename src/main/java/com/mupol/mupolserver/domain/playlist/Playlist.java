@@ -29,4 +29,7 @@ public class Playlist extends BaseTime {
 
     @Setter
     private String name;
+
+    @Setter
+    private Boolean isDefault;
 }
