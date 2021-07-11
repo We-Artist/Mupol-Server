@@ -52,6 +52,10 @@ public class SoundService {
         sound.setFileUrl(fileUrl);
         soundRepository.save(sound);
 
+        //get video duration(length)
+        Long length = ffmpegService.getVideoLength(soundFile, userId, soundId);
+        sound.setLength(length);
+
         // remove dir
         deleteFolder(new File(fileBasePath + userId));
 
@@ -91,6 +95,7 @@ public class SoundService {
         dto.setUserId(snd.getUser().getId());
         dto.setFileUrl(snd.getFileUrl());
         dto.setCreatedAt(snd.getCreatedAt().atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        dto.setLength(snd.getLength());
         return dto;
     }
 

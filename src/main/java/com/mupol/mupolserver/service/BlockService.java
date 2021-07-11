@@ -1,7 +1,7 @@
 package com.mupol.mupolserver.service;
 
 import com.mupol.mupolserver.domain.block.BlockRepository;
-import com.mupol.mupolserver.domain.comment.Block;
+import com.mupol.mupolserver.domain.block.Block;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.block.BlockResDto;
 import lombok.RequiredArgsConstructor;

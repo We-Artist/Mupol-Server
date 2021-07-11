@@ -1,4 +1,4 @@
-package com.mupol.mupolserver.domain.comment;
+package com.mupol.mupolserver.domain.block;
 
 import com.mupol.mupolserver.domain.user.User;
 import lombok.*;
@@ -19,12 +19,12 @@ public class Block {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "blocker")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User blocker;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "blocked")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User blocked;
 
