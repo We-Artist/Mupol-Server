@@ -29,10 +29,11 @@ public class PlaylistService {
     private final PlaylistVideoRepository playlistVideoRepository;
     private final VideoRepository videoRepository;
 
-    public PlaylistResDto createPlaylist(User user, String name) {
+    public PlaylistResDto createPlaylist(User user, String name, Boolean isDefault) {
         Playlist playlist = Playlist.builder()
                 .user(user)
                 .name(name)
+                .isDefault(isDefault)
                 .build();
         playlistRepository.save(playlist);
 
@@ -100,6 +101,7 @@ public class PlaylistService {
         dto.setUserId(snd.getUser().getId());
         dto.setName(snd.getName());
         dto.setVideoNum(playlistVideoRepository.countByPlaylistId(snd.getId()).orElseThrow());
+        dto.setIsDefault(snd.getIsDefault());
 
         PlaylistVideo video = playlistVideoRepository.findTop1ByPlaylistId(snd.getId()).orElse(null);
         if (video != null) dto.setThumbnail(video.getVideo().getThumbnailUrl());

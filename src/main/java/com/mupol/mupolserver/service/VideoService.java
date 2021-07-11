@@ -126,7 +126,7 @@ public class VideoService {
         video.setFileUrl(fileUrl);
 
         //get video duration(length)
-        Long length = ffmpegService.getVideoLength(videoFile, userId, videoId);
+        Long length = ffmpegService.getMediaLength(videoFile, userId, videoId);
         video.setLength(length);
 
         //upload thumbnail

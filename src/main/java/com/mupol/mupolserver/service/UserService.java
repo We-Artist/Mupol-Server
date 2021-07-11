@@ -29,6 +29,7 @@ public class UserService {
     private final VideoService videoService;
     private final FollowerService followerService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final BlockService blockService;
 
     public boolean validateUsername(String username) {
         boolean isValidCharacter = Pattern.matches("^[가-힣0-9a-zA-Z-]*$", username);
@@ -82,6 +83,7 @@ public class UserService {
     }
 
     public void quitUser(User user) {
+        System.out.println(user.getId());
         userRepository.deleteById(user.getId());
     }
 
@@ -117,6 +119,7 @@ public class UserService {
                 .followerCount(followerService.getFollowerList(target).size())
                 .followingCount(followerService.getFollowingList(target).size())
                 .isFollowing(user != null && followerService.isFollowingUser(user, target))
+                .isBlocked(blockService.getIsBlocked(user, target))
                 .build();
     }
 

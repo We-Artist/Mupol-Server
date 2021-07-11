@@ -21,7 +21,6 @@ public class Sound extends BaseTime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -35,4 +34,7 @@ public class Sound extends BaseTime {
 
     @Setter
     private String fileUrl;
+
+    @Setter
+    private Long Length;
 }

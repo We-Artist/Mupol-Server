@@ -152,16 +152,16 @@ public class FFmpegService {
         }
     }
 
-    public Long getVideoLength(
+    public Long getMediaLength(
             MultipartFile mediaFile,
             Long userId,
             Long mediaId
     ) throws IOException {
 
-        String filePath = fileBasePath + userId + "/" + mediaId + "/";
+        String filePath = fileBasePath + userId + "\\" + mediaId + "\\";
 
         FFprobe ffprobe = new FFprobe(ffprobePath);
-        System.out.println(filePath + mediaFile.getOriginalFilename());
+        //System.out.println(filePath + mediaFile.getOriginalFilename());
         FFmpegProbeResult probeResult = ffprobe.probe(filePath + mediaFile.getOriginalFilename());
         FFmpegFormat format = probeResult.getFormat();
         double second = format.duration;
