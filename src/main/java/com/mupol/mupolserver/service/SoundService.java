@@ -53,7 +53,7 @@ public class SoundService {
         soundRepository.save(sound);
 
         //get video duration(length)
-        Long length = ffmpegService.getVideoLength(soundFile, userId, soundId);
+        Long length = ffmpegService.getMediaLength(soundFile, userId, soundId);
         sound.setLength(length);
 
         // remove dir
