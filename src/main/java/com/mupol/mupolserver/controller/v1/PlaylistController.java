@@ -6,6 +6,7 @@ import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import com.mupol.mupolserver.dto.playlist.PlaylistMoveVideoDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistResDto;
+import com.mupol.mupolserver.dto.playlist.PlaylistVideoAddDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoDto;
 import com.mupol.mupolserver.dto.video.VideoWithCommentDto;
 import com.mupol.mupolserver.service.*;
@@ -134,10 +135,10 @@ public class PlaylistController {
     @PostMapping(value = "/add/video/{playlistId}")
     public ResponseEntity<SingleResult<PlaylistVideoDto>> addPlaylistVideoes(
             @RequestHeader("Authorization") String jwt,
-            @PathVariable String playlistId,
-            @RequestBody String videoId) throws IOException, InterruptedException {
-        PlaylistVideoDto dto = playlistService.addPlaylistVideo(Long.valueOf(playlistId), Long.valueOf(videoId));
-        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
+            @RequestBody PlaylistVideoAddDto dto
+    ) throws IOException, InterruptedException {
+        PlaylistVideoDto playlistVideoDto = playlistService.addPlaylistVideo(dto.getPlaylistId(), dto.getVideoId());
+        return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(playlistVideoDto));
     }
 
     @ApiImplicitParams({
