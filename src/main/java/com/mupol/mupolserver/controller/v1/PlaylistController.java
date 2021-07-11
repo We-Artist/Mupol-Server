@@ -144,11 +144,11 @@ public class PlaylistController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "재생 목록에 동영상 삭제")
-    @DeleteMapping(value = "/delete/video/{playlistId}")
+    @DeleteMapping(value = "/delete/video/{playlistId}/{videoId}")
     public ResponseEntity<SingleResult<String>> deletePlaylistVideoes(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId,
-            @RequestBody String videoId) throws IOException, InterruptedException {
+            @PathVariable String videoId) throws IOException, InterruptedException {
         playlistService.deletePlaylistVideo(Long.valueOf(playlistId), Long.valueOf(videoId));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("removed"));
     }
