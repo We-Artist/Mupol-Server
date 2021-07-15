@@ -26,4 +26,7 @@ public class SoundResDto {
 
     @ApiModelProperty(notes = "User Id")
     private Long userId;
+
+    @ApiModelProperty(notes = "길이")
+    private Long length;
 }

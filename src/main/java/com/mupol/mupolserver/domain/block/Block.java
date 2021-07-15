@@ -1,9 +1,6 @@
-package com.mupol.mupolserver.domain.playlist;
+package com.mupol.mupolserver.domain.block;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mupol.mupolserver.domain.common.BaseTime;
 import com.mupol.mupolserver.domain.user.User;
-import com.mupol.mupolserver.domain.video.Video;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -15,21 +12,20 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "playlist")
-public class Playlist extends BaseTime {
+@Table(name = "user_block")
+public class Block {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "blocker")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User user;
+    private User blocker;
 
-    @Setter
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "blocked")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private User blocked;
 
-    @Setter
-    private Boolean isDefault;
 }

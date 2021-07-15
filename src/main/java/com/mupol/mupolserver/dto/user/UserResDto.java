@@ -25,4 +25,5 @@ public class UserResDto {
     private Integer followerCount;
     private Integer videoCount;
     private Boolean isFollowing;
+    private Boolean isBlocked;
 }

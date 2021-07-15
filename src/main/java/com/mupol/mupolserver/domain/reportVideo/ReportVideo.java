@@ -1,7 +1,7 @@
-package com.mupol.mupolserver.domain.playlist;
+package com.mupol.mupolserver.domain.reportVideo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mupol.mupolserver.domain.common.BaseTime;
+import com.mupol.mupolserver.domain.common.ReportType;
+import com.mupol.mupolserver.domain.common.ReportVideoType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
 import lombok.*;
@@ -15,21 +15,25 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "playlist")
-public class Playlist extends BaseTime {
+@Table(name = "report_video")
+public class ReportVideo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "reporter")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private User user;
+    private User reporter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reportedVid")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Video reportedVid;
 
     @Setter
-    private String name;
+    private String content;
 
     @Setter
-    private Boolean isDefault;
+    private ReportVideoType reportVideoType;
 }
