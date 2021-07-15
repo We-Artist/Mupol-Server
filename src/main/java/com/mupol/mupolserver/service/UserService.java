@@ -3,6 +3,8 @@ package com.mupol.mupolserver.service;
 import com.mupol.mupolserver.advice.exception.CUserNotFoundException;
 import com.mupol.mupolserver.config.security.JwtTokenProvider;
 import com.mupol.mupolserver.domain.common.CacheKey;
+import com.mupol.mupolserver.domain.quit.Quit;
+import com.mupol.mupolserver.domain.quit.QuitRepository;
 import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.user.UserRepository;
@@ -30,6 +32,7 @@ public class UserService {
     private final FollowerService followerService;
     private final JwtTokenProvider jwtTokenProvider;
     private final BlockService blockService;
+    private final QuitRepository quitRepository;
 
     public boolean validateUsername(String username) {
         boolean isValidCharacter = Pattern.matches("^[가-힣0-9a-zA-Z-]*$", username);
@@ -82,8 +85,13 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void quitUser(User user) {
-        System.out.println(user.getId());
+    public void quitUser(User user, String content) {
+        //TODO: 회원탈퇴사유 DB에 저장
+        Quit quit = Quit.builder()
+                .content(content)
+                .build();
+        quitRepository.save(quit);
+
         userRepository.deleteById(user.getId());
     }
 
