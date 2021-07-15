@@ -36,15 +36,9 @@ public class NotificationService {
             TargetType type
     ) throws IOException {
         String receiverToken = receiver.getFcmToken();
-        if(receiverToken == null || receiverToken.isEmpty()){
-            log.info("invalid receiver fcm token");
-            return;
-        }
-
         Long videoId = null;
         Long userId = null;
         Long targetId = null;
-
         if(target.getClass() == Video.class) {
             videoId = ((Video) target).getId();
             targetId = videoId;
@@ -72,7 +66,7 @@ public class NotificationService {
 
         Notification notification = Notification.builder()
                 .title(title)
-                .body(body)
+                .body("")
                 .sender(sender)
                 .receiver(receiver)
                 .videoId(videoId)
@@ -82,8 +76,13 @@ public class NotificationService {
                 .isFollowingUser(isFollowingUser)
                 .build();
 
-        fcmMessageService.sendMessageTo(receiverToken, title, body, type, targetId, isFollowingUser);
+        log.info("notification send:" + sender.getId() + " -> " + receiver.getId());
         notificationRepository.save(notification);
+        if(receiverToken == null || receiverToken.isEmpty()){
+            log.info("invalid receiver fcm token");
+            return;
+        }
+        fcmMessageService.sendMessageTo(receiverToken, title, body, type, targetId, isFollowingUser);
     }
 
     public List<NotificationDto> getReceivedNotification(User user) {
