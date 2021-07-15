@@ -86,10 +86,12 @@ public class SignController {
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "탈퇴")
-    @GetMapping(value = "/quit")
-    public ResponseEntity<SingleResult<String>> quitByProvider(@RequestHeader("Authorization") String jwt) throws IOException {
+    @DeleteMapping(value = "/quit")
+    public ResponseEntity<SingleResult<String>> quitByProvider(
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody String content) throws IOException {
         User user = userService.getUserByJwt(jwt);
-        userService.quitUser(user);
+        userService.quitUser(user, content);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("quit user"));
     }
 
