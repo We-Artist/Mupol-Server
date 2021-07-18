@@ -8,7 +8,7 @@ import com.mupol.mupolserver.dto.playlist.PlaylistMoveVideoDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistResDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoAddDto;
 import com.mupol.mupolserver.dto.playlist.PlaylistVideoDto;
-import com.mupol.mupolserver.dto.video.VideoWithCommentDto;
+import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.service.*;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -91,12 +91,12 @@ public class PlaylistController {
     })
     @ApiOperation(value = "좋아요 누른 영상 목록 조회")
     @GetMapping(value = "/view/like")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> viewLikedPlaylist(
+    public ResponseEntity<ListResult<VideoResDto>> viewLikedPlaylist(
             @RequestHeader("Authorization") String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
         List<Video> videoList = likeService.getLikedVideos(user);
-        List<VideoWithCommentDto> dto = videoService.getVideoWithCommentDtoList(user, videoList);
+        List<VideoResDto> dto = videoService.getVideoWithCommentDtoList(user, videoList);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dto));
     }
 
@@ -118,13 +118,13 @@ public class PlaylistController {
     })
     @ApiOperation(value = "개별 재생 목록의 동영상들 조회")
     @GetMapping(value = "/view/video/{playlistId}")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> viewPlaylistVideoes(
+    public ResponseEntity<ListResult<VideoResDto>> viewPlaylistVideoes(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String playlistId
     ) {
         User user = userService.getUserByJwt(jwt);
         List<Video> videoList = playlistService.getPlaylistVideoes(Long.valueOf(playlistId));
-        List<VideoWithCommentDto> dto = videoService.getVideoWithCommentDtoList(user, videoList);
+        List<VideoResDto> dto = videoService.getVideoWithCommentDtoList(user, videoList);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dto));
     }
 

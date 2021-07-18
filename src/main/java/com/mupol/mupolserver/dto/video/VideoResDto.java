@@ -42,8 +42,8 @@ public class VideoResDto {
     @ApiModelProperty(notes ="악기 목록")
     private List<Instrument> instrumentList;
 
-    @ApiModelProperty(notes ="조회수")
-    private int viewNum;
+    @ApiModelProperty(notes ="댓글 수")
+    private int commentNum;
 
     @ApiModelProperty(notes = "좋아요 flag")
     private Boolean likeFlag;

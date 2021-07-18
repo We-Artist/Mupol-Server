@@ -26,6 +26,7 @@ public class SearchService {
     private final VideoService videoService;
     private final PlaylistService playlistService;
     private final FollowerService followerService;
+    private final CommentService commentService;
     private final LikeService likeService;
 
     public List<SearchUserResultDto> searchUsersByName(User searchUser, String keyword) {
@@ -75,7 +76,7 @@ public class SearchService {
                     .userId(video.getUser().getId())
                     .thumbnailUrl(video.getThumbnailUrl())
                     .likeNum(likeService.getVideoLikeNum(video))
-                    .saveNum(playlistService.getSavedVideoCount(video))
+                    .commentNum(commentService.getComments(video.getId()).size())
                     .isLiked(user != null && likeService.isLiked(user, video))
                     .isSaved(user != null && playlistService.amISavedVideo(user, video))
                     .build();

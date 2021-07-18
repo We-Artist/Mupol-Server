@@ -13,9 +13,6 @@ import java.util.List;
 @Setter
 @Getter
 public class VideoViewDto extends VideoResDto {
-    @ApiModelProperty(notes = "댓글 수")
-    private Integer commentNum;
-
     @ApiModelProperty(notes = "댓글 목록")
     private List<CommentResDto> commentResDtoList;
 

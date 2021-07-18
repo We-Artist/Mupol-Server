@@ -13,7 +13,7 @@ public class SearchVideoResultDto {
     private String title;
     private String thumbnailUrl;
     private long likeNum;
-    private long saveNum;
+    private long commentNum;
     private boolean isLiked;
     private boolean isSaved;
 }
