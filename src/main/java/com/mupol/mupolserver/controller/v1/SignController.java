@@ -7,6 +7,7 @@ import com.mupol.mupolserver.domain.user.SnsType;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.dto.auth.SigninReqDto;
 import com.mupol.mupolserver.dto.auth.SignupReqDto;
+import com.mupol.mupolserver.dto.user.UserQuitDto;
 import com.mupol.mupolserver.service.*;
 import com.mupol.mupolserver.service.firebase.FcmMessageService;
 import io.swagger.annotations.*;
@@ -32,6 +33,7 @@ public class SignController {
     private final S3Service s3Service;
     private final JwtTokenProvider jwtTokenProvider;
     private final PlaylistService playlistService;
+    private final VideoService videoService;
 
     @ApiOperation(value = "소셜 로그인")
     @PostMapping(value = "/signin")
@@ -89,9 +91,10 @@ public class SignController {
     @DeleteMapping(value = "/quit")
     public ResponseEntity<SingleResult<String>> quitByProvider(
             @RequestHeader("Authorization") String jwt,
-            @RequestBody String content) throws IOException {
+            @RequestBody UserQuitDto dto) throws IOException {
         User user = userService.getUserByJwt(jwt);
-        userService.quitUser(user, content);
+        videoService.deleteUserVideo(user.getId());
+        userService.quitUser(user, dto.getContent().toString());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("quit user"));
     }
 

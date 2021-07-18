@@ -235,6 +235,14 @@ public class VideoService {
         videoRepository.deleteById(videoId);
     }
 
+    public void deleteUserVideo(Long userId){
+        List<Video> videoList = videoRepository.findVideosByUserId(userId).orElseThrow();
+
+        for (Video v : videoList) {
+            deleteVideo(userId, v.getId());
+        }
+    }
+
     public VideoPageDto getUserVideoList(Long userId, int pageNum) {
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
