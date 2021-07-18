@@ -14,7 +14,7 @@ public class SearchUserResultDto {
     private Long id;
     private String username;
     private String profileImageUrl;
-    private List<Instrument> favoriteInstruments;
+    private List<Instrument> favoriteInstrumentList;
     private int followerNumber;
-    private boolean isFollowing;
+    private Boolean isFollowing;
 }

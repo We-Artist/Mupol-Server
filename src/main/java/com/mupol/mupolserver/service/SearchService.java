@@ -36,7 +36,7 @@ public class SearchService {
                     .username(user.getUsername())
                     .id(user.getId())
                     .profileImageUrl(user.getProfileImageUrl())
-                    .favoriteInstruments(user.getFavoriteInstrument())
+                    .favoriteInstrumentList(user.getFavoriteInstrument())
                     .followerNumber(user.getFollowers().size())
                     .isFollowing(searchUser != null && followerService.isFollowingUser(searchUser, user))
                     .build();
@@ -71,7 +71,7 @@ public class SearchService {
         for (Video video : videos) {
             SearchVideoResultDto dto = SearchVideoResultDto.builder()
                     .title(video.getTitle())
-                    .videoId(video.getId())
+                    .id(video.getId())
                     .userId(video.getUser().getId())
                     .thumbnailUrl(video.getThumbnailUrl())
                     .likeNum(likeService.getVideoLikeNum(video))

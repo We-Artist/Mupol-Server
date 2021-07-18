@@ -8,7 +8,7 @@ import lombok.ToString;
 @Builder
 @ToString
 public class SearchVideoResultDto {
-    private Long videoId;
+    private Long id;
     private Long userId;
     private String title;
     private String thumbnailUrl;
