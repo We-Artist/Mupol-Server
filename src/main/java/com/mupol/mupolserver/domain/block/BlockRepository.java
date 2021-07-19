@@ -14,4 +14,5 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
     @Transactional
     Optional<Block> deleteByBlockerAndBlocked(User blocker, User blocked);
     Optional<Boolean> existsByBlockerAndBlocked(User blocker, User blocked);
+    Optional<List<Block>> findBlockedByBlocker(User blocker);
 }

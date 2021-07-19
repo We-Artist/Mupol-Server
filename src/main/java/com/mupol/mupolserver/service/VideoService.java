@@ -3,6 +3,8 @@ package com.mupol.mupolserver.service;
 import com.amazonaws.util.IOUtils;
 import com.mupol.mupolserver.advice.exception.InstrumentNotExistException;
 import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
+import com.mupol.mupolserver.domain.block.Block;
+import com.mupol.mupolserver.domain.block.BlockRepository;
 import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
@@ -57,6 +59,7 @@ public class VideoService {
     private final CommentService commentService;
     private final FollowerService followerService;
     private final NotificationService notificationService;
+    private final BlockRepository blockRepository;
 
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
@@ -181,7 +184,14 @@ public class VideoService {
         return getViewHistory(viewHistory);
     }
 
-    public VideoPageDto getHotVideo(int pageNum) {
+    public VideoPageDto getHotVideo(int pageNum, User user) {
+        List<Block> blockedList = new ArrayList<>();
+        blockedList = blockRepository.findBlockedByBlocker(user).orElseThrow();
+
+        List<Long> blockedIdList = new ArrayList<>();
+        for (Block b : blockedList)
+            blockedIdList.add(b.getBlocked().getId());
+
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         LocalDate now = LocalDate.now();
@@ -197,7 +207,11 @@ public class VideoService {
         videoIdList = viewHistoryRepository.getHotVideoList(start, end).orElseThrow();
 
         VideoPageDto dto = new VideoPageDto();
-        Page<Video> result = videoRepository.findByIdInOrderByViewNumDesc(videoIdList, pageRequest).orElseThrow();
+        Page<Video> result;
+        if (blockedList.isEmpty())
+            result = videoRepository.findByIdInOrderByViewNumDesc(videoIdList, pageRequest).orElseThrow();
+        else
+            result = videoRepository.findByIdInAndUserIdNotInOrderByViewNumDesc(videoIdList, blockedIdList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
         boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
@@ -209,10 +223,22 @@ public class VideoService {
         return dto;
     }
 
-    public VideoPageDto getNewVideo(int pageNum) {
+    public VideoPageDto getNewVideo(int pageNum, User user) {
+        List<Block> blockedList = new ArrayList<>();
+        blockedList = blockRepository.findBlockedByBlocker(user).orElseThrow();
+
+        List<Long> blockedIdList = new ArrayList<>();
+        for (Block b : blockedList)
+            blockedIdList.add(b.getBlocked().getId());
+
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
         VideoPageDto dto = new VideoPageDto();
-        Page<Video> result = videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
+        Page<Video> result;
+        result = videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
+        if (blockedList.isEmpty())
+            result = videoRepository.findAllByOrderByCreatedAtDesc(pageRequest).orElseThrow();
+        else
+            result = videoRepository.findAllByUserIdNotInOrderByCreatedAtDesc(blockedIdList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
         boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
@@ -224,8 +250,18 @@ public class VideoService {
         return dto;
     }
 
-    public Video getRandomVideo() {
-        return videoRepository.getRandomVideo().orElseThrow();
+    public Video getRandomVideo(User user) {
+        List<Block> blockedList = new ArrayList<>();
+        blockedList = blockRepository.findBlockedByBlocker(user).orElseThrow();
+
+        List<Long> blockedIdList = new ArrayList<>();
+        for (Block b : blockedList)
+            blockedIdList.add(b.getBlocked().getId());
+
+        if (blockedIdList.isEmpty())
+            return videoRepository.getRandomVideo().orElseThrow();
+        else
+            return videoRepository.getRandomVideo(blockedIdList).orElseThrow();
     }
 
     public void deleteVideo(Long userId, Long videoId) {
@@ -260,13 +296,25 @@ public class VideoService {
     }
 
     public VideoPageDto getFollowingVideo(User user, int pageNum) {
+        List<Block> blockedList = new ArrayList<>();
+        blockedList = blockRepository.findBlockedByBlocker(user).orElseThrow();
+
+        List<Long> blockedIdList = new ArrayList<>();
+        for (Block b : blockedList)
+            blockedIdList.add(b.getBlocked().getId());
+
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         List<Long> followersList = new ArrayList<>();
         followersList = followerRepository.findToIdByFromId(user.getId()).orElseThrow();
 
         VideoPageDto dto = new VideoPageDto();
-        Page<Video> result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
+        Page<Video> result;
+        result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
+        if (blockedList.isEmpty())
+            result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
+        else
+            result = videoRepository.findByUserIdInAndUserIdNotInOrderByCreatedAtDesc(followersList, blockedIdList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
         boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
@@ -279,13 +327,25 @@ public class VideoService {
     }
 
     public VideoPageDto getInstVideo(User user, int pageNum) {
+        List<Block> blockedList = new ArrayList<>();
+        blockedList = blockRepository.findBlockedByBlocker(user).orElseThrow();
+
+        List<Long> blockedIdList = new ArrayList<>();
+        for (Block b : blockedList)
+            blockedIdList.add(b.getBlocked().getId());
+
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
         List<Instrument> instrumentList = new ArrayList<>();
         instrumentList = user.getFavoriteInstrument();
 
         VideoPageDto dto = new VideoPageDto();
-        Page<Video> result = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList, pageRequest).orElseThrow();
+        Page<Video> result;
+        result = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList, pageRequest).orElseThrow();
+        if (blockedList.isEmpty())
+            result = videoRepository.findAllByInstrumentsInOrderByCreatedAtDesc(instrumentList, pageRequest).orElseThrow();
+        else
+            result = videoRepository.findAllByInstrumentsInAndUserIdNotInOrderByCreatedAtDesc(instrumentList, blockedIdList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
         boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;

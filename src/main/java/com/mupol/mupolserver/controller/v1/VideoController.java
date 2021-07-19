@@ -151,7 +151,7 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        VideoPageDto dto = videoService.getNewVideo(page);
+        VideoPageDto dto = videoService.getNewVideo(page, user);
         List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
@@ -166,10 +166,9 @@ public class VideoController {
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
-        VideoPageDto dto = videoService.getHotVideo(page);
+        VideoPageDto dto = videoService.getHotVideo(page, user);
         List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
-
     }
 
     @ApiImplicitParams({
@@ -213,7 +212,7 @@ public class VideoController {
             @RequestHeader(name = "Authorization", required = false) String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
-        VideoWithCommentDto dto = videoService.getVideoWithCommentDto(user, videoService.getRandomVideo());
+        VideoWithCommentDto dto = videoService.getVideoWithCommentDto(user, videoService.getRandomVideo(user));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
