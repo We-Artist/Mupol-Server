@@ -55,6 +55,7 @@ public class CommentService {
         dto.setCreatedAt(TimeUtils.getUnixTimestamp(comment.getCreatedAt()));
         dto.setUpdatedAt(TimeUtils.getUnixTimestamp(comment.getModifiedDate()));
         dto.setUserId(comment.getUser().getId());
+        dto.setUserProfile(comment.getUser().getProfileImageUrl());
         return dto;
     }
 

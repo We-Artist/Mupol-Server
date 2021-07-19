@@ -86,7 +86,6 @@ public class UserService {
     }
 
     public void quitUser(User user, String content) {
-        //TODO: 회원탈퇴사유 DB에 저장
         Quit quit = Quit.builder()
                 .content(content)
                 .build();

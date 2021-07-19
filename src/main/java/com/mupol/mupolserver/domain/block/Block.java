@@ -18,12 +18,12 @@ public class Block {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "blocker")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User blocker;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "blocked")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User blocked;
