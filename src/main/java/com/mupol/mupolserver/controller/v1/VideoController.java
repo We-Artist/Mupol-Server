@@ -169,7 +169,6 @@ public class VideoController {
         VideoPageDto dto = videoService.getHotVideo(page);
         List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
-
     }
 
     @ApiImplicitParams({
