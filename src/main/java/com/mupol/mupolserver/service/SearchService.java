@@ -69,13 +69,18 @@ public class SearchService {
 
     private List<SearchVideoResultDto> getVideoDtoList(User user, List<Video> videos) {
         List<SearchVideoResultDto> videoList = new ArrayList<>();
+        List<String> instrumentList;
         for (Video video : videos) {
+            instrumentList = new ArrayList<>();
+            for(Instrument i: video.getInstruments())
+                instrumentList.add(i.getEn());
             SearchVideoResultDto dto = SearchVideoResultDto.builder()
                     .title(video.getTitle())
                     .id(video.getId())
                     .userId(video.getUser().getId())
                     .thumbnailUrl(video.getThumbnailUrl())
                     .likeNum(likeService.getVideoLikeNum(video))
+                    .instrumentList(instrumentList)
                     .commentNum(commentService.getComments(video.getId()).size())
                     .isLiked(user != null && likeService.isLiked(user, video))
                     .isSaved(user != null && playlistService.amISavedVideo(user, video))
