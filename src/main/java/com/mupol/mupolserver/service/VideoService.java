@@ -321,8 +321,8 @@ public class VideoService {
                 .saveNum(playlistService.getSavedVideoCount(video))
                 .width(video.getWidth())
                 .height(video.getHeight())
-                // TODO: 다음 추천 영상 목록
-                //.nextVideoList()
+                .isRepresentativeVideo(user != null && video.getUser().getId().equals(user.getId()) && user.getRepresentativeVideoId().equals(video.getId()))
+                .isMine(user != null && video.getUser().getId().equals(user.getId()))
                 .build();
     }
 

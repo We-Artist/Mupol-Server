@@ -36,4 +36,10 @@ public class VideoViewDto extends VideoResDto {
 
     @ApiModelProperty(notes = "세로 크기")
     private Long height;
+
+    @ApiModelProperty(notes = "내 비디오 여부")
+    private Boolean isMine;
+
+    @ApiModelProperty(notes = "대표 비디오 여부")
+    private Boolean isRepresentativeVideo;
 }
