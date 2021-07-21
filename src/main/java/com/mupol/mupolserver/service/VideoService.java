@@ -357,7 +357,7 @@ public class VideoService {
         return dto;
     }
 
-    public List<VideoWithCommentDto> getVideoWithCommentDtoList(User user, List<Video> videoList) {
+    public List<VideoResDto> getVideoWithCommentDtoList(User user, List<Video> videoList) {
         return videoList.stream().map((video) -> getVideoWithCommentDto(user, video)).collect(Collectors.toList());
     }
 
@@ -378,7 +378,6 @@ public class VideoService {
                 .createdAt(TimeUtils.getUnixTimestamp(video.getCreatedAt()))
                 .fileUrl(video.getFileUrl())
                 .instrumentList(video.getInstruments())
-                .viewNum(video.getViewNum())
                 .userId(video.getUser().getId())
                 .likeNum(likeService.getVideoLikeNum(video))
                 .likeFlag(user != null && likeService.isLiked(user, video))
@@ -390,8 +389,8 @@ public class VideoService {
                 .saveNum(playlistService.getSavedVideoCount(video))
                 .width(video.getWidth())
                 .height(video.getHeight())
-                // TODO: 다음 추천 영상 목록
-                //.nextVideoList()
+                .isRepresentativeVideo(user != null && video.getUser().getId().equals(user.getId()) && user.getRepresentativeVideoId().equals(video.getId()))
+                .isMine(user != null && video.getUser().getId().equals(user.getId()))
                 .build();
     }
 
@@ -407,7 +406,7 @@ public class VideoService {
                 .createdAt(TimeUtils.getUnixTimestamp(video.getCreatedAt()))
                 .fileUrl(video.getFileUrl())
                 .instrumentList(video.getInstruments())
-                .viewNum(video.getViewNum())
+                .commentNum(commentService.getComments(video.getId()).size())
                 .userId(video.getUser().getId())
                 .likeNum(likeService.getVideoLikeNum(video))
                 .likeFlag(user != null && likeService.isLiked(user, video))
@@ -417,9 +416,9 @@ public class VideoService {
                 .build();
     }
 
-    public VideoWithCommentDto getVideoWithCommentDto(User user, Video video) {
+    public VideoResDto getVideoWithCommentDto(User user, Video video) {
         List<Comment> commentList = commentService.getComments(video.getId());
-        return VideoWithCommentDto.builder()
+        return VideoResDto.builder()
                 .id(video.getId())
                 .title(video.getTitle())
                 .thumbnailUrl(video.getThumbnailUrl())
@@ -430,7 +429,6 @@ public class VideoService {
                 .createdAt(TimeUtils.getUnixTimestamp(video.getCreatedAt()))
                 .fileUrl(video.getFileUrl())
                 .instrumentList(video.getInstruments())
-                .viewNum(video.getViewNum())
                 .userId(video.getUser().getId())
                 .likeNum(likeService.getVideoLikeNum(video))
                 .likeFlag(user != null && likeService.isLiked(user, video))

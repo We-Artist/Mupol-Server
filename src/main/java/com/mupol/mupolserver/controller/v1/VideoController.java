@@ -71,12 +71,12 @@ public class VideoController {
     })
     @ApiOperation(value = "내 비디오 전체 조회")
     @GetMapping("/all")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> getVideoList(
+    public ResponseEntity<ListResult<VideoResDto>> getVideoList(
             @RequestHeader(value = "Authorization") String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
         if (user == null) throw new IllegalArgumentException("user not exist");
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getVideos(user.getId()));
+        List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getVideos(user.getId()));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
@@ -146,13 +146,13 @@ public class VideoController {
     })
     @ApiOperation(value = "최신 영상 조회 (20개씩)")
     @GetMapping("/view/new/{page}")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> viewNewVideo(
+    public ResponseEntity<ListResult<VideoResDto>> viewNewVideo(
             @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
         VideoPageDto dto = videoService.getNewVideo(page, user);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
@@ -161,13 +161,13 @@ public class VideoController {
     })
     @ApiOperation(value = "인기 영상 조회 (20개씩)")
     @GetMapping("/view/hot/{page}")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> viewHotVideo(
+    public ResponseEntity<ListResult<VideoResDto>> viewHotVideo(
             @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
         VideoPageDto dto = videoService.getHotVideo(page, user);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
@@ -176,14 +176,14 @@ public class VideoController {
     })
     @ApiOperation(value = "팔로우 계정 영상 조회 (20개씩)")
     @GetMapping("/view/follow/user/{page}")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> viewFollowUserVideo(
+    public ResponseEntity<ListResult<VideoResDto>> viewFollowUserVideo(
             @RequestHeader(value = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
         if (user == null) throw new UserDoesNotAgreeException("invalid user");
         VideoPageDto dto = videoService.getFollowingVideo(user, page);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
@@ -192,14 +192,14 @@ public class VideoController {
     })
     @ApiOperation(value = "팔로우 악기 영상 조회 (20개씩)")
     @GetMapping("/view/follow/inst/{page}")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> viewFollowInstVideo(
+    public ResponseEntity<ListResult<VideoResDto>> viewFollowInstVideo(
             @RequestHeader(value = "Authorization", required = false) String jwt,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
         if (user == null) throw new UserDoesNotAgreeException("invalid user");
         VideoPageDto dto = videoService.getInstVideo(user, page);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
@@ -208,11 +208,11 @@ public class VideoController {
     })
     @ApiOperation(value = "추천 영상 조회")
     @GetMapping("/view/recommendation")
-    public ResponseEntity<SingleResult<VideoWithCommentDto>> viewRecommendationVideo(
+    public ResponseEntity<SingleResult<VideoResDto>> viewRecommendationVideo(
             @RequestHeader(name = "Authorization", required = false) String jwt
     ) {
         User user = userService.getUserByJwt(jwt);
-        VideoWithCommentDto dto = videoService.getVideoWithCommentDto(user, videoService.getRandomVideo(user));
+        VideoResDto dto = videoService.getVideoWithCommentDto(user, videoService.getRandomVideo(user));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
@@ -221,14 +221,14 @@ public class VideoController {
     })
     @ApiOperation(value = "특정인의 비디오 전체 조회(20개씩)")
     @GetMapping("/view/all/{userId}/{page}")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> getUserVideoList(
+    public ResponseEntity<ListResult<VideoResDto>> getUserVideoList(
             @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String userId,
             @PathVariable int page
     ) {
         User user = userService.getUserByJwt(jwt);
         VideoPageDto dto = videoService.getUserVideoList(Long.valueOf(userId), page);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
+        List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, dto.getVideoList());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getPageListResult(dtoList, dto.isHasPrevPage(), dto.isHasNextPage()));
     }
 
@@ -237,12 +237,12 @@ public class VideoController {
     })
     @ApiOperation(value = "다음 영상 목록(최대 10개)")
     @GetMapping("/view/next/{videoId}")
-    public ResponseEntity<ListResult<VideoWithCommentDto>> getNextVideoList(
+    public ResponseEntity<ListResult<VideoResDto>> getNextVideoList(
             @RequestHeader(name = "Authorization", required = false) String jwt,
             @PathVariable String videoId
     ) {
         User user = userService.getUserByJwt(jwt);
-        List<VideoWithCommentDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNextVideoList(Long.valueOf(videoId)));
+        List<VideoResDto> dtoList = videoService.getVideoWithCommentDtoList(user, videoService.getNextVideoList(Long.valueOf(videoId)));
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getListResult(dtoList));
     }
 
