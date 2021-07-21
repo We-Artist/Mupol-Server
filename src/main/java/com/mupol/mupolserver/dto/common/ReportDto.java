@@ -7,7 +7,7 @@ import lombok.ToString;
 @ToString
 public class ReportDto {
     private String title;
-    private String type;
+    private Integer type;
     private String name;
     private String email;
     private String content;

@@ -79,7 +79,7 @@ public class CommonController {
         List<HashMap<String, String>> keywords = new ArrayList<>();
         for (ReportType r : reportTypes) {
             HashMap<String, String> report = new HashMap<>();
-            report.put("id", r.name());
+            report.put("id", r.getId().toString());
             report.put("valueKr", r.getKo());
             keywords.add(report);
         }
@@ -91,10 +91,13 @@ public class CommonController {
     public ResponseEntity<SingleResult<String>> reportBug(
             @RequestBody ReportDto dto
     ) {
-        ReportType t;
-        try {
-            t = ReportType.valueOf(dto.getType());
-        } catch (Exception e) {
+        ReportType t = null;
+        for(ReportType rt: ReportType.values()) {
+            if(rt.getId().equals(dto.getType())) {
+                t = rt;
+            }
+        }
+        if(t == null) {
             throw new IllegalArgumentException("invalid report type");
         }
 
