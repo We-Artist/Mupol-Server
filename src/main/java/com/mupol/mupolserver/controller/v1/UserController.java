@@ -219,7 +219,7 @@ public class UserController {
     }
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "팔로워 목록 불러오기")
     @GetMapping("/{userId}/followers")
@@ -232,7 +232,7 @@ public class UserController {
     }
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
+            @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", dataType = "String", paramType = "header")
     })
     @ApiOperation(value = "팔로잉 목록 불러오기")
     @GetMapping("/{userId}/followings")
