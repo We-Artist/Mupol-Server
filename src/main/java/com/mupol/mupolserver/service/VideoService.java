@@ -507,9 +507,9 @@ public class VideoService {
         return getVideoAtMonth(user, year, month).size();
     }
 
-    public void setViewOption(User user, Video video, Boolean option) {
+    public void setViewOption(User user, Video video, Boolean isPrivate) {
         if (user != video.getUser()) throw new UserDoesNotAgreeException("invalid user");
-        video.setIsPrivate(!option);
+        video.setIsPrivate(!isPrivate);
         videoRepository.save(video);
     }
 }

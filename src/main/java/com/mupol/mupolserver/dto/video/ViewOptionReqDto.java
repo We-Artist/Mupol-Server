@@ -8,6 +8,7 @@ import lombok.ToString;
 @ToString
 public class ViewOptionReqDto {
     private Long videoId;
-    @ApiModelProperty(notes = "공개:true 비공개:false")
-    private Boolean option;
+
+    @ApiModelProperty(notes = "대표영상:0, 공개:1, 비공개:2")
+    private Long option;
 }

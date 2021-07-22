@@ -257,11 +257,22 @@ public class VideoController {
     @PostMapping("/view-option")
     public ResponseEntity<SingleResult<String>> setVideoViewOption(
             @RequestHeader(name = "Authorization") String jwt,
-            @ApiParam(value = "option: true(공개)/false(비공개)") @RequestBody ViewOptionReqDto dto
+            @ApiParam(value = "0:대표영상설정, 1:영상공개, 2:영상비공개") @RequestBody ViewOptionReqDto dto
     ) {
         User user = userService.getUserByJwt(jwt);
         Video video = videoService.getVideo(dto.getVideoId());
-        videoService.setViewOption(user, video, dto.getOption());
+        Long option = dto.getOption();
+        if (option == 0) {
+            userService.setRepresentativeVideoId(user.getId(), video.getId());
+            videoService.setViewOption(user, video, false);
+        } else if (option == 1) {
+            userService.deleteRepresentativeVideoId(user.getId());
+            videoService.setViewOption(user, video, false);
+        } else if (option == 2) {
+            videoService.setViewOption(user, video, true);
+        } else {
+            throw new IllegalArgumentException("illegal view option");
+        }
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("view option: " + dto.getOption()));
     }
 }
