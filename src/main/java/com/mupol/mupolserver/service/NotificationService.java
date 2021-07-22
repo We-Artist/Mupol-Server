@@ -39,26 +39,32 @@ public class NotificationService {
         Long videoId = null;
         Long userId = null;
         Long targetId = null;
-        if(target.getClass() == Video.class) {
+        if (target.getClass() == Video.class) {
             videoId = ((Video) target).getId();
             targetId = videoId;
-        }
-        else if(target.getClass() == User.class) {
+        } else if (target.getClass() == User.class) {
             userId = ((User) target).getId();
             targetId = userId;
         }
 
         String title;
         String body = null;
+        String senderName = sender.getUsername();
         switch (type) {
             case comment:
-                title = sender.getUsername() + "님이 게시물에 댓글을 작성하였습니다.";
+                title = senderName + "님이 게시물에 댓글을 작성하였습니다.";
                 break;
             case like:
-                title = sender.getUsername() + "님이 회원님의 게시물을 좋아합니다.";
+                title = senderName + "님이 회원님의 게시물을 좋아합니다.";
                 break;
             case follow:
-                title = sender.getUsername() + "님이 회원님을 팔로우하였습니다.";
+                title = senderName + "님이 회원님을 팔로우하였습니다.";
+                break;
+            case video_posted:
+                title = senderName + "님의 영상 업로드 처리가 완료되었습니다.";
+                break;
+            case sound_posted:
+                title = senderName + "님의 음성 업로드 처리가 완료되었습니다.";
                 break;
             default:
                 throw new IllegalArgumentException("invalid notification type");
@@ -74,15 +80,16 @@ public class NotificationService {
                 .targetType(type)
                 .isRead(false)
                 .isFollowingUser(isFollowingUser)
+                .senderProfileImageUrl(sender.getProfileImageUrl())
                 .build();
 
         log.info("notification send:" + sender.getId() + " -> " + receiver.getId());
         notificationRepository.save(notification);
-        if(receiverToken == null || receiverToken.isEmpty()){
+        if (receiverToken == null || receiverToken.isEmpty()) {
             log.info("invalid receiver fcm token");
             return;
         }
-        fcmMessageService.sendMessageTo(receiverToken, title, body, type, targetId, isFollowingUser);
+        fcmMessageService.sendMessageTo(receiverToken, title, body, type, targetId, isFollowingUser, sender.getProfileImageUrl());
     }
 
     public List<NotificationDto> getReceivedNotification(User user) {

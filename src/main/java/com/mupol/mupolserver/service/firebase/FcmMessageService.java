@@ -41,9 +41,10 @@ public class FcmMessageService {
             String body,
             TargetType targetType,
             Long targetId,
-            boolean isFollowing
+            boolean isFollowing,
+            String senderProfileImageUrl
     ) throws IOException {
-        String message = makeMessage(targetToken, title, body, targetType, targetId, isFollowing);
+        String message = makeMessage(targetToken, title, body, targetType, targetId, isFollowing, senderProfileImageUrl);
         log.info("===========FCM LOG===========");
         log.info(message);
 
@@ -52,18 +53,29 @@ public class FcmMessageService {
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8");
         HttpEntity<String> request = new HttpEntity<String>(message, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(API_URL, request, String.class);
-        System.out.println(response.getBody());
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(API_URL, request, String.class);
+            System.out.println(response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private String makeMessage(String targetToken, String title, String body, TargetType targetType, Long targetId, boolean isFollowing) throws JsonProcessingException {
+    private String makeMessage(
+            String targetToken,
+            String title, String body,
+            TargetType targetType,
+            Long targetId,
+            boolean isFollowing,
+            String senderProfileImageUrl
+    ) throws JsonProcessingException {
         FcmMessage fcmMessage = FcmMessage.builder()
                 .message(FcmMessage.Message.builder()
                         .token(targetToken)
                         .notification(FcmMessage.Notification.builder()
                                 .title(title)
                                 .body(body)
-                                .image(null)
+                                .image(senderProfileImageUrl)
                                 .build())
                         .data(FcmMessage.Data.builder()
                                 .target(targetType.getType())

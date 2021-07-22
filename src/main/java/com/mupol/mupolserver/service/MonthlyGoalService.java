@@ -11,6 +11,7 @@ import com.mupol.mupolserver.dto.video.VideoResDto;
 import com.mupol.mupolserver.dto.video.VideoWithSaveDto;
 import com.mupol.mupolserver.util.TimeUtils;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,10 +28,7 @@ public class MonthlyGoalService {
 
     public MonthlyGoal getMonthlyGoal(User user, LocalDate startDate) {
         Optional<MonthlyGoal> goal = monthlyGoalRepository.findMonthlyGoalByUserAndStartDate(user, startDate);
-        if (goal.isEmpty())
-            return MonthlyGoal.builder()
-                    .startDate(startDate)
-                    .build();
+        if (goal.isEmpty()) return null;
         return goal.get();
     }
 
@@ -41,22 +39,17 @@ public class MonthlyGoalService {
     public void update(User user) {
         LocalDate startDate = TimeUtils.getCurrentMonthFirstDate();
         MonthlyGoal monthlyGoal = getMonthlyGoal(user, startDate);
+        if(monthlyGoal == null) return;
         int year = monthlyGoal.getStartDate().getYear();
         int month = monthlyGoal.getStartDate().getMonthValue();
         int videoCnt = videoService.getVideoCountAtMonth(user, year, month);
         int soundCnt = soundService.getSoundCountAtMonth(user, year, month);
-        monthlyGoal.setAchieveNumber(videoCnt + soundCnt);
+        monthlyGoal.setAchieveNumber(videoCnt + soundCnt + 1);
         monthlyGoalRepository.save(monthlyGoal);
     }
 
     public MonthlyGoalDto getDto(MonthlyGoal goal) {
-        if(goal.getUser() == null)
-            return MonthlyGoalDto.builder()
-                    .achieveNumber(0)
-                    .goalNumber(0)
-                    .year(goal.getStartDate().getYear())
-                    .month(goal.getStartDate().getMonthValue())
-                    .build();
+        if (goal == null) return null;
         return MonthlyGoalDto.builder()
                 .achieveNumber(goal.getAchieveNumber())
                 .goalNumber(goal.getGoalNumber())
@@ -88,7 +81,7 @@ public class MonthlyGoalService {
             MonthlyGoal goal = getMonthlyGoal(user, startDate);
             List<SoundResDto> sndList = soundService.getSoundAtMonth(user, year, month);
             List<VideoWithSaveDto> vidList = videoService.getVideoAtMonth(user, year, month);
-            if(goal.getGoalNumber() == 0 && sndList.size() == 0 && vidList.size() == 0) continue;
+            if (goal.getGoalNumber() == 0 && sndList.size() == 0 && vidList.size() == 0) continue;
 
             result.add(GoalStatusResDto.builder()
                     .currentGoal(getDto(goal))
@@ -96,7 +89,7 @@ public class MonthlyGoalService {
                     .videoList(vidList)
                     .build());
             month -= 1;
-            if(month == 0) {
+            if (month == 0) {
                 month = 12;
                 year -= 1;
             }

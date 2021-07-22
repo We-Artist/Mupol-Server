@@ -1,10 +1,12 @@
 package com.mupol.mupolserver.controller.v1;
 
 import com.mupol.mupolserver.advice.exception.sign.UserDoesNotAgreeException;
+import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.user.User;
 import com.mupol.mupolserver.domain.video.Video;
+import com.mupol.mupolserver.dto.monthlyGoal.MonthlyGoalDto;
 import com.mupol.mupolserver.dto.video.*;
 import com.mupol.mupolserver.service.*;
 import com.mupol.mupolserver.util.TimeUtils;
@@ -31,6 +33,7 @@ public class VideoController {
     private final VideoService videoService;
     private final MonthlyGoalService monthlyGoalService;
     private final FollowerService followerService;
+    private final FFmpegService ffmpegService;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -38,7 +41,7 @@ public class VideoController {
     })
     @ApiOperation(value = "비디오 업로드")
     @PostMapping(value = "/new", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<SingleResult<VideoResDto>> addVideo(
+    public ResponseEntity<SingleResult<MonthlyGoalDto>> addVideo(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "title") @RequestParam String title,
             @ApiParam(value = "origin title") @RequestParam String originTitle,
@@ -59,10 +62,11 @@ public class VideoController {
         User user = userService.getUserByJwt(jwt);
         if (user == null) throw new IllegalArgumentException("invalid user");
         if (videoFile == null || videoFile.isEmpty()) throw new IllegalArgumentException("File is null");
-        VideoResDto dto = videoService.uploadVideo(videoFile, user, metaData);
-        if (monthlyGoalService.isGoalExist(user, TimeUtils.getCurrentMonthFirstDate())) {
-            monthlyGoalService.update(user);
-        }
+        String filePath = ffmpegService.saveTmpFile(videoFile, com.mupol.mupolserver.domain.common.MediaType.Video);
+        videoService.uploadVideo(filePath, user, metaData);
+        monthlyGoalService.update(user);
+        MonthlyGoal goal = monthlyGoalService.getMonthlyGoal(user, TimeUtils.getCurrentMonthFirstDate());
+        MonthlyGoalDto dto = monthlyGoalService.getDto(goal);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 
