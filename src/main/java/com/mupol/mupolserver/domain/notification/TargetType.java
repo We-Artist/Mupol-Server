@@ -8,7 +8,9 @@ import lombok.Getter;
 public enum TargetType {
     like("video"),
     comment("video"),
-    follow("user")
+    follow("user"),
+    video_posted("video_posted"),
+    sound_posted("sound_posted")
     ;
 
     private final String type;

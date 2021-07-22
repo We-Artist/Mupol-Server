@@ -1,15 +1,14 @@
 package com.mupol.mupolserver.controller.v1;
 
+import com.mupol.mupolserver.domain.monthlyGoal.MonthlyGoal;
 import com.mupol.mupolserver.domain.response.ListResult;
 import com.mupol.mupolserver.domain.response.SingleResult;
 import com.mupol.mupolserver.domain.sound.Sound;
 import com.mupol.mupolserver.domain.user.User;
+import com.mupol.mupolserver.dto.monthlyGoal.MonthlyGoalDto;
 import com.mupol.mupolserver.dto.sound.SoundOptionDto;
 import com.mupol.mupolserver.dto.sound.SoundResDto;
-import com.mupol.mupolserver.service.MonthlyGoalService;
-import com.mupol.mupolserver.service.ResponseService;
-import com.mupol.mupolserver.service.SoundService;
-import com.mupol.mupolserver.service.UserService;
+import com.mupol.mupolserver.service.*;
 import com.mupol.mupolserver.util.TimeUtils;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +32,7 @@ public class SoundController {
     private final UserService userService;
     private final SoundService soundService;
     private final MonthlyGoalService monthlyGoalService;
+    private final FFmpegService fFmpegService;
     private final ResponseService responseService;
 
     @ApiImplicitParams({
@@ -40,7 +40,7 @@ public class SoundController {
     })
     @ApiOperation(value = "녹음본 업로드", notes = "")
     @PostMapping(value = "/new",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<SingleResult<SoundResDto>> addSound(
+    public ResponseEntity<SingleResult<MonthlyGoalDto>> addSound(
             @RequestHeader("Authorization") String jwt,
             @ApiParam(value = "bpm") @RequestParam Integer bpm,
             @ApiParam(value = "title") @RequestParam String title,
@@ -49,10 +49,11 @@ public class SoundController {
         User user = userService.getUserByJwt(jwt);
         if (soundFile == null || soundFile.isEmpty())
             throw new IllegalArgumentException("File is null");
-        SoundResDto dto = soundService.uploadSound(soundFile, user, title, bpm);
-        if(monthlyGoalService.isGoalExist(user, TimeUtils.getCurrentMonthFirstDate())) {
-            monthlyGoalService.update(user);
-        }
+        String filePath = fFmpegService.saveTmpFile(soundFile, com.mupol.mupolserver.domain.common.MediaType.Sound);
+        soundService.uploadSound(filePath, user, title, bpm);
+        monthlyGoalService.update(user);
+        MonthlyGoal goal = monthlyGoalService.getMonthlyGoal(user, TimeUtils.getCurrentMonthFirstDate());
+        MonthlyGoalDto dto = monthlyGoalService.getDto(goal);
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult(dto));
     }
 

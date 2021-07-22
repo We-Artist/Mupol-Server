@@ -80,8 +80,7 @@ public class S3Service {
 
         for (File fileEntry : Objects.requireNonNull(folder.listFiles())) {
             fileExtension = StringUtils.getFilenameExtension(fileEntry.getName());
-            assert fileExtension != null;
-
+            if(fileExtension == null) continue;
             if (fileExtension.equals("ts") || fileExtension.equals("m3u8")) {
                 uploadMedia(fileEntry, userId, mediaId, mediaType);
                 if (fileExtension.equals("m3u8")) {

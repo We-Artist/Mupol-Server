@@ -30,18 +30,17 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -61,17 +60,16 @@ public class VideoService {
     private final NotificationService notificationService;
     private final BlockRepository blockRepository;
 
-    @Value("${ffmpeg.path.upload}")
-    private String fileBasePath;
+//    @Caching(evict = {
+//            @CacheEvict(value = CacheKey.VIDEO_ID, key = "#user.getId().toString()"),
+//            @CacheEvict(value = CacheKey.VIDEOS_USER_ID, key = "#user.getId().toString()"),
+//            @CacheEvict(value = CacheKey.VIDEOS_KEYWORD, allEntries = true),
+//            @CacheEvict(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()")
+//    })
 
-    @Caching(evict = {
-            @CacheEvict(value = CacheKey.VIDEO_ID, key = "#user.getId().toString()"),
-            @CacheEvict(value = CacheKey.VIDEOS_USER_ID, key = "#user.getId().toString()"),
-            @CacheEvict(value = CacheKey.VIDEOS_KEYWORD, allEntries = true),
-            @CacheEvict(value = CacheKey.MONTH_VIDEOS, key = "#user.getId().toString()")
-    }
-    )
-    public VideoResDto uploadVideo(MultipartFile videoFile, User user, VideoReqDto metaData) throws IOException, InterruptedException {
+    @Async
+    @Transactional
+    public void uploadVideo(String filePath, User user, VideoReqDto metaData) throws IOException, InterruptedException {
 
         log.info(metaData.getTitle());
         log.info(metaData.getOriginTitle());
@@ -113,27 +111,26 @@ public class VideoService {
         Long videoId = video.getId();
 
         // split video
-        ffmpegService.splitMedia(videoFile, userId, videoId, MediaType.Video);
+        ffmpegService.splitMedia(filePath, MediaType.Video);
 
         //get thumbnail
-        ffmpegService.createThumbnail(videoFile, userId, videoId);
+        ffmpegService.createThumbnail(filePath);
 
         //get ratio
-        VideoWidthHeightDto widthHeightDto = ffmpegService.getVideoWidthAndHeight(videoFile, userId, videoId);
+        VideoWidthHeightDto widthHeightDto = ffmpegService.getVideoWidthAndHeight(filePath);
         video.setWidth(widthHeightDto.getWidth());
         video.setHeight(widthHeightDto.getHeight());
 
-        // upload split video
-        File folder = new File(fileBasePath + userId + "/" + videoId);
-        String fileUrl = s3Service.uploadMediaFolder(folder, userId, videoId, MediaType.Video);
-        video.setFileUrl(fileUrl);
-
         //get video duration(length)
-        Long length = ffmpegService.getMediaLength(videoFile, userId, videoId);
+        Long length = ffmpegService.getMediaLength(filePath, MediaType.Video);
         video.setLength(length);
 
+        // upload split video
+        String fileUrl = s3Service.uploadMediaFolder(new File(filePath), userId, videoId, MediaType.Video);
+        video.setFileUrl(fileUrl);
+
         //upload thumbnail
-        File thumbnail = new File(fileBasePath + userId + "/" + videoId + "/thumbnail.png");
+        File thumbnail = new File( filePath + "thumbnail.png");
         FileInputStream input = new FileInputStream(thumbnail);
         MultipartFile multipartFile = new MockMultipartFile("thumbnail", thumbnail.getName(), "text/plain", IOUtils.toByteArray(input));
         String thumbnailUrl = s3Service.uploadThumbnail(multipartFile, userId, videoId);
@@ -142,9 +139,17 @@ public class VideoService {
         videoRepository.save(video);
 
         // remove dir
-        deleteFolder(new File(fileBasePath + userId));
+        deleteFolder(new File(filePath));
 
-        return getVideoWithSaveDto(null, video);
+        notificationService.send(
+                user,
+                user,
+                video,
+                false,
+                TargetType.video_posted
+        );
+
+//        return getVideoWithSaveDto(null, video);
     }
 
     //    @Cacheable(value = CacheKey.VIDEO_ID, key = "#videoId.toString()", unless = "#result == null")
@@ -457,7 +462,7 @@ public class VideoService {
     }
 
     static void deleteFolder(File file) {
-        for (File subFile : file.listFiles()) {
+        for (File subFile : Objects.requireNonNull(file.listFiles())) {
             if (subFile.isDirectory()) {
                 deleteFolder(subFile);
             } else {

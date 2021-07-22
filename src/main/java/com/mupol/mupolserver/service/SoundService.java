@@ -10,9 +10,11 @@ import com.mupol.mupolserver.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -32,7 +34,10 @@ public class SoundService {
     @Value("${ffmpeg.path.upload}")
     private String fileBasePath;
 
-    public SoundResDto uploadSound(MultipartFile soundFile, User user, String title, int bpm) throws IOException, InterruptedException {
+    @Async
+    @Transactional
+    public void uploadSound(String filePath, User user, String title, int bpm) throws IOException, InterruptedException {
+        Thread.sleep(1000);
         Sound sound = Sound.builder()
                 .bpm(bpm)
                 .title(title)
@@ -44,22 +49,20 @@ public class SoundService {
         Long soundId = sound.getId();
 
         // split sound
-        ffmpegService.splitMedia(soundFile, userId, soundId, MediaType.Sound);
+        ffmpegService.splitMedia(filePath, MediaType.Sound);
 
-        // upload splitted sound
-        File folder = new File(fileBasePath + userId + "/" + soundId);
-        String fileUrl = s3Service.uploadMediaFolder(folder, userId, soundId, MediaType.Sound);
+        // upload split sound
+        String fileUrl = s3Service.uploadMediaFolder(new File(filePath), userId, soundId, MediaType.Sound);
         sound.setFileUrl(fileUrl);
-        soundRepository.save(sound);
 
         //get video duration(length)
-        Long length = ffmpegService.getMediaLength(soundFile, userId, soundId);
+        Long length = ffmpegService.getMediaLength(filePath, MediaType.Sound);
         sound.setLength(length);
 
-        // remove dir
-        deleteFolder(new File(fileBasePath + userId));
+        soundRepository.save(sound);
 
-        return getSndDto(sound);
+        // remove dir
+        deleteFolder(new File(filePath));
     }
 
     public Sound getSound(Long soundId) {
