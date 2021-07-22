@@ -38,6 +38,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/v1/search/**",
                         "/v1/user/all",
                         "/v1/user/*",
+                        "/v1/user/*/followers",
+                        "/v1/user/*/followings",
                         "/v1/video/**",
                         "/v1/comment/view/**"
                 ).permitAll()
