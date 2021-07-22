@@ -36,6 +36,7 @@ build/
 **/application.yml
 **/application-local.yml
 **/application-deploy.yml
+**/application-local-lambda.yml
 
 d
 **/firebase-service-key.json
