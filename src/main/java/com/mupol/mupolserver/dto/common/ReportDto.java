@@ -8,7 +8,6 @@ import lombok.ToString;
 public class ReportDto {
     private String title;
     private Integer type;
-    private String name;
     private String email;
     private String content;
 }

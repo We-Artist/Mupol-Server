@@ -105,7 +105,6 @@ public class CommonController {
                 .type(t)
                 .title(dto.getTitle())
                 .email(dto.getEmail())
-                .name(dto.getName())
                 .content(dto.getContent())
                 .build());
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("reported"));
