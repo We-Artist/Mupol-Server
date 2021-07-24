@@ -17,7 +17,6 @@ public class Report {
     private Long id;
     private String title;
     private ReportType type;
-    private String name;
     private String email;
     private String content;
 }
