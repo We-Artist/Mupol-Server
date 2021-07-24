@@ -79,6 +79,7 @@ public class MonthlyGoalService {
         for (int i = 0; i < 24; ++i) {
             startDate = LocalDate.of(year, month, 1);
             MonthlyGoal goal = getMonthlyGoal(user, startDate);
+            if(goal == null) continue;
             List<SoundResDto> sndList = soundService.getSoundAtMonth(user, year, month);
             List<VideoWithSaveDto> vidList = videoService.getVideoAtMonth(user, year, month);
             if (goal.getGoalNumber() == 0 && sndList.size() == 0 && vidList.size() == 0) continue;
