@@ -8,6 +8,7 @@ import com.mupol.mupolserver.domain.block.BlockRepository;
 import com.mupol.mupolserver.domain.comment.Comment;
 import com.mupol.mupolserver.domain.common.CacheKey;
 import com.mupol.mupolserver.domain.common.MediaType;
+import com.mupol.mupolserver.domain.follower.Follower;
 import com.mupol.mupolserver.domain.follower.FollowerRepository;
 import com.mupol.mupolserver.domain.hashtag.Hashtag;
 import com.mupol.mupolserver.domain.instrument.Instrument;
@@ -310,16 +311,16 @@ public class VideoService {
 
         PageRequest pageRequest = PageRequest.of(pageNum, 20);
 
-        List<Long> followersList = new ArrayList<>();
-        followersList = followerRepository.findToIdByFromId(user.getId()).orElseThrow();
+        List<Follower> followersList = followerRepository.findToIdByFromId(user.getId()).orElseThrow();
+        List<Long> followerIdList = followersList.stream().map(Follower::getId).collect(Collectors.toList());
 
         VideoPageDto dto = new VideoPageDto();
         Page<Video> result;
-        result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
+        result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followerIdList, pageRequest).orElseThrow();
         if (blockedList.isEmpty())
-            result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followersList, pageRequest).orElseThrow();
+            result = videoRepository.findByUserIdInOrderByCreatedAtDesc(followerIdList, pageRequest).orElseThrow();
         else
-            result = videoRepository.findByUserIdInAndUserIdNotInOrderByCreatedAtDesc(followersList, blockedIdList, pageRequest).orElseThrow();
+            result = videoRepository.findByUserIdInAndUserIdNotInOrderByCreatedAtDesc(followerIdList, blockedIdList, pageRequest).orElseThrow();
         dto.setVideoList(result.getContent());
 
         boolean prev = result.getNumber() - 1 >= 0 && result.getNumber() - 1 <= result.getTotalPages() - 1;
