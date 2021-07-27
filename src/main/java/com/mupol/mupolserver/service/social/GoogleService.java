@@ -24,6 +24,7 @@ public class GoogleService implements SocialService {
 
     public String getGoogleProfile(String accessToken){
         String templateUrl = googleProfileUrl + accessToken;
+        log.info(templateUrl);
 
         try {
             URL url = new URL(templateUrl);
@@ -48,16 +49,6 @@ public class GoogleService implements SocialService {
                 log.info("result: "+ result);
 
                 return result;
-
-               /* JsonParser parser = new JsonParser();
-                log.info("result: "+ result);
-                JsonElement element = parser.parse(result);
-                System.out.println(element.getAsJsonObject().get("id").getAsString());
-
-                googleProfile.setId(element.getAsJsonObject().get("id").getAsString());
-                googleProfile.setEmail(element.getAsJsonObject().get("email").getAsString());
-                googleProfile.setVerified_email(element.getAsJsonObject().get("verified_email").getAsBoolean());
-                googleProfile.setPicture(element.getAsJsonObject().get("picture").getAsString());*/
 
             }
         } catch (Exception e) {

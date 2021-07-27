@@ -6,9 +6,8 @@ import lombok.ToString;
 @Getter
 @ToString
 public class ReportVideoDto {
-    private Long id;
-    private Long reporterId;
-    private Long reportedVidId;
-    private String type;
-    private String reportVideoContent;
+    private Long userId;
+    private Long videoId;
+    private String reason;
+    private Integer type;
 }
