@@ -24,6 +24,7 @@ public class GoogleService implements SocialService {
 
     public String getGoogleProfile(String accessToken){
         String templateUrl = googleProfileUrl + accessToken;
+        log.info(templateUrl);
 
         try {
             URL url = new URL(templateUrl);
