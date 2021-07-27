@@ -50,16 +50,6 @@ public class GoogleService implements SocialService {
 
                 return result;
 
-               /* JsonParser parser = new JsonParser();
-                log.info("result: "+ result);
-                JsonElement element = parser.parse(result);
-                System.out.println(element.getAsJsonObject().get("id").getAsString());
-
-                googleProfile.setId(element.getAsJsonObject().get("id").getAsString());
-                googleProfile.setEmail(element.getAsJsonObject().get("email").getAsString());
-                googleProfile.setVerified_email(element.getAsJsonObject().get("verified_email").getAsBoolean());
-                googleProfile.setPicture(element.getAsJsonObject().get("picture").getAsString());*/
-
             }
         } catch (Exception e) {
             e.printStackTrace();
