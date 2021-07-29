@@ -30,9 +30,6 @@ public class GoogleService implements SocialService {
             URL url = new URL(templateUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            //요청에 필요한 Header에 포함될 내용
-            conn.setRequestProperty("Authorization", "Bearer"+accessToken);
-
             int responseCode = conn.getResponseCode();
             log.info(String.valueOf(responseCode));
             if (responseCode == 200){
@@ -61,7 +58,7 @@ public class GoogleService implements SocialService {
     public String getSnsId(String token) {
         JsonParser parser = new JsonParser();
         JsonElement element = parser.parse(getGoogleProfile(token));
-        return element.getAsJsonObject().get("id").getAsString();
+        return element.getAsJsonObject().get("sub").getAsString();
     }
 
     @Override
