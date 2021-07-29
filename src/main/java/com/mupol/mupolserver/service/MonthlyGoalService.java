@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class MonthlyGoalService {
@@ -82,6 +83,9 @@ public class MonthlyGoalService {
             if(goal == null) continue;
             List<SoundResDto> sndList = soundService.getSoundAtMonth(user, year, month);
             List<VideoWithSaveDto> vidList = videoService.getVideoAtMonth(user, year, month);
+            log.info(sndList.toString());
+            log.info(vidList.toString());
+            log.info(goal.getId().toString());
             if (goal.getGoalNumber() == 0 && sndList.size() == 0 && vidList.size() == 0) continue;
 
             result.add(GoalStatusResDto.builder()
