@@ -115,7 +115,7 @@ public class UserService {
                 .id(target.getId())
                 .username(target.getUsername())
                 .profileImageUrl(target.getProfileImageUrl())
-                .bgImageUrl(target.getBgImageUrl())
+                .bgImageUrl(target.getProfileBgImageUrl())
                 .bio(target.getBio())
                 .createdAt(TimeUtils.getUnixTimestamp(target.getCreatedAt()))
                 .email(target.getEmail())
