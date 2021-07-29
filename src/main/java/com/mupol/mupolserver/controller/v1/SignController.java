@@ -50,7 +50,6 @@ public class SignController {
     public ResponseEntity<SingleResult<String>> signupProvider(
             @ApiParam(value = "json") @RequestBody SignupReqDto dto
     ) throws IOException {
-        System.out.println("");
         User newUser = signService.getUserFromDto(dto);
         userService.save(newUser);
         try {

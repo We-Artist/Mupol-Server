@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Api(tags = {"Common"})
@@ -127,27 +128,41 @@ public class CommonController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "비디오 신고하기")
+    @ApiOperation(value = "신고하기")
     @PostMapping(value = "/report/video")
     public ResponseEntity<SingleResult<String>> unblock(
             @RequestHeader("Authorization") String jwt,
             @RequestBody ReportVideoDto dto
     ) throws IOException, InterruptedException {
+        Optional<Long> videoId = Optional.ofNullable(dto.getVideoId());
+
         User reporter = userService.getUserByJwt(jwt);
 
-        ReportVideoType rv;
-        try {
-            rv = ReportVideoType.valueOf(dto.getType());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("invalid report video type");
+        ReportVideoType rv = null;
+        for(ReportVideoType rvt: ReportVideoType.values()) {
+            if(rvt.getId().equals(dto.getType())) {
+                rv = rvt;
+            }
+        }
+        if(rv == null) {
+            throw new IllegalArgumentException("invalid report type");
         }
 
-        reportVideoRepository.save(ReportVideo.builder()
+        if (videoId.isEmpty()){
+            reportVideoRepository.save(ReportVideo.builder()
                 .reportVideoType(rv)
                 .reporter(reporter)
-                .content(dto.getReportVideoContent())
-                .reportedVid(videoService.getVideo(dto.getReportedVidId()))
+                .content(dto.getReason())
                 .build());
+        }
+        else{
+            reportVideoRepository.save(ReportVideo.builder()
+                .reportVideoType(rv)
+                .reporter(reporter)
+                .content(dto.getReason())
+                .reportedVid(videoService.getVideo(dto.getVideoId()))
+                .build());
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(responseService.getSingleResult("reported video"));
     }
