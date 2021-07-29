@@ -32,12 +32,12 @@ public class BlockController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "jwt 토큰", required = true, dataType = "String", paramType = "header")
     })
-    @ApiOperation(value = "차단하기", notes = "")
+    @ApiOperation(value = "차단하기")
     @PostMapping(value = "/{userId}")
     public ResponseEntity<SingleResult<BlockResDto>> block(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String userId
-    ) throws IOException, InterruptedException {
+    ) {
         User blocker = userService.getUserByJwt(jwt);
         User blocked = userService.getUserById(Long.valueOf(userId));
 

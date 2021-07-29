@@ -68,8 +68,6 @@ public class User extends BaseTime implements UserDetails, Serializable {
     private String profileImageUrl;
     @Setter
     private String profileBgImageUrl;
-    @Setter
-    private String bgImageUrl;
 
     @Setter
     private Long representativeVideoId;

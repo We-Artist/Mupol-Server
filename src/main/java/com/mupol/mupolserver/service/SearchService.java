@@ -82,7 +82,7 @@ public class SearchService {
                     .likeNum(likeService.getVideoLikeNum(video))
                     .instrumentList(instrumentList)
                     .commentNum(commentService.getComments(video.getId()).size())
-                    .isLiked(user != null && likeService.isLiked(user, video))
+                    .likeFlag(user != null && likeService.isLiked(user, video))
                     .isSaved(user != null && playlistService.amISavedVideo(user, video))
                     .build();
             videoList.add(dto);

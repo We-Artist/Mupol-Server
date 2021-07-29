@@ -17,6 +17,6 @@ public class SearchVideoResultDto {
     private List<String> instrumentList;
     private long likeNum;
     private long commentNum;
-    private boolean isLiked;
+    private boolean likeFlag;
     private boolean isSaved;
 }
